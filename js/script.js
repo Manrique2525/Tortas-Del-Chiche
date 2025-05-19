@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     hamburger.addEventListener('click', function() {
         navLinks.classList.toggle('show');
     });
-    
+
     // Cerrar menú al hacer clic en un enlace
     const navItems = document.querySelectorAll('.nav-links a');
     navItems.forEach(item => {
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Smooth scrolling para enlaces internos
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Efecto de scroll para el header
     window.addEventListener('scroll', function() {
         const header = document.querySelector('header');
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
             header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
         }
     });
-    
+
     // Animación de elementos al hacer scroll
     const animateOnScroll = function() {
         const elements = document.querySelectorAll('.menu-item, .gallery-item, .about-image img');
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     };
-    
+
     // Establecer propiedades iniciales para la animación
     const animatedElements = document.querySelectorAll('.menu-item, .gallery-item, .about-image img');
     animatedElements.forEach(element => {
@@ -66,41 +66,59 @@ document.addEventListener('DOMContentLoaded', function() {
         element.style.transform = 'translateY(30px)';
         element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
     });
-    
+
     // Ejecutar al cargar y al hacer scroll
     animateOnScroll();
     window.addEventListener('scroll', animateOnScroll);
+
+    // Modal de bienvenida
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
     
-    // Validación del formulario de contacto
-    const contactForm = document.querySelector('.contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validación simple
-            const name = this.querySelector('input[type="text"]').value.trim();
-            const email = this.querySelector('input[type="email"]').value.trim();
-            const message = this.querySelector('textarea').value.trim();
-            
-            if (name === '' || email === '' || message === '') {
-                alert('Por favor complete todos los campos requeridos.');
-                return;
-            }
-            
-            if (!validateEmail(email)) {
-                alert('Por favor ingrese un correo electrónico válido.');
-                return;
-            }
-            
-            // Simular envío del formulario
-            alert('¡Gracias por su mensaje! Nos pondremos en contacto pronto.');
-            this.reset();
-        });
-    }
+    const modalContainer = document.createElement('div');
+    modalContainer.className = 'modal-container';
     
-    // Función para validar email
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    
+    const modalImage = document.createElement('img');
+    modalImage.src = 'img/logo_largo.jpeg';
+    modalImage.alt = 'Las Tortas Del Chiche';
+    modalImage.className = 'modal-image';
+    
+    const closeButton = document.createElement('button');
+    closeButton.className = 'modal-close';
+    closeButton.innerHTML = '&times;';
+    closeButton.setAttribute('aria-label', 'Cerrar');
+
+    modalContent.appendChild(modalImage);
+    modalContainer.appendChild(modalContent);
+    modalContainer.appendChild(closeButton);
+    modalOverlay.appendChild(modalContainer);
+    document.body.appendChild(modalOverlay);
+
+    setTimeout(function() {
+        modalOverlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(function() {
+            closeModal();
+        }, 8000);
+    }, 800);
+
+    function closeModal() {
+        modalOverlay.style.opacity = '0';
+        setTimeout(function() {
+            modalOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300);
     }
+
+    closeButton.addEventListener('click', closeModal);
+
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    });
 });
