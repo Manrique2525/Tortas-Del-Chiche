@@ -302,23 +302,6 @@ nav ul li a:hover::after {
     font-weight: 600;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .banquets-content {
-        flex-direction: column;
-    }
-    
-    .events-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .events-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
 /* Gallery Section */
 .gallery {
     background-color: var(--light-gray);
@@ -358,60 +341,8 @@ nav ul li a:hover::after {
 }
 
 /* Location Section */
-.location-content {
-    display: flex;
-    gap: 40px;
-    align-items: center;
-}
-
-.location-text {
-    flex: 1;
-}
-
-.location-text p {
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-}
-
-.location-text i {
-    margin-right: 10px;
-    color: var(--primary-orange);
-}
-
-.location-map {
-    flex: 1;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* Estilos para la sección de ubicación con múltiples sucursales */
-.location .branch {
-    margin-bottom: 60px;
-}
-
-.location .branch:last-child {
-    margin-bottom: 0;
-}
-
-.location .branch h3 {
-    color: var(--primary-orange);
-    font-size: 1.8rem;
-    margin-bottom: 20px;
+.location h2 {
     text-align: center;
-    position: relative;
-}
-
-.location .branch h3::after {
-    content: '';
-    position: absolute;
-    width: 80px;
-    height: 3px;
-    background-color: var(--primary-yellow);
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
 }
 
 .location-content {
@@ -432,14 +363,11 @@ nav ul li a:hover::after {
     margin-bottom: 15px;
     display: flex;
     align-items: center;
-    color: var(--text-color);
 }
 
 .location-text i {
     margin-right: 10px;
     color: var(--primary-orange);
-    min-width: 20px;
-    text-align: center;
 }
 
 .location-map {
@@ -447,22 +375,6 @@ nav ul li a:hover::after {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
-    .location-content {
-        flex-direction: column;
-    }
-    
-    .location-map {
-        width: 100%;
-        margin-top: 20px;
-    }
-    
-    .location .branch h3 {
-        font-size: 1.5rem;
-    }
 }
 
 /* Contact Section */
@@ -605,6 +517,117 @@ footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Botón flotante de WhatsApp */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 30px;
+    right: 30px;
+    background-color: #25d366;
+    color: #FFF;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 30px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s ease;
+    animation: pulse 2s infinite;
+}
+
+.whatsapp-float:hover {
+    background-color: #128C7E;
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+    }
+}
+
+/* Modal de selección de sucursal para WhatsApp */
+.whatsapp-modal {
+    z-index: 2001;
+}
+
+.whatsapp-container {
+    max-width: 600px;
+    padding: 30px;
+    animation: modalFadeIn 0.3s ease;
+}
+
+.whatsapp-container h3 {
+    text-align: center;
+    color: var(--primary-orange);
+    margin-bottom: 30px;
+}
+
+.whatsapp-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.whatsapp-option {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.whatsapp-option:hover {
+    transform: translateY(-5px);
+}
+
+.whatsapp-option img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 3px solid var(--primary-yellow);
+}
+
+.whatsapp-option h4 {
+    color: var(--primary-black);
+    margin-bottom: 5px;
+}
+
+.whatsapp-option p {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.whatsapp-option .btn {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.whatsapp-close {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background-color: var(--primary-orange);
+    color: white;
+}
+
 /* Responsive Design */
 @media (max-width: 992px) {
     .about-content,
@@ -653,6 +676,23 @@ footer {
     section {
         padding: 60px 0;
     }
+    
+    .whatsapp-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .whatsapp-container {
+        width: 90%;
+        padding: 20px;
+    }
+    
+    .whatsapp-float {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+        font-size: 25px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -666,57 +706,6 @@ footer {
     
     .btn {
         padding: 10px 20px;
-    }
-}
-
-
-/* Estilos para el botón de WhatsApp flotante */
-.whatsapp-float {
-    position: fixed;
-    width: 60px;
-    height: 60px;
-    bottom: 30px;
-    right: 30px;
-    background-color: #25d366;
-    color: #FFF;
-    border-radius: 50px;
-    text-align: center;
-    font-size: 30px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.4s ease;
-    animation: pulse 2s infinite;
-}
-
-.whatsapp-float:hover {
-    background-color: #128C7E;
-    transform: scale(1.1) translateY(-5px);
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
-    }
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
-    .whatsapp-float {
-        width: 50px;
-        height: 50px;
-        bottom: 20px;
-        right: 20px;
-        font-size: 25px;
     }
 }
 
@@ -738,7 +727,7 @@ footer {
 
 .modal-container {
     width: 80%;
-    max-width: 300px; /* Tamaño más moderado */
+    max-width: 300px;
     background-color: var(--white);
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -755,7 +744,7 @@ footer {
 
 .modal-image {
     width: 100%;
-    max-width: 240px; /* Controla el tamaño máximo de la imagen */
+    max-width: 240px;
     height: auto;
     border-radius: 5px;
     margin-bottom: 10px;
@@ -799,141 +788,106 @@ footer {
     }
 }
 
-/* Responsive adjustments for the modal */
-@media (max-width: 768px) {
-    .modal-container {
-        width: 85%;
-        max-width: 220px;
-        padding: 15px;
-    }
-    
-    .modal-close {
-        width: 30px;
-        height: 30px;
-        font-size: 22px;
-        top: -10px;
-        right: -10px;
-    }
-    
-    .modal-image {
-        max-width: 300px;
-    }
-}
-
 /* Delivery Section */
 .delivery {
     background-color: var(--primary-orange);
     color: var(--white);
     text-align: center;
     padding: 60px 0;
-  }
-  
-  .delivery h2 {
+}
+
+.delivery h2 {
     color: var(--primary-black);
     margin-bottom: 10px;
-  }
-  
-  .delivery-subtitle {
+}
+
+.delivery-subtitle {
     font-size: 1.2rem;
     margin-bottom: 40px;
-  }
-  
-  .delivery-platforms {
+}
+
+.delivery-platforms {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 30px;
     margin-bottom: 40px;
-  }
-  
-  .platform {
+}
+
+.platform {
     background-color: var(--white);
     border-radius: 10px;
     padding: 20px;
     transition: all 0.3s ease;
     width: 200px;
-  }
-  
-  .platform:hover {
+}
+
+.platform:hover {
     transform: translateY(-10px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  }
-  
-  .platform a {
+}
+
+.platform a {
     display: flex;
     flex-direction: column;
     align-items: center;
     color: var(--primary-black);
-  }
-  
-  .platform img {
+}
+
+.platform img {
     width: 80px;
     height: 80px;
     object-fit: contain;
     margin-bottom: 15px;
-  }
-  
-  .platform span {
+}
+
+.platform span {
     font-weight: 600;
-  }
-  
-  .delivery-info {
+}
+
+.delivery-info {
     background-color: rgba(0, 0, 0, 0.2);
     padding: 20px;
     border-radius: 10px;
     max-width: 600px;
     margin: 0 auto;
-  }
-  
-  .delivery-info p {
+}
+
+.delivery-info p {
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 10px;
-  }
-  
-  .delivery-info i {
+}
+
+.delivery-info i {
     margin-right: 10px;
     font-size: 1.2rem;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .delivery-platforms {
-      flex-direction: column;
-      align-items: center;
-    }
-    
-    .platform {
-      width: 80%;
-    }
-  }
-
-
+}
 
 /* Estilos para el menú nocturno */
 .night-menu {
     background-color: #f9f5f0;
     padding: 80px 0;
-  }
-  
-  .night-menu h2 {
+}
+
+.night-menu h2 {
     text-align: center;
     color: #d35400;
     margin-bottom: 10px;
-  }
-  
-  .night-menu h2 span {
+}
+
+.night-menu h2 span {
     color: #e67e22;
-  }
-  
-  .section-subtitle {
+}
+
+.section-subtitle {
     text-align: center;
     color: #7f8c8d;
     margin-bottom: 30px;
-  }
-  
-  .schedule-notice {
+}
+
+.schedule-notice {
     background-color: #f39c12;
     color: white;
     padding: 15px;
@@ -946,13 +900,13 @@ footer {
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
-  }
-  
-  .schedule-notice i {
+}
+
+.schedule-notice i {
     font-size: 1.2rem;
-  }
-  
-  .menu-category-title {
+}
+
+.menu-category-title {
     color: #d35400;
     border-bottom: 2px solid #f39c12;
     padding-bottom: 10px;
@@ -960,95 +914,76 @@ footer {
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-  
-  .menu-items {
+}
+
+.menu-items {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
     margin-bottom: 40px;
-  }
-  
-  .menu-item {
+}
+
+.menu-item {
     background: white;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
-  }
-  
-  .menu-item:hover {
+}
+
+.menu-item:hover {
     transform: translateY(-10px);
-  }
-  
-  .menu-item img {
+}
+
+.menu-item img {
     width: 100%;
-    height: 200px;
+    height: auto;
     object-fit: cover;
-  }
-  
-  .menu-item h4 {
+}
+
+.menu-item h4 {
     padding: 15px 15px 5px;
     color: #d35400;
     font-size: 1.3rem;
-  }
-  
-  .menu-item p {
+}
+
+.menu-item p {
     padding: 0 15px;
     color: #7f8c8d;
     font-size: 0.95rem;
     margin-bottom: 15px;
-  }
-  
-  .menu-item .price {
+}
+
+.menu-item .price {
     display: block;
     padding: 15px;
     font-weight: bold;
     color: #2c3e50;
     font-size: 1.2rem;
-  }
-  
-  /* Estilos para promociones */
-  .promo-items {
+}
+
+/* Estilos para promociones */
+.promo-items {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  }
-  
-  .promo-item {
+}
+
+.promo-item {
     background-color: #fef9e7;
     text-align: center;
-  }
-  
-  .promo-icon {
-    font-size: 2.5rem;
-    color: #f39c12;
-    margin: 15px 0;
-  }
-  
-  .delivery-notice {
+}
+
+.delivery-notice {
     text-align: center;
     margin-top: 50px;
     padding: 20px;
     background-color: rgba(243, 156, 18, 0.1);
     border-radius: 10px;
-  }
-  
-  .delivery-notice p {
+}
+
+.delivery-notice p {
     margin-bottom: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-  }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .menu-items {
-      grid-template-columns: 1fr;
-    }
-    
-    .schedule-notice {
-      flex-direction: column;
-      text-align: center;
-    }
-  
 }

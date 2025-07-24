@@ -121,4 +121,115 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModal();
         }
     });
+
+    // Botón flotante de WhatsApp con selección de sucursal
+    const whatsappFloat = document.createElement('div');
+    whatsappFloat.className = 'whatsapp-float';
+    whatsappFloat.innerHTML = '<i class="fab fa-whatsapp"></i>';
+    whatsappFloat.setAttribute('aria-label', 'Ordenar por WhatsApp');
+    document.body.appendChild(whatsappFloat);
+
+    // Modal de selección de sucursal para WhatsApp
+    const whatsappModal = document.createElement('div');
+    whatsappModal.id = 'whatsapp-modal';
+    whatsappModal.className = 'modal-overlay whatsapp-modal';
+    whatsappModal.style.display = 'none';
+    
+    const whatsappContainer = document.createElement('div');
+    whatsappContainer.className = 'modal-container whatsapp-container';
+    
+    const whatsappContent = document.createElement('div');
+    whatsappContent.className = 'modal-content';
+    
+    const whatsappTitle = document.createElement('h3');
+    whatsappTitle.textContent = 'Selecciona una sucursal para ordenar';
+    
+    const whatsappOptions = document.createElement('div');
+    whatsappOptions.className = 'whatsapp-options';
+    
+    // Opción para sucursal Atasta
+    const optionAtasta = document.createElement('div');
+    optionAtasta.className = 'whatsapp-option';
+    optionAtasta.innerHTML = `
+        <img src="img/logo.jpeg" alt="Sucursal Atasta">
+        <h4>Sucursal Atasta</h4>
+        <p>Av. 27 de Febrero #2616</p>
+        <a href="https://wa.me/529933092124" class="btn" target="_blank">
+            <i class="fab fa-whatsapp"></i> Ordenar
+        </a>
+    `;
+    
+    // Opción para sucursal Centro
+    const optionCentro = document.createElement('div');
+    optionCentro.className = 'whatsapp-option';
+    optionCentro.innerHTML = `
+        <img src="img/logo.jpeg" alt="Sucursal Centro">
+        <h4>Sucursal Centro</h4>
+        <p>Lino Merino #831</p>
+        <a href="https://wa.me/529932206325" class="btn" target="_blank">
+            <i class="fab fa-whatsapp"></i> Ordenar
+        </a>
+    `;
+    
+    const whatsappCloseBtn = document.createElement('button');
+    whatsappCloseBtn.className = 'modal-close whatsapp-close';
+    whatsappCloseBtn.innerHTML = '&times;';
+    whatsappCloseBtn.setAttribute('aria-label', 'Cerrar');
+
+    whatsappOptions.appendChild(optionAtasta);
+    whatsappOptions.appendChild(optionCentro);
+    whatsappContent.appendChild(whatsappTitle);
+    whatsappContent.appendChild(whatsappOptions);
+    whatsappContainer.appendChild(whatsappContent);
+    whatsappContainer.appendChild(whatsappCloseBtn);
+    whatsappModal.appendChild(whatsappContainer);
+    document.body.appendChild(whatsappModal);
+
+    // Mostrar modal al hacer clic en el botón flotante
+    whatsappFloat.addEventListener('click', function(e) {
+        e.preventDefault();
+        whatsappModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    });
+
+    // Cerrar modal de WhatsApp
+    function closeWhatsappModal() {
+        whatsappModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    whatsappCloseBtn.addEventListener('click', closeWhatsappModal);
+
+    whatsappModal.addEventListener('click', function(e) {
+        if (e.target === whatsappModal) {
+            closeWhatsappModal();
+        }
+    });
+
+    // Cerrar ambos modales con la tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeWhatsappModal();
+        }
+    });
+
+    // Mejorar accesibilidad para modales
+    const modals = [modalOverlay, whatsappModal];
+    modals.forEach(modal => {
+        modal.setAttribute('aria-hidden', 'true');
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+    });
+
+    // Enfoque en el modal cuando se abre
+    whatsappFloat.addEventListener('click', function() {
+        whatsappModal.setAttribute('aria-hidden', 'false');
+        whatsappCloseBtn.focus();
+    });
+
+    whatsappCloseBtn.addEventListener('click', function() {
+        whatsappModal.setAttribute('aria-hidden', 'true');
+        whatsappFloat.focus();
+    });
 });
