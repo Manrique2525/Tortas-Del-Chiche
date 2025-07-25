@@ -1,0 +1,31 @@
+<svg version="1.1" id="Layer_1" xmlns:x="ns_extend;" xmlns:i="ns_ai;" xmlns:graph="ns_graphs;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 88 88" style="enable-background:new 0 0 88 88;" xml:space="preserve">
+ <style type="text/css">
+  .st0{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
+	.st1{fill:none;}
+	.st2{fill-rule:evenodd;clip-rule:evenodd;fill:#FF6400;}
+ </style>
+ <metadata>
+  <sfw xmlns="ns_sfw;">
+   <slices>
+   </slices>
+   <sliceSourceBounds bottomLeftOrigin="true" height="88" width="88" x="-146.2" y="115.8">
+   </sliceSourceBounds>
+  </sfw>
+ </metadata>
+ <g id="logo-en-1">
+  <g>
+   <path id="Fill-1" class="st0" d="M69.9,88H18.1C8.1,88,0,79.9,0,69.9V18.1C0,8.1,8.1,0,18.1,0h51.8C79.9,0,88,8.1,88,18.1v51.8
+			C88,79.9,79.9,88,69.9,88">
+   </path>
+   <path id="Stroke-3" class="st1" d="M69.9,88H18.1C8.1,88,0,79.9,0,69.9V18.1C0,8.1,8.1,0,18.1,0h51.8C79.9,0,88,8.1,88,18.1v51.8
+			C88,79.9,79.9,88,69.9,88z">
+   </path>
+   <path id="Fill-5" class="st2" d="M45.1,60.1c10.7-0.3,19.1-8.8,19.2-19.3v-9h11.7v10C75.9,58,61.7,70.8,45.1,71.2v0
+			c-16.8-0.1-31.1-13-31.3-29.5v-18c0-1.8,1.2-3,3-3l47.6,0v11l-37.3,0c-1,0-1.5,0.6-1.5,1.5v7.3C25.7,51.2,34.3,60,45.1,60.1
+			L45.1,60.1z">
+   </path>
+   <g id="Clip-8">
+   </g>
+  </g>
+ </g>
+</svg>

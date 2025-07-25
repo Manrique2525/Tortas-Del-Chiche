@@ -986,4 +986,84 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 10px;
+
+/* Estilos para el modal de Didi */
+.didi-modal .modal-container {
+    max-width: 600px;
+    padding: 30px;
+    animation: modalFadeIn 0.3s ease;
+}
+
+.didi-modal h3 {
+    text-align: center;
+    color: #FF6B35; /* Naranja de Didi */
+    margin-bottom: 30px;
+}
+
+.didi-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.didi-option {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.didi-option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.didi-option img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 3px solid #FF6B35; /* Borde naranja de Didi */
+}
+
+.didi-option h4 {
+    color: var(--primary-black);
+    margin-bottom: 5px;
+}
+
+.didi-option p {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.didi-option .btn {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    background: #FF6B35; /* Naranja de Didi */
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.didi-option .btn:hover {
+    background: #e05a2b; /* Naranja más oscuro para hover */
+}
+
+.didi-close {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background-color: #FF6B35; /* Naranja de Didi */
+    color: white;
+    border: 2px solid white;
+}
+
+.didi-close:hover {
+    background-color: #e05a2b; /* Naranja más oscuro para hover */
+}
+
 }
