@@ -36,16 +36,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const floatingHTML = `
             <div class="simple-floating-buttons" style="
                 position: fixed;
-                bottom: 30px;
-                right: 30px;
+                bottom: 20px;
+                right: 20px;
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
                 z-index: 9999;
             ">
                 <div id="didi-btn" style="
-                    width: 60px;
-                    height: 60px;
+                    width: 55px;
+                    height: 55px;
                     background-color: #FF6B35;
                     color: white;
                     border-radius: 50%;
@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div id="whatsapp-btn" style="
-                    width: 60px;
-                    height: 60px;
+                    width: 55px;
+                    height: 55px;
                     background-color: #25d366;
                     color: white;
                     border-radius: 50%;
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    font-size: 30px;
+                    font-size: 26px;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                     transition: all 0.3s ease;
                 " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
@@ -174,85 +174,156 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = document.createElement('div');
         modal.id = 'didi-modal';
         modal.className = 'modal-overlay';
-        modal.style.display = 'flex';
+        modal.style.cssText = `
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            box-sizing: border-box;
+        `;
 
         const container = document.createElement('div');
         container.className = 'modal-container whatsapp-container';
-        container.style.maxWidth = '600px';
-        container.style.width = '90%';
+        container.style.cssText = `
+            background: white;
+            border-radius: 15px;
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        `;
 
         const content = document.createElement('div');
         content.className = 'modal-content';
+        content.style.cssText = `
+            padding: 20px 15px 15px 15px;
+        `;
 
         const title = document.createElement('h3');
-        title.textContent = 'Selecciona una opción para Didi Food';
-        title.style.textAlign = 'center';
-        title.style.color = '#FF6B35';
-        title.style.marginBottom = '20px';
-        title.style.fontSize = '1.3rem';
+        title.textContent = 'Didi Food';
+        title.style.cssText = `
+            text-align: center;
+            color: #FF6B35;
+            margin: 0 0 15px 0;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            font-weight: 600;
+        `;
 
         const options = document.createElement('div');
         options.className = 'whatsapp-options';
-        options.style.display = 'grid';
-        options.style.gridTemplateColumns = 'repeat(auto-fit, minmax(250px, 1fr))';
-        options.style.gap = '15px';
-        options.style.marginTop = '15px';
+        options.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        `;
 
         didiBranches.forEach(suc => {
             const abierto = estaAbierto(suc.horario, hora);
+            
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'whatsapp-option';
+            optionDiv.style.cssText = `
+                background: #f8f9fa;
+                padding: 12px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
+            `;
 
-            options.innerHTML += `
-                <div class="whatsapp-option" style="
-                    background: white;
-                    padding: 15px;
-                    border-radius: 10px;
-                    text-align: center;
-                    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-                    transition: transform 0.3s ease;
-                    font-size: 0.9rem;
+            optionDiv.innerHTML = `
+                <img src="${suc.img}" alt="${suc.name}" style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 2px solid #FF6B35;
+                    flex-shrink: 0;
                 ">
-                    <img src="${suc.img}" alt="${suc.name}" style="
-                        width: 60px;
-                        height: 60px;
-                        border-radius: 50%;
-                        object-fit: cover;
-                        margin-bottom: 10px;
-                        border: 3px solid #FF6B35;
-                    ">
-                    <h4 style="color: var(--primary-black); margin-bottom: 5px;">${suc.name}</h4>
-                    <p style="color: var(--text-color); margin-bottom: 10px;">${suc.desc}</p>
+                <div style="flex: 1; min-width: 0;">
+                    <h4 style="
+                        color: #333;
+                        margin: 0 0 3px 0;
+                        font-size: clamp(0.9rem, 3.5vw, 1rem);
+                        font-weight: 600;
+                    ">${suc.name}</h4>
+                    <p style="
+                        color: #666;
+                        margin: 0;
+                        font-size: clamp(0.75rem, 3vw, 0.85rem);
+                        line-height: 1.2;
+                    ">${suc.desc}</p>
+                </div>
+                <div style="flex-shrink: 0;">
                     ${abierto ? `
-                        <a href="${suc.url}" target="_blank" class="btn" style="background: #FF6B35; padding: 7px 14px; font-size: 0.9rem;">
-                            Ordenar en Didi
-                        </a>
+                        <a href="${suc.url}" target="_blank" style="
+                            background: #FF6B35;
+                            color: white;
+                            padding: 8px 12px;
+                            border-radius: 6px;
+                            text-decoration: none;
+                            font-size: clamp(0.75rem, 3vw, 0.85rem);
+                            font-weight: 500;
+                            display: inline-block;
+                            transition: all 0.3s ease;
+                        ">Ordenar</a>
                     ` : `
-                        <button disabled class="btn" style="background: #ccc; padding: 7px 14px; font-size: 0.9rem; color: #666; cursor: not-allowed;">
-                            Abierto de ${formatHora(suc.horario.apertura)} a ${formatHora(suc.horario.cierre)}
+                        <button disabled style="
+                            background: #ccc;
+                            color: #666;
+                            padding: 6px 10px;
+                            border-radius: 6px;
+                            border: none;
+                            font-size: clamp(0.65rem, 2.5vw, 0.75rem);
+                            cursor: not-allowed;
+                            text-align: center;
+                            line-height: 1.2;
+                        ">
+                            ${formatHora(suc.horario.apertura)} - ${formatHora(suc.horario.cierre)}
                         </button>
                     `}
                 </div>
             `;
+
+            options.appendChild(optionDiv);
         });
 
         const closeBtn = document.createElement('button');
         closeBtn.className = 'modal-close';
         closeBtn.innerHTML = '&times;';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.top = '-15px';
-        closeBtn.style.right = '-15px';
-        closeBtn.style.backgroundColor = '#FF6B35';
-        closeBtn.style.border = '2px solid white';
-        closeBtn.style.color = 'white';
-        closeBtn.style.cursor = 'pointer';
-        closeBtn.style.width = '35px';
-        closeBtn.style.height = '35px';
-        closeBtn.style.borderRadius = '50%';
-        closeBtn.style.display = 'flex';
-        closeBtn.style.justifyContent = 'center';
-        closeBtn.style.alignItems = 'center';
-        closeBtn.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.4)';
-        closeBtn.style.transition = 'all 0.3s ease';
-        closeBtn.setAttribute('aria-label', 'Cerrar');
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: #FF6B35;
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1;
+        `;
 
         closeBtn.addEventListener('click', closeDidiModal);
 
@@ -269,15 +340,17 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
 
-        // Hover effect
+        // Hover effects
         options.querySelectorAll('.whatsapp-option').forEach(option => {
             option.addEventListener('mouseenter', () => {
-                option.style.transform = 'translateY(-5px)';
-                option.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+                option.style.transform = 'translateY(-2px)';
+                option.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                option.style.borderColor = '#FF6B35';
             });
             option.addEventListener('mouseleave', () => {
                 option.style.transform = 'translateY(0)';
-                option.style.boxShadow = '0 3px 10px rgba(0,0,0,0.1)';
+                option.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                option.style.borderColor = 'transparent';
             });
         });
 
@@ -293,128 +366,241 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ======== Modal WhatsApp ========
-  // ======== Modal WhatsApp (con diseño similar a Didi) ========
+  // ======== Modal WhatsApp con Validación de Horarios ========
 function createWhatsappModal() {
+    // Definir datos de sucursales con horarios
+    const whatsappBranches = [
+        {
+            name: "Sucursal Atasta",
+            address: "Av. 27 de Febrero #2616",
+            horario: { apertura: 7.0, cierre: 14.0 },
+            img: "img/logo.jpeg",
+            whatsapp: "529933092124"
+        },
+        {
+            name: "Sucursal Centro",
+            address: "Lino Merino #831",
+            horario: { apertura: 7.0, cierre: 14.0 },
+            img: "img/logo.jpeg",
+            whatsapp: "529932206325"
+        },
+        {
+            name: "Dog Burger",
+            address: "Hot Dogs & Hamburguesas",
+            horario: { apertura: 17.5, cierre: 22.75 },
+            img: "img/logo_dogo.jpeg",
+            whatsapp: "529933092124"
+        }
+    ];
+
+    // Función para obtener hora actual en formato decimal
+    function horaDecimal() {
+        const ahora = new Date();
+        return ahora.getHours() + ahora.getMinutes() / 60;
+    }
+
+    // Función para verificar si está abierto
+    function estaAbierto(horario, horaActual) {
+        return horaActual >= horario.apertura && horaActual < horario.cierre;
+    }
+
+    // Función para formatear hora a AM/PM
+    function formatHora(h) {
+        let horas = Math.floor(h);
+        let minutos = Math.round((h - horas) * 60);
+        let ampm = horas >= 12 ? 'pm' : 'am';
+        horas = horas % 12;
+        if (horas === 0) horas = 12;
+        return `${horas}:${minutos.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    const hora = horaDecimal();
+    
     const whatsappModal = document.createElement('div');
     whatsappModal.id = 'whatsapp-modal';
     whatsappModal.className = 'modal-overlay whatsapp-modal';
-    whatsappModal.style.display = 'none';
+    whatsappModal.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+        box-sizing: border-box;
+    `;
 
     const whatsappContainer = document.createElement('div');
     whatsappContainer.className = 'modal-container whatsapp-container';
-    whatsappContainer.style.maxWidth = '600px';
-    whatsappContainer.style.width = '90%';
+    whatsappContainer.style.cssText = `
+        background: white;
+        border-radius: 15px;
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    `;
 
     const whatsappContent = document.createElement('div');
     whatsappContent.className = 'modal-content';
+    whatsappContent.style.cssText = `
+        padding: 20px 15px 15px 15px;
+    `;
 
     const whatsappTitle = document.createElement('h3');
-    whatsappTitle.textContent = 'Selecciona una sucursal para ordenar por WhatsApp';
-    whatsappTitle.style.textAlign = 'center';
-    whatsappTitle.style.color = '#FF6B35'; // Naranja como Didi
-    whatsappTitle.style.marginBottom = '20px';
-    whatsappTitle.style.fontSize = '1.3rem';
+    whatsappTitle.textContent = 'WhatsApp';
+    whatsappTitle.style.cssText = `
+        text-align: center;
+        color: #FF6B35;
+        margin: 0 0 15px 0;
+        font-size: clamp(1.1rem, 4vw, 1.3rem);
+        font-weight: 600;
+    `;
 
     const whatsappOptions = document.createElement('div');
     whatsappOptions.className = 'whatsapp-options';
-    whatsappOptions.style.display = 'grid';
-    whatsappOptions.style.gridTemplateColumns = 'repeat(auto-fit, minmax(250px, 1fr))';
-    whatsappOptions.style.gap = '15px';
-    whatsappOptions.style.marginTop = '15px';
-
-    // Sucursal Atasta
-    const optionAtasta = document.createElement('div');
-    optionAtasta.className = 'whatsapp-option';
-    optionAtasta.style.background = 'white';
-    optionAtasta.style.padding = '20px';
-    optionAtasta.style.borderRadius = '10px';
-    optionAtasta.style.textAlign = 'center';
-    optionAtasta.style.boxShadow = '0 3px 10px rgba(0,0,0,0.1)';
-    optionAtasta.style.transition = 'all 0.3s ease';
-    optionAtasta.innerHTML = `
-        <img src="img/logo.jpeg" alt="Sucursal Atasta" style="
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 15px;
-            border: 3px solid #FF6B35;  // Naranja como Didi
-        ">
-        <h4 style="color: var(--primary-black); margin-bottom: 5px; font-size: 1.1rem;">Sucursal Atasta</h4>
-        <p style="color: var(--text-color); margin-bottom: 15px; font-size: 0.9rem;">
-            Av. 27 de Febrero #2616<br>
-            <small>7:00 am - 2:00 pm</small>
-        </p>
-        <a href="https://wa.me/529933092124" class="btn" target="_blank" style="
-            background: #FF6B35;  // Naranja como Didi
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        ">
-            <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Ordenar
-        </a>
+    whatsappOptions.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 10px;
     `;
 
-    // Sucursal Centro
-    const optionCentro = document.createElement('div');
-    optionCentro.className = 'whatsapp-option';
-    optionCentro.style.background = 'white';
-    optionCentro.style.padding = '20px';
-    optionCentro.style.borderRadius = '10px';
-    optionCentro.style.textAlign = 'center';
-    optionCentro.style.boxShadow = '0 3px 10px rgba(0,0,0,0.1)';
-    optionCentro.style.transition = 'all 0.3s ease';
-    optionCentro.innerHTML = `
-        <img src="img/logo.jpeg" alt="Sucursal Centro" style="
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 15px;
-            border: 3px solid #FF6B35;  // Naranja como Didi
-        ">
-        <h4 style="color: var(--primary-black); margin-bottom: 5px; font-size: 1.1rem;">Sucursal Centro</h4>
-        <p style="color: var(--text-color); margin-bottom: 15px; font-size: 0.9rem;">
-            Lino Merino #831<br>
-            <small>7:00 am - 2:00 pm</small>
-        </p>
-        <a href="https://wa.me/529932206325" class="btn" target="_blank" style="
-            background: #FF6B35;  // Naranja como Didi
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            display: inline-flex;
+    // Generar opciones dinámicamente con validación de horarios
+    whatsappBranches.forEach(sucursal => {
+        const abierto = estaAbierto(sucursal.horario, hora);
+        
+        const option = document.createElement('div');
+        option.className = 'whatsapp-option';
+        option.style.cssText = `
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-        ">
-            <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Ordenar
-        </a>
-    `;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            ${!abierto ? 'opacity: 0.7;' : ''}
+        `;
 
-    // Botón de cerrar (naranja como Didi)
+        option.innerHTML = `
+            <img src="${sucursal.img}" alt="${sucursal.name}" style="
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #FF6B35;
+                flex-shrink: 0;
+                ${!abierto ? 'filter: grayscale(0.5);' : ''}
+            ">
+            <div style="flex: 1; min-width: 0;">
+                <h4 style="
+                    color: #333;
+                    margin: 0 0 4px 0;
+                    font-size: clamp(0.9rem, 3.5vw, 1rem);
+                    font-weight: 600;
+                ">${sucursal.name}</h4>
+                <p style="
+                    color: #666;
+                    margin: 0 0 2px 0;
+                    font-size: clamp(0.75rem, 3vw, 0.85rem);
+                    line-height: 1.3;
+                ">${sucursal.address}</p>
+                <small style="
+                    color: ${abierto ? '#4CAF50' : '#888'};
+                    font-size: clamp(0.7rem, 2.8vw, 0.8rem);
+                    font-weight: ${abierto ? '600' : '400'};
+                ">
+                    ${abierto ? 'ABIERTO' : 'CERRADO'} • ${formatHora(sucursal.horario.apertura)} - ${formatHora(sucursal.horario.cierre)}
+                </small>
+            </div>
+            <div style="flex-shrink: 0;">
+                ${abierto ? `
+                    <a href="https://wa.me/${sucursal.whatsapp}" target="_blank" style="
+                        background: #25d366;
+                        color: white;
+                        padding: 10px 15px;
+                        border-radius: 8px;
+                        text-decoration: none;
+                        font-size: clamp(0.8rem, 3vw, 0.9rem);
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        transition: all 0.3s ease;
+                    ">
+                        <i class="fab fa-whatsapp" style="font-size: 1.1em;"></i>
+                        Ordenar
+                    </a>
+                ` : `
+                    <button disabled style="
+                        background: #ccc;
+                        color: #666;
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        border: none;
+                        font-size: clamp(0.7rem, 2.8vw, 0.8rem);
+                        cursor: not-allowed;
+                        text-align: center;
+                        line-height: 1.2;
+                        font-weight: 500;
+                    ">
+                        Cerrado
+                    </button>
+                `}
+            </div>
+        `;
+
+        // Solo agregar efectos hover si está abierto
+        if (abierto) {
+            option.addEventListener('mouseenter', () => {
+                option.style.transform = 'translateY(-2px)';
+                option.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                option.style.borderColor = '#25d366';
+            });
+            
+            option.addEventListener('mouseleave', () => {
+                option.style.transform = 'translateY(0)';
+                option.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                option.style.borderColor = 'transparent';
+            });
+        }
+
+        whatsappOptions.appendChild(option);
+    });
+
+    // Botón de cerrar
     const whatsappCloseBtn = document.createElement('button');
     whatsappCloseBtn.className = 'modal-close';
     whatsappCloseBtn.innerHTML = '&times;';
-    whatsappCloseBtn.style.position = 'absolute';
-    whatsappCloseBtn.style.top = '-15px';
-    whatsappCloseBtn.style.right = '-15px';
-    whatsappCloseBtn.style.backgroundColor = '#FF6B35';  // Naranja como Didi
-    whatsappCloseBtn.style.border = '2px solid white';
-    whatsappCloseBtn.style.color = 'white';
-    whatsappCloseBtn.style.cursor = 'pointer';
-    whatsappCloseBtn.style.width = '35px';
-    whatsappCloseBtn.style.height = '35px';
-    whatsappCloseBtn.style.borderRadius = '50%';
-    whatsappCloseBtn.style.display = 'flex';
-    whatsappCloseBtn.style.justifyContent = 'center';
-    whatsappCloseBtn.style.alignItems = 'center';
-    whatsappCloseBtn.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.4)';
-    whatsappCloseBtn.style.transition = 'all 0.3s ease';
-    whatsappCloseBtn.setAttribute('aria-label', 'Cerrar');
+    whatsappCloseBtn.style.cssText = `
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background-color: #FF6B35;
+        border: none;
+        color: white;
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        font-size: 18px;
+        font-weight: bold;
+        z-index: 1;
+    `;
 
     function closeWhatsappModal() {
         whatsappModal.style.display = 'none';
@@ -423,21 +609,6 @@ function createWhatsappModal() {
 
     whatsappCloseBtn.addEventListener('click', closeWhatsappModal);
 
-    // Efectos hover para las opciones
-    [optionAtasta, optionCentro].forEach(option => {
-        option.addEventListener('mouseenter', () => {
-            option.style.transform = 'translateY(-5px)';
-            option.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-        });
-        
-        option.addEventListener('mouseleave', () => {
-            option.style.transform = 'translateY(0)';
-            option.style.boxShadow = '0 3px 10px rgba(0,0,0,0.1)';
-        });
-    });
-
-    whatsappOptions.appendChild(optionAtasta);
-    whatsappOptions.appendChild(optionCentro);
     whatsappContent.appendChild(whatsappTitle);
     whatsappContent.appendChild(whatsappOptions);
     whatsappContainer.appendChild(whatsappContent);
