@@ -240,7 +240,7 @@ nav ul li a:hover::after {
 }
 
 .banquets-content {
-    display: flex;
+   /*  display: flex;  */
     gap: 40px;
 }
 
