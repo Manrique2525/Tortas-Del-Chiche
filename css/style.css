@@ -517,7 +517,7 @@ footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Botón flotante de WhatsApp */
+/* BotÃ³n flotante de WhatsApp */
 .whatsapp-float {
     position: fixed;
     width: 60px;
@@ -556,7 +556,7 @@ footer {
     }
 }
 
-/* Modal de selección de sucursal para WhatsApp */
+/* Modal de selecciÃ³n de sucursal para WhatsApp */
 .whatsapp-modal {
     z-index: 2001;
 }
@@ -726,7 +726,7 @@ footer {
 
 .modal-container {
     width: 80%;
-    max-width: 300px; /* Tamaño más moderado */
+    max-width: 300px; /* TamaÃ±o mÃ¡s moderado */
     background-color: var(--white);
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -743,7 +743,7 @@ footer {
 
 .modal-image {
     width: 100%;
-    max-width: 240px; /* Controla el tamaño máximo de la imagen */
+    max-width: 30vh; /* Controla el tamaÃ±o mÃ¡ximo de la imagen */
     height: auto;
     border-radius: 5px;
     margin-bottom: 10px;
@@ -788,6 +788,15 @@ footer {
 }
 
 /* Responsive adjustments for the modal */
+@media (max-width: 1600px) {
+    .modal-container {
+        width: 80%;
+        padding: 15px;
+    }
+    /* .modal-image {
+        max-width: 220px;
+    } */
+}
 @media (max-width: 768px) {
     .modal-container {
         width: 85%;
@@ -803,9 +812,9 @@ footer {
         right: -10px;
     }
     
-    .modal-image {
+    /* .modal-image {
         max-width: 300px;
-    }
+    } */
 }
 
 /* Delivery Section */
@@ -885,7 +894,7 @@ footer {
     font-size: 1.2rem;
 }
 
-/* Estilos para el menú nocturno */
+/* Estilos para el menÃº nocturno */
 .night-menu {
     background-color: #f9f5f0;
     padding: 80px 0;
@@ -1070,7 +1079,7 @@ footer {
 }
 
 .didi-option .btn:hover {
-    background: #e05a2b; /* Naranja más oscuro para hover */
+    background: #e05a2b; /* Naranja mÃ¡s oscuro para hover */
 }
 
 .didi-close {
@@ -1083,7 +1092,7 @@ footer {
 }
 
 .didi-close:hover {
-    background-color: #e05a2b; /* Naranja más oscuro para hover */
+    background-color: #e05a2b; /* Naranja mÃ¡s oscuro para hover */
 }
 
 }
