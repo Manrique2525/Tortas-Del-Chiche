@@ -708,7 +708,6 @@ footer {
         padding: 10px 20px;
     }
 }
-
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -727,7 +726,7 @@ footer {
 
 .modal-container {
     width: 80%;
-    max-width: 300px;
+    max-width: 300px; /* Tamaño más moderado */
     background-color: var(--white);
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -744,7 +743,7 @@ footer {
 
 .modal-image {
     width: 100%;
-    max-width: 240px;
+    max-width: 240px; /* Controla el tamaño máximo de la imagen */
     height: auto;
     border-radius: 5px;
     margin-bottom: 10px;
@@ -785,6 +784,27 @@ footer {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments for the modal */
+@media (max-width: 768px) {
+    .modal-container {
+        width: 85%;
+        max-width: 220px;
+        padding: 15px;
+    }
+    
+    .modal-close {
+        width: 30px;
+        height: 30px;
+        font-size: 22px;
+        top: -10px;
+        right: -10px;
+    }
+    
+    .modal-image {
+        max-width: 300px;
     }
 }
 
