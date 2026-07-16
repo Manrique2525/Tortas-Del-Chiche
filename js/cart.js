@@ -159,15 +159,6 @@ const Cart = (() => {
     return parts.join(", ");
   }
 
-  /* ──────────── Aviso de Horario ──────────── */
-  function showScheduleBanner() {
-    if (isScheduleOpen()) return;
-    const banner = document.createElement("div");
-    banner.className = "cart-schedule-banner";
-    banner.innerHTML = `<i class="fas fa-clock"></i> ${getScheduleMessage()} &mdash; Puedes armar tu pedido y enviarlo cuando abramos`;
-    document.body.appendChild(banner);
-  }
-
   /* ──────────── UI: Botón flotante + Badge ──────────── */
   function createFloatingButton() {
     if (document.getElementById("cart-float-btn")) return;
@@ -795,7 +786,6 @@ const Cart = (() => {
     createFloatingButton();
     createSidebar();
     renderBadge();
-    showScheduleBanner();
   }
 
   if (document.readyState === "loading") {
