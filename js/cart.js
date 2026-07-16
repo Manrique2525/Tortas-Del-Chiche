@@ -348,6 +348,7 @@ const Cart = (() => {
       ubicacion: state.location.confirmed,
     };
     const doneCount = Object.values(stepsDone).filter(Boolean).length;
+    let html = "";
     html += `
       <div class="cart-progress">
         <div class="cart-progress-bar"><div class="cart-progress-fill" style="width:${(doneCount / 5) * 100}%"></div></div>
