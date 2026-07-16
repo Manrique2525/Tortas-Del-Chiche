@@ -7,8 +7,6 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=5.0"
     />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-
     <!-- URL canónica -->
     <link rel="canonical" href="https://www.lastortasdelchiche.com/" />
 
@@ -58,7 +56,7 @@
     <meta property="og:url" content="https://www.lastortasdelchiche.com" />
     <meta
       property="og:image"
-      content="https://www.lastortasdelchiche.com/img/logo-social.jpg"
+      content="https://www.lastortasdelchiche.com/img/logo.jpeg"
     />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -77,7 +75,7 @@
     />
     <meta
       name="twitter:image"
-      content="https://www.lastortasdelchiche.com/img/logo-social.jpg"
+      content="https://www.lastortasdelchiche.com/img/logo.jpeg"
     />
 
     <!-- Schema.org para rich snippets -->
@@ -141,6 +139,7 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   </head>
   <body>
     <header>
@@ -154,7 +153,7 @@
             <li><a href="#inicio">Inicio</a></li>
             <li><a href="#nosotros">Nosotros</a></li>
             <li><a href="#menu">Menú</a></li>
-            <li><a href="#nocturno">Nocturno</a></li>
+            <li><a href="#bebidas">Bebidas</a></li>
             <li><a href="#banquetes">Banquetes</a></li>
             <li><a href="#galeria">Galería</a></li>
             <li><a href="#ubicacion">Ubicación</a></li>
@@ -205,6 +204,7 @@
               <img
                 src="img/preparacion.jpeg"
                 alt="Preparación de cochinita pibil"
+                loading="lazy"
               />
             </div>
           </div>
@@ -215,8 +215,8 @@
         <div class="container">
           <h2>Nuestro Menú</h2>
           <div class="menu-items">
-            <div class="menu-item">
-              <img src="img/imagenes/9.jpg" alt="Promo Tortas" />
+            <div class="menu-item" data-id="1" data-name="Promo Tortas" data-price="45" data-img="img/imagenes/9.jpg">
+              <img src="img/imagenes/9.jpg" alt="Promo Tortas" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Promo Tortas</h3>
                 <span class="price">$45</span>
@@ -225,9 +225,12 @@
                 La promo más destacada de 3 tortas de cochinita pibil o lechón
                 horneado (incluye cebolla y salsa aparte).
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Promo Tortas al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/imagenes/4.jpg" alt="Promo Tacos" />
+            <div class="menu-item" data-id="2" data-name="Promo Tacos" data-price="40" data-img="img/imagenes/4.jpg">
+              <img src="img/imagenes/4.jpg" alt="Promo Tacos" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Promo Tacos</h3>
                 <span class="price">$40</span>
@@ -236,9 +239,12 @@
                 5 deliciosos taquitos de cochinita pibil o lechón horneado
                 (incluye cebolla curtida y salsa aparte).
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Promo Tacos al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/imagenes/13.jpg" alt="Taco de Cochinita" />
+            <div class="menu-item" data-id="3" data-name="Taquito de Cochinita" data-price="10" data-img="img/imagenes/13.jpg">
+              <img src="img/imagenes/13.jpg" alt="Taco de Cochinita" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Taquito de Cochinita</h3>
                 <span class="price">$10</span>
@@ -247,12 +253,15 @@
                 Deliciosos tacos de cochinita pibil con tortilla No. 12 (incluye
                 cebolla y salsa aparte).
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Taquito de Cochinita al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
           </div>
 
           <div class="menu-items">
-            <div class="menu-item">
-              <img src="img/torta12.jpeg" alt="Torta" />
+            <div class="menu-item" data-id="4" data-name="Torta" data-price="16" data-img="img/torta12.jpeg">
+              <img src="img/torta12.jpeg" alt="Torta" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Torta</h3>
                 <span class="price">$16</span>
@@ -261,9 +270,12 @@
                 Delicioso torta de cochinita pibil o lechón horneado.(incluye
                 cebolla curtida y salsa verde aparte).
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Torta al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/imagenes/20.jpg" alt="Cochinita por kilo" />
+            <div class="menu-item" data-id="5" data-name="Kilo" data-price="300" data-img="img/imagenes/20.jpg">
+              <img src="img/imagenes/20.jpg" alt="Cochinita por kilo" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Kilo</h3>
                 <span class="price">$300</span>
@@ -273,9 +285,12 @@
                 (incluye 3 piezas de sisote, 500g de tortilla, cebolla curtida y
                 salsa verde).
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Kilo al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/imagenes/22.jpg" alt="Medio Kilo" />
+            <div class="menu-item" data-id="6" data-name="Medio Kilo" data-price="160" data-img="img/imagenes/22.jpg">
+              <img src="img/imagenes/22.jpg" alt="Medio Kilo" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Medio Kilo</h3>
                 <span class="price">$160</span>
@@ -285,6 +300,9 @@
                 (incluye 2 pz de sisote, 250g de tortilla, cebolla curtida y
                 salsa verde).
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Medio Kilo al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
           </div>
         </div>
@@ -292,14 +310,14 @@
 
       <section id="bebidas" class="drinks-section">
         <div class="container">
-          <h2 style="text-align: center">Nuestras Bebidas</h2>
+          <h2 class="drinks-title">Nuestras Bebidas</h2>
           <p class="section-subtitle">
             Refrescos y aguas frescas para acompañar tu comida
           </p>
 
           <div class="menu-items">
-            <div class="menu-item">
-              <img src="img/agua_horchata.jpeg" alt="Agua de Horchata" />
+            <div class="menu-item" data-id="7" data-name="Agua de Horchata" data-price="20" data-img="img/agua_horchata.jpeg">
+              <img src="img/agua_horchata.jpeg" alt="Agua de Horchata" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Agua de Horchata</h3>
                 <span class="price">$20</span>
@@ -308,9 +326,12 @@
                 Bebida tradicional mexicana elaborada con arroz, canela y
                 azúcar.
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Agua de Horchata al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/agua_jamaica.jpeg" alt="Agua de Jamaica" />
+            <div class="menu-item" data-id="8" data-name="Agua de Jamaica" data-price="20" data-img="img/agua_jamaica.jpeg">
+              <img src="img/agua_jamaica.jpeg" alt="Agua de Jamaica" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Agua de Jamaica</h3>
                 <span class="price">$20</span>
@@ -319,9 +340,12 @@
                 Refrescante infusión de flor de jamaica con un toque ácido y
                 dulce.
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Agua de Jamaica al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/agua_maracuya.jpeg" alt="Agua de Maracuyá" />
+            <div class="menu-item" data-id="9" data-name="Agua de Maracuyá" data-price="20" data-img="img/agua_maracuya.jpeg">
+              <img src="img/agua_maracuya.jpeg" alt="Agua de Maracuyá" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Agua de Maracuyá</h3>
                 <span class="price">$20</span>
@@ -329,30 +353,42 @@
               <p>
                 Bebida tropical con el sabor exótico y refrescante del maracuyá.
               </p>
+              <button class="add-to-cart-btn" aria-label="Agregar Agua de Maracuyá al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/coca.jpeg" alt="Coca-Cola" />
+            <div class="menu-item" data-id="10" data-name="Coca-Cola 600 ml" data-price="25" data-img="img/coca.jpeg">
+              <img src="img/coca.jpeg" alt="Coca-Cola" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Coca-Cola 600 ml</h3>
                 <span class="price">$25</span>
               </div>
               <p>Refresco clásico de cola en botella de 600 ml.</p>
+              <button class="add-to-cart-btn" aria-label="Agregar Coca-Cola al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/sensao.jpeg" alt="Senzao" />
+            <div class="menu-item" data-id="11" data-name="Senzao 600 ml" data-price="25" data-img="img/sensao.jpeg">
+              <img src="img/sensao.jpeg" alt="Senzao" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Senzao 600 ml</h3>
                 <span class="price">$25</span>
               </div>
               <p>Refresco de frutas naturales en presentación de 600 ml.</p>
+              <button class="add-to-cart-btn" aria-label="Agregar Senzao al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
-            <div class="menu-item">
-              <img src="img/manzanita.jpeg" alt="Manzanita Sol" />
+            <div class="menu-item" data-id="12" data-name="Manzanita Sidral 600 ml" data-price="25" data-img="img/manzanita.jpeg">
+              <img src="img/manzanita.jpeg" alt="Manzanita Sol" loading="lazy" />
               <div class="menu-item-header">
                 <h3>Manzanita Sidral 600 ml</h3>
                 <span class="price">$25</span>
               </div>
               <p>Refresco sabor manzana en presentación de 600 ml.</p>
+              <button class="add-to-cart-btn" aria-label="Agregar Manzanita al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+              </button>
             </div>
           </div>
         </div>
@@ -385,21 +421,19 @@
                 >Solicitar Información</a
               >
             </div>
-            <br />
-            <br />
             <div class="banquets-gallery">
               <h3>Eventos</h3>
               <div class="events-grid">
                 <div class="event-item">
-                  <img src="img/banquete.jpeg" alt="Evento de cumpleaños" />
+                  <img src="img/banquete.jpeg" alt="Evento de cumpleaños" loading="lazy" />
                   <p>Cumpleaños</p>
                 </div>
                 <div class="event-item">
-                  <img src="img/banquete1.jpeg" alt="Evento familiar" />
+                  <img src="img/banquete1.jpeg" alt="Evento familiar" loading="lazy" />
                   <p>Reunión familiar</p>
                 </div>
                 <div class="event-item">
-                  <img src="img/banquete2.jpeg" alt="Posadas" />
+                  <img src="img/banquete2.jpeg" alt="Posadas" loading="lazy" />
                   <p>Posadas</p>
                 </div>
               </div>
@@ -413,49 +447,49 @@
           <h2>Galería</h2>
           <div class="gallery-grid">
             <div class="gallery-item">
-              <img src="img/combo_fiesta.jpeg" alt="Combo para fiestas" />
+              <img src="img/combo_fiesta.jpeg" alt="Combo para fiestas" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/kilo_cochinita.jpeg" alt="Cochinita por kilo" />
+              <img src="img/kilo_cochinita.jpeg" alt="Cochinita por kilo" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/promo_tacos.jpeg" alt="Promoción de tacos" />
+              <img src="img/promo_tacos.jpeg" alt="Promoción de tacos" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/imagenes/4.jpg" alt="Variedad de refrescos" />
+              <img src="img/imagenes/4.jpg" alt="Variedad de refrescos" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/imagenes/27.jpg" alt="Variedad de refrescos" />
+              <img src="img/imagenes/27.jpg" alt="Variedad de refrescos" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/imagenes/10.jpg" alt="Variedad de refrescos" />
+              <img src="img/imagenes/10.jpg" alt="Variedad de refrescos" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/imagenes/11.jpg" alt="Variedad de refrescos" />
+              <img src="img/imagenes/11.jpg" alt="Variedad de refrescos" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/torta.jpeg" alt="Torta de cochinita" />
+              <img src="img/torta.jpeg" alt="Torta de cochinita" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/evento.jpeg" alt="Evento atendido" />
+              <img src="img/evento.jpeg" alt="Evento atendido" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/tortugas.jpeg" alt="Tortas del chiche" />
+              <img src="img/tortugas.jpeg" alt="Tortas del chiche" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/tortas_tacos.jpeg" alt="Tortas y tacos" />
+              <img src="img/tortas_tacos.jpeg" alt="Tortas y tacos" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/comida.jpeg" alt="comida" />
+              <img src="img/comida.jpeg" alt="comida" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/av_universidad_local.jpeg" alt="Local" />
+              <img src="img/av_universidad_local.jpeg" alt="Local" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/aniversario.jpeg" alt="Aniversario" />
+              <img src="img/aniversario.jpeg" alt="Aniversario" loading="lazy" />
             </div>
             <div class="gallery-item">
-              <img src="img/local1.jpeg" alt="local1" />
+              <img src="img/local1.jpeg" alt="local1" loading="lazy" />
             </div>
           </div>
         </div>
@@ -493,8 +527,6 @@
               </div>
             </div>
           </div>
-          <br />
-          <br />
           <div class="branch">
             <h3>Sucursal AV Universidad</h3>
             <div class="location-content">
@@ -532,16 +564,20 @@
           <div class="contact-content">
             <form class="contact-form">
               <div class="form-group">
-                <input type="text" placeholder="Nombre" required />
+                <label for="contact-name" class="sr-only">Nombre</label>
+                <input type="text" id="contact-name" placeholder="Nombre" required />
               </div>
               <div class="form-group">
-                <input type="email" placeholder="Correo electrónico" required />
+                <label for="contact-email" class="sr-only">Correo electrónico</label>
+                <input type="email" id="contact-email" placeholder="Correo electrónico" required />
               </div>
               <div class="form-group">
-                <input type="tel" placeholder="Teléfono" />
+                <label for="contact-phone" class="sr-only">Teléfono</label>
+                <input type="tel" id="contact-phone" placeholder="Teléfono" />
               </div>
               <div class="form-group">
-                <textarea placeholder="Mensaje" required></textarea>
+                <label for="contact-message" class="sr-only">Mensaje</label>
+                <textarea id="contact-message" placeholder="Mensaje" required></textarea>
               </div>
               <button type="submit" class="btn">Enviar Mensaje</button>
             </form>
@@ -565,10 +601,11 @@
                 <a
                   href="https://www.facebook.com/share/1Btopiq1KL/"
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <i class="fab fa-facebook-f"></i>
                 </a>
-                <a href="https://wa.me/529933092124" target="_blank">
+                <a href="https://wa.me/529933092124" target="_blank" rel="noopener noreferrer">
                   <i class="fab fa-whatsapp"></i>
                 </a>
               </div>
@@ -591,7 +628,7 @@
               <li><a href="#inicio">Inicio</a></li>
               <li><a href="#nosotros">Nosotros</a></li>
               <li><a href="#menu">Menú</a></li>
-              <li><a href="#nocturno">Nocturno</a></li>
+              <li><a href="#bebidas">Bebidas</a></li>
               <li><a href="#banquetes">Banquetes</a></li>
               <li><a href="#galeria">Galería</a></li>
               <li><a href="#ubicacion">Ubicación</a></li>
@@ -614,12 +651,14 @@
         </div>
         <div class="footer-bottom">
           <p>
-            &copy; 2025 Las Tortas Del Chiche. Todos los derechos reservados.
+            &copy; 2026 Las Tortas Del Chiche. Todos los derechos reservados.
           </p>
         </div>
       </div>
     </footer>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/cart.js"></script>
     <script src="js/script.js"></script>
   </body>
 </html>
