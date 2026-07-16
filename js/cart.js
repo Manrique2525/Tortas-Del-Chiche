@@ -53,6 +53,7 @@ const Cart = (() => {
         state.branch = parsed.branch || "atasta";
         state.payment = parsed.payment || "efectivo";
         state.customer = parsed.customer || { name: "", phone: "", addressRef: "" };
+        state.customer.phone = (state.customer.phone || "").replace(/\D/g, "").slice(0, 10);
         state.location = parsed.location || { lat: null, lng: null, confirmed: false, address: null };
       } catch {
         state = { items: [], branch: "atasta", payment: "efectivo", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
@@ -830,7 +831,7 @@ const Cart = (() => {
       setTimeout(() => document.getElementById("cart-phone")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
-    if (!/^\d{10}$/.test(state.customer.phone.trim())) {
+    if (!/^\d{10}$/.test(state.customer.phone.replace(/\D/g, ""))) {
       showCartAlert("El teléfono debe tener 10 dígitos.");
       openSection("datos");
       setTimeout(() => document.getElementById("cart-phone")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
