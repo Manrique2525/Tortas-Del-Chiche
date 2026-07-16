@@ -1735,6 +1735,69 @@ footer {
     color: var(--primary-orange);
 }
 
+/* ── Método de Pago ── */
+.cart-payment-section {
+    padding: 12px 20px;
+    border-top: 2px solid var(--light-gray);
+}
+
+.cart-payment-section h3 {
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.cart-payment-section h3 i {
+    color: var(--primary-orange);
+    margin-right: 6px;
+}
+
+.cart-payment-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.cart-payment-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.cart-payment-option i {
+    font-size: 1.3rem;
+    color: #999;
+    transition: color 0.3s ease;
+}
+
+.cart-payment-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.cart-payment-option:hover {
+    border-color: var(--primary-orange);
+    background: #fff8f0;
+}
+
+.cart-payment-option.active {
+    border-color: var(--primary-orange);
+    background: #fff5e6;
+}
+
+.cart-payment-option.active i {
+    color: var(--primary-orange);
+}
+
 /* ── Ubicación ── */
 .cart-location {
     padding: 12px 20px;

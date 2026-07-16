@@ -24,6 +24,7 @@ const Cart = (() => {
   let state = {
     items: [],
     branch: "atasta",
+    payment: "efectivo",
     customer: { name: "", phone: "", addressRef: "" },
     location: { lat: null, lng: null, confirmed: false, address: null },
   };
@@ -44,10 +45,11 @@ const Cart = (() => {
         const parsed = JSON.parse(data);
         state.items = parsed.items || [];
         state.branch = parsed.branch || "atasta";
+        state.payment = parsed.payment || "efectivo";
         state.customer = parsed.customer || { name: "", phone: "", addressRef: "" };
         state.location = parsed.location || { lat: null, lng: null, confirmed: false, address: null };
       } catch {
-        state = { items: [], branch: "atasta", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+        state = { items: [], branch: "atasta", payment: "efectivo", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
       }
     }
   }
@@ -62,7 +64,6 @@ const Cart = (() => {
     }
     save();
     renderBadge();
-    openSidebar();
     pulseButton();
   }
 
@@ -285,6 +286,22 @@ const Cart = (() => {
       </div>
     `;
 
+    html += `
+      <div class="cart-payment-section">
+        <h3><i class="fas fa-credit-card"></i> Método de pago</h3>
+        <div class="cart-payment-options">
+          <button class="cart-payment-option ${state.payment === "efectivo" ? "active" : ""}" data-payment="efectivo">
+            <i class="fas fa-money-bill-wave"></i>
+            <span class="cart-payment-name">Efectivo</span>
+          </button>
+          <button class="cart-payment-option ${state.payment === "transferencia" ? "active" : ""}" data-payment="transferencia">
+            <i class="fas fa-university"></i>
+            <span class="cart-payment-name">Transferencia</span>
+          </button>
+        </div>
+      </div>
+    `;
+
     const locConfirmed = state.location.confirmed;
     const addrFormatted = formatAddress(state.location.address);
     html += `
@@ -358,6 +375,14 @@ const Cart = (() => {
     document.querySelectorAll(".cart-branch-option").forEach((btn) => {
       btn.addEventListener("click", () => {
         state.branch = btn.dataset.branch;
+        save();
+        renderSidebar();
+      });
+    });
+
+    document.querySelectorAll(".cart-payment-option").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.payment = btn.dataset.payment;
         save();
         renderSidebar();
       });
@@ -572,11 +597,12 @@ const Cart = (() => {
     });
     msg += `-----------------------`;
     msg += `\n*Total: $${total} MXN*`;
+    msg += `\n*Método de pago:* ${state.payment === "efectivo" ? "Efectivo" : "Transferencia"}`;
 
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank", "noopener,noreferrer");
 
-    state = { items: [], branch: "atasta", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+    state = { items: [], branch: "atasta", payment: "efectivo", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
     save();
     renderSidebar();
     renderBadge();
