@@ -37,6 +37,7 @@ const Cart = (() => {
   let marker = null;
   let geocodeTimer = null;
   let collapsedSections = { datos: false, sucursal: false, pago: false, ubicacion: false };
+  let lastAddedItemId = null;
 
   /* ──────────── Persistencia ──────────── */
   function save() {
@@ -103,8 +104,10 @@ const Cart = (() => {
     const existing = state.items.find((i) => i.id === id);
     if (existing) {
       existing.quantity++;
+      lastAddedItemId = null;
     } else {
       state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1, notes: "" });
+      lastAddedItemId = id;
     }
     save();
     renderBadge();
@@ -113,10 +116,25 @@ const Cart = (() => {
   }
 
   function removeItem(id) {
-    state.items = state.items.filter((i) => i.id !== id);
-    save();
-    renderSidebar();
-    renderBadge();
+    const el = document.querySelector(`.cart-item[data-id="${id}"]`);
+    if (el) {
+      el.classList.add("cart-item-exit");
+      const notesEl = el.nextElementSibling;
+      if (notesEl && notesEl.classList.contains("cart-item-notes")) {
+        notesEl.classList.add("cart-item-exit");
+      }
+      setTimeout(() => {
+        state.items = state.items.filter((i) => i.id !== id);
+        save();
+        renderSidebar();
+        renderBadge();
+      }, 300);
+    } else {
+      state.items = state.items.filter((i) => i.id !== id);
+      save();
+      renderSidebar();
+      renderBadge();
+    }
   }
 
   function updateQuantity(id, delta) {
@@ -303,37 +321,50 @@ const Cart = (() => {
         btn.addEventListener("click", () => {
           const order = history[Number(btn.dataset.index)];
           if (!order) return;
+          let added = 0;
           order.items.forEach((i) => {
             const existing = state.items.find((si) => si.id === i.id);
             if (existing) {
               existing.quantity += i.quantity;
             } else {
               state.items.push({ ...i, notes: i.notes || "" });
+              added++;
             }
           });
           save();
           renderSidebar();
           renderBadge();
+          showAddToast(order.items.length + " artículos del historial");
         });
       });
       return;
     }
 
-    let html = "";
-
-    if (!isScheduleOpen()) {
-      html += `
-        <div class="cart-schedule-warning">
-          <i class="fas fa-clock"></i>
-          <span>${getScheduleMessage()}</span>
+    const stepsDone = {
+      items: state.items.length > 0,
+      datos: state.customer.name.trim() && state.customer.phone.trim(),
+      sucursal: true,
+      pago: true,
+      ubicacion: state.location.confirmed,
+    };
+    const doneCount = Object.values(stepsDone).filter(Boolean).length;
+    html += `
+      <div class="cart-progress">
+        <div class="cart-progress-bar"><div class="cart-progress-fill" style="width:${(doneCount / 5) * 100}%"></div></div>
+        <div class="cart-progress-steps">
+          <span class="cart-progress-step ${stepsDone.items ? "done" : ""}" data-goto="items"><i class="fas fa-${stepsDone.items ? "check-circle" : "circle"}"></i> Items</span>
+          <span class="cart-progress-step ${stepsDone.datos ? "done" : ""}" data-goto="datos"><i class="fas fa-${stepsDone.datos ? "check-circle" : "circle"}"></i> Datos</span>
+          <span class="cart-progress-step ${stepsDone.sucursal ? "done" : ""}" data-goto="sucursal"><i class="fas fa-${stepsDone.sucursal ? "check-circle" : "circle"}"></i> Sucursal</span>
+          <span class="cart-progress-step ${stepsDone.pago ? "done" : ""}" data-goto="pago"><i class="fas fa-${stepsDone.pago ? "check-circle" : "circle"}"></i> Pago</span>
+          <span class="cart-progress-step ${stepsDone.ubicacion ? "done" : ""}" data-goto="ubicacion"><i class="fas fa-${stepsDone.ubicacion ? "check-circle" : "circle"}"></i> Mapa</span>
         </div>
-      `;
-    }
+      </div>
+    `;
 
     html += `<div class="cart-items">`;
     state.items.forEach((item) => {
       html += `
-        <div class="cart-item">
+        <div class="cart-item" data-id="${item.id}">
           ${item.img ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
             <h4>${item.name}</h4>
@@ -375,7 +406,7 @@ const Cart = (() => {
               <input type="text" id="cart-name" placeholder="Tu nombre *" value="${state.customer.name}" required />
             </div>
             <div class="cart-form-group">
-              <input type="tel" id="cart-phone" placeholder="Teléfono * (10 dígitos)" value="${state.customer.phone}" maxlength="10" required />
+              <input type="tel" id="cart-phone" placeholder="Teléfono * (10 dígitos)" value="${state.customer.phone.replace(/(\d{3})(?=\d)/g, "$1 ").trim()}" maxlength="12" required />
             </div>
             <div class="cart-form-group">
               <textarea id="cart-address" placeholder="Referencia de dirección * (casa color, frente a, etc.)" required>${state.customer.addressRef}</textarea>
@@ -481,6 +512,17 @@ const Cart = (() => {
     body.innerHTML = html;
     const headerCount = document.getElementById("cart-header-count");
     if (headerCount) headerCount.textContent = `(${getItemCount()})`;
+    if (lastAddedItemId) {
+      const newItemEl = document.querySelector(`.cart-item[data-id="${lastAddedItemId}"]`);
+      if (newItemEl) {
+        newItemEl.classList.add("cart-item-enter");
+        const notesEl = newItemEl.nextElementSibling;
+        if (notesEl && notesEl.classList.contains("cart-item-notes")) {
+          notesEl.classList.add("cart-item-enter");
+        }
+      }
+      lastAddedItemId = null;
+    }
     attachSidebarEvents();
   }
 
@@ -513,7 +555,13 @@ const Cart = (() => {
 
     const mapBtn = document.getElementById("cart-open-map");
     if (mapBtn) {
-      mapBtn.addEventListener("click", openMapModal);
+      mapBtn.addEventListener("click", () => {
+        mapBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo mapa...';
+        setTimeout(() => {
+          openMapModal();
+          mapBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Elegir ubicación en mapa';
+        }, 400);
+      });
     }
 
     const sendBtn = document.getElementById("cart-send-whatsapp");
@@ -525,7 +573,13 @@ const Cart = (() => {
     const phoneInput = document.getElementById("cart-phone");
     const addressInput = document.getElementById("cart-address");
     if (nameInput) nameInput.addEventListener("input", (e) => { state.customer.name = e.target.value; save(); });
-    if (phoneInput) phoneInput.addEventListener("input", (e) => { state.customer.phone = e.target.value; save(); });
+    if (phoneInput) phoneInput.addEventListener("input", (e) => {
+      const raw = e.target.value.replace(/\D/g, "").slice(0, 10);
+      state.customer.phone = raw;
+      const formatted = raw.replace(/(\d{3})(?=\d)/g, "$1 ");
+      e.target.value = formatted;
+      save();
+    });
     if (addressInput) addressInput.addEventListener("input", (e) => { state.customer.addressRef = e.target.value; save(); });
 
     document.querySelectorAll(".cart-item-note-input").forEach((input) => {
@@ -540,7 +594,10 @@ const Cart = (() => {
       btn.addEventListener("click", () => {
         state.branch = btn.dataset.branch;
         save();
-        renderSidebar();
+        document.querySelectorAll(".cart-branch-option").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
+        if (summary) summary.textContent = btn.querySelector(".cart-branch-name")?.textContent || "";
       });
     });
 
@@ -548,7 +605,10 @@ const Cart = (() => {
       btn.addEventListener("click", () => {
         state.payment = btn.dataset.payment;
         save();
-        renderSidebar();
+        document.querySelectorAll(".cart-payment-option").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
+        if (summary) summary.textContent = btn.querySelector(".cart-payment-name")?.textContent || "";
       });
     });
 
@@ -556,7 +616,37 @@ const Cart = (() => {
       btn.addEventListener("click", () => {
         const section = btn.dataset.section;
         collapsedSections[section] = !collapsedSections[section];
-        renderSidebar();
+        const body = btn.nextElementSibling;
+        const icon = btn.querySelector(".fa-chevron-down, .fa-chevron-right");
+        if (body) body.classList.toggle("collapsed");
+        if (icon) {
+          icon.classList.remove("fa-chevron-down", "fa-chevron-right");
+          icon.classList.add(collapsedSections[section] ? "fa-chevron-right" : "fa-chevron-down");
+        }
+      });
+    });
+
+    document.querySelectorAll(".cart-progress-step").forEach((step) => {
+      step.addEventListener("click", () => {
+        const target = step.dataset.goto;
+        if (target === "items") {
+          document.querySelector(".cart-items")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          const section = document.querySelector(`[data-section="${target}"]`);
+          if (section) {
+            if (collapsedSections[target]) {
+              collapsedSections[target] = false;
+              const body = section.nextElementSibling;
+              const icon = section.querySelector(".fa-chevron-down, .fa-chevron-right");
+              if (body) body.classList.remove("collapsed");
+              if (icon) {
+                icon.classList.remove("fa-chevron-right");
+                icon.classList.add("fa-chevron-down");
+              }
+            }
+            setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+          }
+        }
       });
     });
   }
@@ -729,26 +819,31 @@ const Cart = (() => {
     }
     if (!state.customer.name.trim()) {
       showCartAlert("Ingresa tu nombre.");
-      document.getElementById("cart-name")?.focus();
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-name")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
     if (!state.customer.phone.trim()) {
       showCartAlert("Ingresa tu teléfono.");
-      document.getElementById("cart-phone")?.focus();
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-phone")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
     if (!/^\d{10}$/.test(state.customer.phone.trim())) {
       showCartAlert("El teléfono debe tener 10 dígitos.");
-      document.getElementById("cart-phone")?.focus();
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-phone")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
     if (!state.customer.addressRef.trim()) {
       showCartAlert("Agrega una referencia de dirección.");
-      document.getElementById("cart-address")?.focus();
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-address")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
     if (!state.location.confirmed) {
       showCartAlert("Selecciona tu ubicación de entrega en el mapa.");
+      openSection("ubicacion");
       return;
     }
 
@@ -807,17 +902,43 @@ const Cart = (() => {
     }
   }
 
-  function showCartAlert(msg) {
-    let toast = document.getElementById("cart-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "cart-toast";
-      toast.className = "cart-toast";
-      document.body.appendChild(toast);
+  function openSection(name) {
+    if (collapsedSections[name]) {
+      collapsedSections[name] = false;
+      const btn = document.querySelector(`[data-section="${name}"]`);
+      if (btn) {
+        const body = btn.nextElementSibling;
+        const icon = btn.querySelector(".fa-chevron-down, .fa-chevron-right");
+        if (body) body.classList.remove("collapsed");
+        if (icon) {
+          icon.classList.remove("fa-chevron-right");
+          icon.classList.add("fa-chevron-down");
+        }
+      }
     }
+  }
+
+  function showToast(msg, type) {
+    let container = document.getElementById("cart-toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "cart-toast-container";
+      container.className = "cart-toast-container";
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement("div");
+    toast.className = `cart-toast-item ${type || ""}`;
     toast.textContent = msg;
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("show"));
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  function showCartAlert(msg) {
+    showToast(msg, "error");
   }
 
   function showAddToast(name) {

@@ -1881,24 +1881,75 @@ footer {
     padding: 4px 8px;
 }
 
-/* ── Formulario del cliente ── */
-.cart-customer-form {
-    padding: 15px 20px;
-    border-top: 2px solid var(--light-gray);
+/* ── Indicador de progreso ── */
+.cart-progress {
+    padding: 12px 20px 8px;
+    border-bottom: 1px solid #f0f0f0;
 }
 
-.cart-customer-form h3 {
-    font-size: 0.95rem;
-    color: var(--primary-black);
-    margin: 0 0 12px;
+.cart-progress-bar {
+    height: 4px;
+    background: #eee;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.cart-progress-fill {
+    height: 100%;
+    background: var(--primary-orange);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+
+.cart-progress-steps {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.cart-progress-step {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 3px;
+    font-size: 0.7rem;
+    color: #bbb;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 2px 0;
 }
 
-.cart-customer-form h3 i {
+.cart-progress-step.done {
+    color: #4caf50;
+}
+
+.cart-progress-step:hover {
     color: var(--primary-orange);
 }
+
+.cart-progress-step i {
+    font-size: 0.65rem;
+}
+
+/* ── Animaciones de items ── */
+.cart-item-enter {
+    animation: cartSlideIn 0.3s ease forwards;
+}
+
+@keyframes cartSlideIn {
+    from { transform: translateX(40px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.cart-item-exit {
+    animation: cartSlideOut 0.3s ease forwards;
+}
+
+@keyframes cartSlideOut {
+    to { transform: translateX(-100%); opacity: 0; max-height: 0; padding: 0; margin: 0; border: 0; overflow: hidden; }
+}
+
+/* ── Formulario del cliente ── */
 
 .cart-form-group {
     margin-bottom: 10px;
@@ -1929,21 +1980,6 @@ footer {
 }
 
 /* ── Selector de Sucursal ── */
-.cart-branch-section {
-    padding: 12px 20px;
-    border-top: 2px solid var(--light-gray);
-}
-
-.cart-branch-section h3 {
-    font-size: 0.95rem;
-    color: var(--text-dark);
-    margin-bottom: 10px;
-}
-
-.cart-branch-section h3 i {
-    color: var(--primary-orange);
-    margin-right: 6px;
-}
 
 .cart-branch-options {
     display: grid;
@@ -2066,11 +2102,6 @@ footer {
 }
 
 /* ── Ubicación ── */
-.cart-location {
-    padding: 12px 20px;
-    border-top: 2px solid var(--light-gray);
-}
-
 .cart-map-btn {
     width: 100%;
     padding: 12px;
@@ -2201,31 +2232,43 @@ footer {
     box-shadow: none;
 }
 
-/* ── Toast de alerta ── */
-.cart-toast {
+/* ── Toast container (cola de mensajes) ── */
+.cart-toast-container {
     position: fixed;
     bottom: 160px;
     left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--primary-black);
-    color: var(--white);
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
+    transform: translateX(-50%);
     z-index: 99999;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    max-width: 90vw;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
 }
 
-.cart-toast.show {
+.cart-toast-item {
+    background: var(--primary-black);
+    color: var(--white);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 85vw;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+.cart-toast-item.show {
     opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
+}
+
+.cart-toast-item.error {
+    background: #e74c3c;
 }
 
 /* ============================================================
@@ -2456,6 +2499,14 @@ footer {
 
     .cart-footer {
         padding-bottom: 40px;
+    }
+
+    .cart-section-body {
+        max-height: min(500px, 35vh);
+    }
+
+    .cart-progress-step span {
+        display: none;
     }
 
     .cart-item {
