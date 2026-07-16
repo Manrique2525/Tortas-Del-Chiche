@@ -1855,7 +1855,7 @@ footer {
     max-height: 500px;
     transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
     opacity: 1;
-    padding-bottom: 4px;
+    padding: 0 0 4px;
 }
 
 .cart-section-body.collapsed {
@@ -1949,6 +1949,7 @@ footer {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    padding: 0 20px;
 }
 
 .cart-branch-option {
@@ -2021,6 +2022,7 @@ footer {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    padding: 0 20px;
 }
 
 .cart-payment-option {
