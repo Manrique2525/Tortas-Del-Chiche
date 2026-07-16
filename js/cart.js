@@ -36,6 +36,7 @@ const Cart = (() => {
   let map = null;
   let marker = null;
   let geocodeTimer = null;
+  let collapsedSections = { datos: false, sucursal: false, pago: false, ubicacion: false };
 
   /* ──────────── Persistencia ──────────── */
   function save() {
@@ -127,8 +128,21 @@ const Cart = (() => {
       return;
     }
     save();
-    renderSidebar();
+    updateQuantityUI(id);
     renderBadge();
+  }
+
+  function updateQuantityUI(id) {
+    const item = state.items.find((i) => i.id === id);
+    if (!item) return;
+    const qtyEl = document.querySelector(`.cart-qty-value[data-id="${id}"]`);
+    const subEl = document.querySelector(`.cart-item-subtotal[data-id="${id}"]`);
+    if (qtyEl) qtyEl.textContent = item.quantity;
+    if (subEl) subEl.textContent = `$${item.price * item.quantity}`;
+    const totalEl = document.getElementById("cart-total-amount");
+    if (totalEl) totalEl.textContent = `$${getTotal()}`;
+    const headerCount = document.getElementById("cart-header-count");
+    if (headerCount) headerCount.textContent = `(${getItemCount()})`;
   }
 
   function getTotal() {
@@ -207,7 +221,7 @@ const Cart = (() => {
 
     sidebar.innerHTML = `
       <div class="cart-sidebar-header">
-        <h2><i class="fas fa-shopping-cart"></i> Tu Pedido</h2>
+        <h2><i class="fas fa-shopping-cart"></i> Tu Pedido <span class="cart-header-count" id="cart-header-count"></span></h2>
         <button class="cart-close-btn" aria-label="Cerrar carrito">&times;</button>
       </div>
       <div class="cart-sidebar-body" id="cart-body">
@@ -218,12 +232,6 @@ const Cart = (() => {
     sidebar.querySelector(".cart-close-btn").addEventListener("click", closeSidebar);
     document.body.appendChild(overlay);
     document.body.appendChild(sidebar);
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && sidebar.classList.contains("open")) {
-        closeSidebar();
-      }
-    });
   }
 
   function toggleSidebar() {
@@ -335,12 +343,12 @@ const Cart = (() => {
             <button class="cart-qty-btn" data-id="${item.id}" data-action="decrease" aria-label="Disminuir cantidad">
               <i class="fas fa-minus"></i>
             </button>
-            <span class="cart-qty-value">${item.quantity}</span>
+            <span class="cart-qty-value" data-id="${item.id}">${item.quantity}</span>
             <button class="cart-qty-btn" data-id="${item.id}" data-action="increase" aria-label="Aumentar cantidad">
               <i class="fas fa-plus"></i>
             </button>
           </div>
-          <div class="cart-item-subtotal">$${item.price * item.quantity}</div>
+          <div class="cart-item-subtotal" data-id="${item.id}">$${item.price * item.quantity}</div>
           <button class="cart-item-remove" data-id="${item.id}" aria-label="Eliminar ${item.name}">
             <i class="fas fa-trash-alt"></i>
           </button>
@@ -352,81 +360,117 @@ const Cart = (() => {
     });
     html += `</div>`;
 
+    const datosSummary = state.customer.name ? `${state.customer.name}${state.customer.phone ? " · " + state.customer.phone : ""}` : "Completar";
+    const isDatosFilled = state.customer.name && state.customer.phone;
     html += `
-      <div class="cart-customer-form">
-        <h3><i class="fas fa-user"></i> Tus datos</h3>
-        <div class="cart-form-group">
-          <input type="text" id="cart-name" placeholder="Tu nombre *" value="${state.customer.name}" required />
-        </div>
-        <div class="cart-form-group">
-          <input type="tel" id="cart-phone" placeholder="Teléfono *" value="${state.customer.phone}" required />
-        </div>
-        <div class="cart-form-group">
-          <textarea id="cart-address" placeholder="Referencia de dirección * (casa color, frente a, etc.)" required>${state.customer.addressRef}</textarea>
+      <div class="cart-section">
+        <button class="cart-section-header" data-section="datos">
+          <h3><i class="fas fa-user"></i> Tus datos</h3>
+          <span class="cart-section-summary">${datosSummary}</span>
+          <i class="fas fa-chevron-${collapsedSections.datos ? "right" : "down"}"></i>
+        </button>
+        <div class="cart-section-body ${collapsedSections.datos ? "collapsed" : ""}">
+          <div class="cart-customer-form-inner">
+            <div class="cart-form-group">
+              <input type="text" id="cart-name" placeholder="Tu nombre *" value="${state.customer.name}" required />
+            </div>
+            <div class="cart-form-group">
+              <input type="tel" id="cart-phone" placeholder="Teléfono * (10 dígitos)" value="${state.customer.phone}" maxlength="10" required />
+            </div>
+            <div class="cart-form-group">
+              <textarea id="cart-address" placeholder="Referencia de dirección * (casa color, frente a, etc.)" required>${state.customer.addressRef}</textarea>
+            </div>
+          </div>
         </div>
       </div>
     `;
 
+    const branchSummary = BRANCHES[state.branch].name.replace("Sucursal ", "");
     html += `
-      <div class="cart-branch-section">
-        <h3><i class="fas fa-store"></i> Elige sucursal</h3>
-        <div class="cart-branch-options">
-          <button class="cart-branch-option ${state.branch === "atasta" ? "active" : ""}" data-branch="atasta">
-            <i class="fas fa-map-marker-alt"></i>
-            <span class="cart-branch-name">Atasta</span>
-            <span class="cart-branch-schedule">${BRANCHES.atasta.schedule}</span>
-          </button>
-          <button class="cart-branch-option ${state.branch === "av_universidad" ? "active" : ""}" data-branch="av_universidad">
-            <i class="fas fa-map-marker-alt"></i>
-            <span class="cart-branch-name">AV Universidad</span>
-            <span class="cart-branch-schedule">${BRANCHES.av_universidad.schedule}</span>
-          </button>
+      <div class="cart-section">
+        <button class="cart-section-header" data-section="sucursal">
+          <h3><i class="fas fa-store"></i> Elige sucursal</h3>
+          <span class="cart-section-summary">${branchSummary}</span>
+          <i class="fas fa-chevron-${collapsedSections.sucursal ? "right" : "down"}"></i>
+        </button>
+        <div class="cart-section-body ${collapsedSections.sucursal ? "collapsed" : ""}">
+          <div class="cart-branch-options">
+            <button class="cart-branch-option ${state.branch === "atasta" ? "active" : ""}" data-branch="atasta">
+              <i class="fas fa-map-marker-alt"></i>
+              <span class="cart-branch-name">Atasta</span>
+              <span class="cart-branch-schedule">${BRANCHES.atasta.schedule}</span>
+            </button>
+            <button class="cart-branch-option ${state.branch === "av_universidad" ? "active" : ""}" data-branch="av_universidad">
+              <i class="fas fa-map-marker-alt"></i>
+              <span class="cart-branch-name">AV Universidad</span>
+              <span class="cart-branch-schedule">${BRANCHES.av_universidad.schedule}</span>
+            </button>
+          </div>
         </div>
       </div>
     `;
 
+    const paymentSummary = state.payment === "efectivo" ? "Efectivo" : "Transferencia";
     html += `
-      <div class="cart-payment-section">
-        <h3><i class="fas fa-credit-card"></i> Método de pago</h3>
-        <div class="cart-payment-options">
-          <button class="cart-payment-option ${state.payment === "efectivo" ? "active" : ""}" data-payment="efectivo">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="cart-payment-name">Efectivo</span>
-          </button>
-          <button class="cart-payment-option ${state.payment === "transferencia" ? "active" : ""}" data-payment="transferencia">
-            <i class="fas fa-university"></i>
-            <span class="cart-payment-name">Transferencia</span>
-          </button>
+      <div class="cart-section">
+        <button class="cart-section-header" data-section="pago">
+          <h3><i class="fas fa-credit-card"></i> Método de pago</h3>
+          <span class="cart-section-summary">${paymentSummary}</span>
+          <i class="fas fa-chevron-${collapsedSections.pago ? "right" : "down"}"></i>
+        </button>
+        <div class="cart-section-body ${collapsedSections.pago ? "collapsed" : ""}">
+          <div class="cart-payment-options">
+            <button class="cart-payment-option ${state.payment === "efectivo" ? "active" : ""}" data-payment="efectivo">
+              <i class="fas fa-money-bill-wave"></i>
+              <span class="cart-payment-name">Efectivo</span>
+            </button>
+            <button class="cart-payment-option ${state.payment === "transferencia" ? "active" : ""}" data-payment="transferencia">
+              <i class="fas fa-university"></i>
+              <span class="cart-payment-name">Transferencia</span>
+            </button>
+          </div>
         </div>
       </div>
     `;
 
     const locConfirmed = state.location.confirmed;
     const addrFormatted = formatAddress(state.location.address);
+    const locSummary = locConfirmed ? (state.location.address ? (state.location.address.road || "Ubicación OK") : "Ubicación OK") : "Elegir en mapa";
     html += `
-      <div class="cart-location">
-        <button class="cart-map-btn" id="cart-open-map">
-          <i class="fas fa-map-marker-alt"></i>
-          ${locConfirmed ? "Ubicación seleccionada" : "Elegir ubicación en mapa"}
+      <div class="cart-section">
+        <button class="cart-section-header" data-section="ubicacion">
+          <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
+          <span class="cart-section-summary">${locSummary}</span>
+          <i class="fas fa-chevron-${collapsedSections.ubicacion ? "right" : "down"}"></i>
         </button>
-        ${locConfirmed ? `
-          <div class="cart-address-preview">
-            <i class="fas fa-road"></i>
-            <div>
-              <p class="cart-address-street">${state.location.address ? (state.location.address.road || "Sin calle") : "Sin dirección"}</p>
-              <p class="cart-address-detail">${addrFormatted || "Confirma tu ubicación en el mapa"}</p>
-            </div>
+        <div class="cart-section-body ${collapsedSections.ubicacion ? "collapsed" : ""}">
+          <div class="cart-location-inner">
+            <button class="cart-map-btn" id="cart-open-map">
+              <i class="fas fa-map-marker-alt"></i>
+              ${locConfirmed ? "Ubicación seleccionada" : "Elegir ubicación en mapa"}
+            </button>
+            ${locConfirmed ? `
+              <div class="cart-address-preview">
+                <i class="fas fa-road"></i>
+                <div>
+                  <p class="cart-address-street">${state.location.address ? (state.location.address.road || "Sin calle") : "Sin dirección"}</p>
+                  <p class="cart-address-detail">${addrFormatted || "Confirma tu ubicación en el mapa"}</p>
+                </div>
+              </div>
+            ` : ""}
           </div>
-        ` : ""}
+        </div>
       </div>
     `;
 
     const total = getTotal();
+    const itemCount = getItemCount();
     html += `
       <div class="cart-footer">
+        <div class="cart-items-summary">${itemCount} ${itemCount === 1 ? "artículo" : "artículos"}</div>
         <div class="cart-total">
           <span>Total</span>
-          <span class="cart-total-amount">$${total}</span>
+          <span class="cart-total-amount" id="cart-total-amount">$${total}</span>
         </div>
         <button class="cart-whatsapp-btn" id="cart-send-whatsapp">
           <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
@@ -435,6 +479,8 @@ const Cart = (() => {
     `;
 
     body.innerHTML = html;
+    const headerCount = document.getElementById("cart-header-count");
+    if (headerCount) headerCount.textContent = `(${getItemCount()})`;
     attachSidebarEvents();
   }
 
@@ -450,7 +496,18 @@ const Cart = (() => {
     document.querySelectorAll(".cart-item-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = Number(btn.dataset.id);
-        removeItem(id);
+        if (btn.classList.contains("confirming")) {
+          removeItem(id);
+        } else {
+          btn.classList.add("confirming");
+          btn.innerHTML = '<i class="fas fa-check"></i>';
+          btn.setAttribute("aria-label", "Confirmar eliminar");
+          setTimeout(() => {
+            btn.classList.remove("confirming");
+            btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            btn.setAttribute("aria-label", "Eliminar producto");
+          }, 2000);
+        }
       });
     });
 
@@ -491,6 +548,14 @@ const Cart = (() => {
       btn.addEventListener("click", () => {
         state.payment = btn.dataset.payment;
         save();
+        renderSidebar();
+      });
+    });
+
+    document.querySelectorAll(".cart-section-header").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const section = btn.dataset.section;
+        collapsedSections[section] = !collapsedSections[section];
         renderSidebar();
       });
     });
@@ -672,6 +737,11 @@ const Cart = (() => {
       document.getElementById("cart-phone")?.focus();
       return;
     }
+    if (!/^\d{10}$/.test(state.customer.phone.trim())) {
+      showCartAlert("El teléfono debe tener 10 dígitos.");
+      document.getElementById("cart-phone")?.focus();
+      return;
+    }
     if (!state.customer.addressRef.trim()) {
       showCartAlert("Agrega una referencia de dirección.");
       document.getElementById("cart-address")?.focus();
@@ -710,7 +780,19 @@ const Cart = (() => {
     msg += `\n*Método de pago:* ${state.payment === "efectivo" ? "Efectivo" : "Transferencia"}`;
 
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    const sendBtn = document.getElementById("cart-send-whatsapp");
+    if (sendBtn) {
+      sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
+      sendBtn.disabled = true;
+    }
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    if (!opened) {
+      navigator.clipboard.writeText(msg).then(() => {
+        showCartAlert("No se pudo abrir WhatsApp. El mensaje se copió al portapapeles. Pégalo en WhatsApp manualmente.");
+      }).catch(() => {
+        showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
+      });
+    }
 
     saveToHistory();
 
@@ -719,6 +801,10 @@ const Cart = (() => {
     renderSidebar();
     renderBadge();
     closeSidebar();
+    if (sendBtn) {
+      sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
+      sendBtn.disabled = false;
+    }
   }
 
   function showCartAlert(msg) {
@@ -786,6 +872,15 @@ const Cart = (() => {
     createFloatingButton();
     createSidebar();
     renderBadge();
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const sidebar = document.getElementById("cart-sidebar");
+        if (sidebar && sidebar.classList.contains("open")) {
+          closeSidebar();
+        }
+      }
+    });
   }
 
   if (document.readyState === "loading") {
