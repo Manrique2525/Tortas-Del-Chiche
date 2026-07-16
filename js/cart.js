@@ -5,10 +5,25 @@
 
 const Cart = (() => {
   const STORAGE_KEY = "tortas_chiche_carrito";
-  const WHATSAPP_NUMBER = "529933092124";
+
+  const BRANCHES = {
+    atasta: {
+      name: "Sucursal Atasta",
+      address: "Av. 27 de Febrero #2616, Colonia Atasta",
+      whatsapp: "529933092124",
+      schedule: "7am - 2pm",
+    },
+    av_universidad: {
+      name: "Sucursal AV Universidad",
+      address: "Av Universidad 392, Colonia Casa Blanca",
+      whatsapp: "529932206325",
+      schedule: "7am - 2pm",
+    },
+  };
 
   let state = {
     items: [],
+    branch: "atasta",
     customer: { name: "", phone: "", addressRef: "" },
     location: { lat: null, lng: null, confirmed: false, address: null },
   };
@@ -28,10 +43,11 @@ const Cart = (() => {
       try {
         const parsed = JSON.parse(data);
         state.items = parsed.items || [];
+        state.branch = parsed.branch || "atasta";
         state.customer = parsed.customer || { name: "", phone: "", addressRef: "" };
         state.location = parsed.location || { lat: null, lng: null, confirmed: false, address: null };
       } catch {
-        state = { items: [], customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+        state = { items: [], branch: "atasta", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
       }
     }
   }
@@ -251,6 +267,24 @@ const Cart = (() => {
       </div>
     `;
 
+    html += `
+      <div class="cart-branch-section">
+        <h3><i class="fas fa-store"></i> Elige sucursal</h3>
+        <div class="cart-branch-options">
+          <button class="cart-branch-option ${state.branch === "atasta" ? "active" : ""}" data-branch="atasta">
+            <i class="fas fa-map-marker-alt"></i>
+            <span class="cart-branch-name">Atasta</span>
+            <span class="cart-branch-schedule">${BRANCHES.atasta.schedule}</span>
+          </button>
+          <button class="cart-branch-option ${state.branch === "av_universidad" ? "active" : ""}" data-branch="av_universidad">
+            <i class="fas fa-map-marker-alt"></i>
+            <span class="cart-branch-name">AV Universidad</span>
+            <span class="cart-branch-schedule">${BRANCHES.av_universidad.schedule}</span>
+          </button>
+        </div>
+      </div>
+    `;
+
     const locConfirmed = state.location.confirmed;
     const addrFormatted = formatAddress(state.location.address);
     html += `
@@ -320,6 +354,14 @@ const Cart = (() => {
     if (nameInput) nameInput.addEventListener("input", (e) => { state.customer.name = e.target.value; save(); });
     if (phoneInput) phoneInput.addEventListener("input", (e) => { state.customer.phone = e.target.value; save(); });
     if (addressInput) addressInput.addEventListener("input", (e) => { state.customer.addressRef = e.target.value; save(); });
+
+    document.querySelectorAll(".cart-branch-option").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.branch = btn.dataset.branch;
+        save();
+        renderSidebar();
+      });
+    });
   }
 
   /* ──────────── Mapa (Leaflet + OpenStreetMap) ──────────── */
@@ -514,7 +556,8 @@ const Cart = (() => {
 
     let msg = `*Pedido - Las Tortas Del Chiche*\n`;
     msg += `\n`;
-    msg += `*Cliente:* ${state.customer.name}`;
+    msg += `*Sucursal:* ${BRANCHES[state.branch].name}`;
+    msg += `\n*Cliente:* ${state.customer.name}`;
     msg += `\n*Tel:* ${state.customer.phone}`;
     msg += `\n*Referencia:* ${state.customer.addressRef}`;
     if (addrText) {
@@ -530,10 +573,10 @@ const Cart = (() => {
     msg += `-----------------------`;
     msg += `\n*Total: $${total} MXN*`;
 
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank", "noopener,noreferrer");
 
-    state = { items: [], customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+    state = { items: [], branch: "atasta", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
     save();
     renderSidebar();
     renderBadge();

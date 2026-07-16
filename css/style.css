@@ -1663,6 +1663,78 @@ footer {
     resize: vertical;
 }
 
+/* ── Selector de Sucursal ── */
+.cart-branch-section {
+    padding: 12px 20px;
+    border-top: 2px solid var(--light-gray);
+}
+
+.cart-branch-section h3 {
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.cart-branch-section h3 i {
+    color: var(--primary-orange);
+    margin-right: 6px;
+}
+
+.cart-branch-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.cart-branch-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.cart-branch-option i {
+    font-size: 1.2rem;
+    color: #999;
+    transition: color 0.3s ease;
+}
+
+.cart-branch-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.cart-branch-schedule {
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.cart-branch-option:hover {
+    border-color: var(--primary-orange);
+    background: #fff8f0;
+}
+
+.cart-branch-option.active {
+    border-color: var(--primary-orange);
+    background: #fff5e6;
+}
+
+.cart-branch-option.active i {
+    color: var(--primary-orange);
+}
+
+.cart-branch-option.active .cart-branch-schedule {
+    color: var(--primary-orange);
+}
+
 /* ── Ubicación ── */
 .cart-location {
     padding: 12px 20px;
