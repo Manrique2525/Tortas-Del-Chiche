@@ -5,6 +5,10 @@
 
 const Cart = (() => {
   const STORAGE_KEY = "tortas_chiche_carrito";
+  const HISTORY_KEY = "tortas_chiche_historial";
+  const MAX_HISTORY = 5;
+  const SCHEDULE_START = 7;
+  const SCHEDULE_END = 14;
 
   const BRANCHES = {
     atasta: {
@@ -54,17 +58,57 @@ const Cart = (() => {
     }
   }
 
+  /* ──────────── Historial de Pedidos ──────────── */
+  function saveToHistory() {
+    if (state.items.length === 0) return;
+    const history = getHistory();
+    const order = {
+      date: new Date().toLocaleString("es-MX"),
+      items: JSON.parse(JSON.stringify(state.items)),
+      total: getTotal(),
+      branch: BRANCHES[state.branch].name,
+      payment: state.payment === "efectivo" ? "Efectivo" : "Transferencia",
+    };
+    history.unshift(order);
+    if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }
+
+  function getHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  /* ──────────── Horario de Atención ──────────── */
+  function isScheduleOpen() {
+    const now = new Date();
+    const hour = now.getHours();
+    return hour >= SCHEDULE_START && hour < SCHEDULE_END;
+  }
+
+  function getScheduleMessage() {
+    const now = new Date();
+    const hour = now.getHours();
+    if (hour < SCHEDULE_START) return `Abre a las ${SCHEDULE_START}:00 am`;
+    if (hour >= SCHEDULE_END) return `Cerrado. Abre mañana a las ${SCHEDULE_START}:00 am`;
+    return "";
+  }
+
   /* ──────────── CRUD ──────────── */
   function addItem(id, name, price, img) {
     const existing = state.items.find((i) => i.id === id);
     if (existing) {
       existing.quantity++;
     } else {
-      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1 });
+      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1, notes: "" });
     }
     save();
     renderBadge();
     pulseButton();
+    showAddToast(name);
   }
 
   function removeItem(id) {
@@ -113,6 +157,15 @@ const Cart = (() => {
     if (!addr) return "";
     const parts = [addr.road, addr.neighbourhood || addr.suburb, addr.city || addr.town, addr.state].filter(Boolean);
     return parts.join(", ");
+  }
+
+  /* ──────────── Aviso de Horario ──────────── */
+  function showScheduleBanner() {
+    if (isScheduleOpen()) return;
+    const banner = document.createElement("div");
+    banner.className = "cart-schedule-banner";
+    banner.innerHTML = `<i class="fas fa-clock"></i> ${getScheduleMessage()} &mdash; Puedes armar tu pedido y enviarlo cuando abramos`;
+    document.body.appendChild(banner);
   }
 
   /* ──────────── UI: Botón flotante + Badge ──────────── */
@@ -216,17 +269,69 @@ const Cart = (() => {
     if (!body) return;
 
     if (state.items.length === 0) {
-      body.innerHTML = `
+      let emptyHtml = `
         <div class="cart-empty">
           <i class="fas fa-shopping-cart"></i>
           <p>Tu carrito está vacío</p>
           <span>Agrega productos del menú para comenzar tu pedido</span>
         </div>
       `;
+      const history = getHistory();
+      if (history.length > 0) {
+        emptyHtml += `
+          <div class="cart-history">
+            <h3><i class="fas fa-history"></i> Pedidos recientes</h3>
+            ${history.map((order) => `
+              <div class="cart-history-item">
+                <div class="cart-history-header">
+                  <span class="cart-history-date">${order.date}</span>
+                  <span class="cart-history-total">$${order.total}</span>
+                </div>
+                <div class="cart-history-detail">
+                  ${order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
+                </div>
+                <div class="cart-history-meta">${order.branch} &middot; ${order.payment}</div>
+                <button class="cart-history-reorder" data-index="${history.indexOf(order)}">
+                  <i class="fas fa-redo"></i> Volver a pedir
+                </button>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+      body.innerHTML = emptyHtml;
+      document.querySelectorAll(".cart-history-reorder").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const order = history[Number(btn.dataset.index)];
+          if (!order) return;
+          order.items.forEach((i) => {
+            const existing = state.items.find((si) => si.id === i.id);
+            if (existing) {
+              existing.quantity += i.quantity;
+            } else {
+              state.items.push({ ...i, notes: i.notes || "" });
+            }
+          });
+          save();
+          renderSidebar();
+          renderBadge();
+        });
+      });
       return;
     }
 
-    let html = `<div class="cart-items">`;
+    let html = "";
+
+    if (!isScheduleOpen()) {
+      html += `
+        <div class="cart-schedule-warning">
+          <i class="fas fa-clock"></i>
+          <span>${getScheduleMessage()}</span>
+        </div>
+      `;
+    }
+
+    html += `<div class="cart-items">`;
     state.items.forEach((item) => {
       html += `
         <div class="cart-item">
@@ -248,6 +353,9 @@ const Cart = (() => {
           <button class="cart-item-remove" data-id="${item.id}" aria-label="Eliminar ${item.name}">
             <i class="fas fa-trash-alt"></i>
           </button>
+        </div>
+        <div class="cart-item-notes">
+          <input type="text" class="cart-item-note-input" data-id="${item.id}" placeholder="Ej: sin cebolla, extra salsa..." value="${item.notes || ""}" />
         </div>
       `;
     });
@@ -371,6 +479,14 @@ const Cart = (() => {
     if (nameInput) nameInput.addEventListener("input", (e) => { state.customer.name = e.target.value; save(); });
     if (phoneInput) phoneInput.addEventListener("input", (e) => { state.customer.phone = e.target.value; save(); });
     if (addressInput) addressInput.addEventListener("input", (e) => { state.customer.addressRef = e.target.value; save(); });
+
+    document.querySelectorAll(".cart-item-note-input").forEach((input) => {
+      input.addEventListener("input", (e) => {
+        const id = Number(input.dataset.id);
+        const item = state.items.find((i) => i.id === id);
+        if (item) { item.notes = e.target.value; save(); }
+      });
+    });
 
     document.querySelectorAll(".cart-branch-option").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -594,6 +710,9 @@ const Cart = (() => {
     msg += `\n*Detalle del pedido:*\n`;
     state.items.forEach((item) => {
       msg += `*${item.quantity}x* ${item.name} — $${item.price * item.quantity}\n`;
+      if (item.notes && item.notes.trim()) {
+        msg += `   Nota: ${item.notes.trim()}\n`;
+      }
     });
     msg += `-----------------------`;
     msg += `\n*Total: $${total} MXN*`;
@@ -601,6 +720,8 @@ const Cart = (() => {
 
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank", "noopener,noreferrer");
+
+    saveToHistory();
 
     state = { items: [], branch: "atasta", payment: "efectivo", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
     save();
@@ -620,6 +741,30 @@ const Cart = (() => {
     toast.textContent = msg;
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 3000);
+  }
+
+  function showAddToast(name) {
+    let toast = document.getElementById("cart-add-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "cart-add-toast";
+      toast.className = "cart-add-toast";
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `
+      <div class="cart-add-toast-content">
+        <i class="fas fa-check-circle"></i>
+        <span><strong>${name}</strong> agregado al carrito</span>
+      </div>
+      <button class="cart-add-toast-btn" id="cart-add-toast-view">Ver carrito</button>
+    `;
+    toast.classList.add("show");
+    document.getElementById("cart-add-toast-view").addEventListener("click", () => {
+      toast.classList.remove("show");
+      openSidebar();
+    });
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove("show"), 3000);
   }
 
   /* ──────────── Init: Botones "Agregar" ──────────── */
@@ -650,6 +795,7 @@ const Cart = (() => {
     createFloatingButton();
     createSidebar();
     renderBadge();
+    showScheduleBanner();
   }
 
   if (document.readyState === "loading") {

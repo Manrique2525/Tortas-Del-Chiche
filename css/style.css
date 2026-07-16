@@ -1616,6 +1616,204 @@ footer {
     color: #e74c3c;
 }
 
+.cart-item-notes {
+    grid-column: 1 / -1;
+    padding-top: 2px;
+}
+
+.cart-item-note-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: #666;
+    background: #fafafa;
+    transition: border-color 0.2s ease;
+}
+
+.cart-item-note-input:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    background: #fff;
+}
+
+.cart-item-note-input::placeholder {
+    color: #bbb;
+}
+
+/* ── Aviso de horario (sidebar) ── */
+.cart-schedule-warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #fff3cd;
+    color: #856404;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-bottom: 1px solid #ffeeba;
+}
+
+.cart-schedule-warning i {
+    color: #e0a800;
+}
+
+/* ── Banner de horario (página) ── */
+.cart-schedule-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #ff6b35, #e05206);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Historial de pedidos ── */
+.cart-history {
+    padding: 15px 20px;
+    border-top: 2px solid var(--light-gray);
+}
+
+.cart-history h3 {
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+}
+
+.cart-history h3 i {
+    color: var(--primary-orange);
+    margin-right: 6px;
+}
+
+.cart-history-item {
+    padding: 12px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+}
+
+.cart-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.cart-history-date {
+    font-size: 0.78rem;
+    color: #999;
+}
+
+.cart-history-total {
+    font-weight: 700;
+    color: var(--primary-black);
+    font-size: 0.95rem;
+}
+
+.cart-history-detail {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.cart-history-meta {
+    font-size: 0.75rem;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.cart-history-reorder {
+    width: 100%;
+    padding: 8px;
+    background: var(--white);
+    border: 1.5px solid var(--primary-orange);
+    border-radius: 6px;
+    color: var(--primary-orange);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.cart-history-reorder:hover {
+    background: var(--primary-orange);
+    color: var(--white);
+}
+
+/* ── Toast de agregar producto ── */
+.cart-add-toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px 10px 16px;
+    background: var(--primary-black);
+    color: var(--white);
+    border-radius: 50px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    max-width: 90vw;
+}
+
+.cart-add-toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.cart-add-toast-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cart-add-toast-content i {
+    color: #4caf50;
+    flex-shrink: 0;
+}
+
+.cart-add-toast-btn {
+    padding: 6px 12px;
+    background: var(--primary-orange);
+    color: var(--white);
+    border: none;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+    font-family: inherit;
+}
+
+.cart-add-toast-btn:hover {
+    background: #e05206;
+}
+
 /* ── Formulario del cliente ── */
 .cart-customer-form {
     padding: 15px 20px;
