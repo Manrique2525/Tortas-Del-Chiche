@@ -1353,9 +1353,9 @@ footer {
 .cart-float-btn {
     position: fixed;
     bottom: 150px;
-    right: 25px;
-    width: 58px;
-    height: 58px;
+    right: 20px;
+    width: 55px;
+    height: 55px;
     background-color: var(--primary-black);
     color: var(--white);
     border-radius: 50%;
@@ -2021,11 +2021,11 @@ footer {
    ============================================================ */
 @media (max-width: 576px) {
     .cart-float-btn {
-        width: 50px;
-        height: 50px;
-        bottom: 140px;
-        right: 15px;
-        font-size: 18px;
+        width: 55px;
+        height: 55px;
+        bottom: 145px;
+        right: 20px;
+        font-size: 20px;
     }
 
     .cart-sidebar {
