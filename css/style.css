@@ -1618,19 +1618,19 @@ footer {
 
 .cart-item-notes {
     grid-column: 1 / -1;
-    padding-top: 2px;
+    padding: 6px 0 2px;
 }
 
 .cart-item-note-input {
     width: 100%;
-    padding: 6px 10px;
-    border: 1px solid #e8e8e8;
-    border-radius: 6px;
+    padding: 8px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
     font-family: inherit;
-    font-size: 0.8rem;
-    color: #666;
+    font-size: 0.82rem;
+    color: #555;
     background: #fafafa;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.3s ease, background 0.2s ease;
 }
 
 .cart-item-note-input:focus {
