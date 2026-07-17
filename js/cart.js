@@ -9,7 +9,7 @@ const Cart = (() => {
   const MAX_HISTORY = 5;
   const SCHEDULE_START = 7;
   const SCHEDULE_END = 14;
-  const DELIVERY_FEE = { base: 40, baseKm: 4, perKm: 10, min: 40, max: 100 };
+  const DELIVERY_FEE = { base: 40, baseKm: 4, perKm: 10, min: 40, max: 120 };
   const VALID_COUPONS = {
     "TORTASDELCHICHEJULIO10": { discount: 0.10, label: "10%" },
   };
@@ -599,10 +599,10 @@ const Cart = (() => {
       steps.push({ key: "ubicacion", label: "Mapa", done: stepsDone.ubicacion });
     }
     steps.push({ key: "sucursal", label: "Sucursal", done: stepsDone.sucursal });
+    steps.push({ key: "pago", label: "Pago", done: stepsDone.pago });
     if (isPickup) {
       steps.push({ key: "horario", label: "Hora", done: stepsDone.horario });
     }
-    steps.push({ key: "pago", label: "Pago", done: stepsDone.pago });
 
     const doneCount = steps.filter((s) => s.done).length;
     let html = "";
@@ -716,6 +716,18 @@ const Cart = (() => {
       </div>
     `;
 
+    const branchSummary = BRANCHES[state.branch].name.replace("Sucursal ", "");
+    let atastaDist = "";
+    let uniDist = "";
+
+    if (state.location.confirmed && state.location.lat && state.location.lng) {
+      atastaDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
+      uniDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
+    } else if (userCoords) {
+      atastaDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
+      uniDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
+    }
+
     if (!isPickup) {
       const locConfirmed = state.location.confirmed;
       const addrFormatted = formatAddress(state.location.address);
@@ -746,18 +758,6 @@ const Cart = (() => {
           </div>
         </div>
       `;
-    }
-
-    const branchSummary = BRANCHES[state.branch].name.replace("Sucursal ", "");
-    let atastaDist = "";
-    let uniDist = "";
-
-    if (state.location.confirmed && state.location.lat && state.location.lng) {
-      atastaDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
-      uniDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
-    } else if (userCoords) {
-      atastaDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
-      uniDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
     }
 
     html += `
