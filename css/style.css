@@ -1951,7 +1951,7 @@ footer {
 }
 
 .cart-section-body {
-    overflow: hidden;
+    overflow: auto;
     max-height: 500px;
     transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
     opacity: 1;
@@ -2744,7 +2744,7 @@ footer {
     }
 
     .cart-section-body {
-        max-height: min(500px, 35vh);
+        max-height: min(500px, 45vh);
     }
 
     .cart-progress-step span {
