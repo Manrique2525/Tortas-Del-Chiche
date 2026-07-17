@@ -661,9 +661,11 @@ const Cart = (() => {
             <div class="cart-form-group">
               <input type="tel" id="cart-phone" placeholder="Teléfono * (10 dígitos)" value="${state.customer.phone.replace(/(\d{3})(?=\d)/g, "$1 ").trim()}" maxlength="12" required />
             </div>
-            <div class="cart-form-group">
-              <textarea id="cart-address" placeholder="Referencia de dirección * (casa color, frente a, etc.)" required>${state.customer.addressRef}</textarea>
-            </div>
+            ${!isPickup ? `
+              <div class="cart-form-group">
+                <textarea id="cart-address" placeholder="Referencia de dirección * (casa color, frente a, etc.)" required>${state.customer.addressRef}</textarea>
+              </div>
+            ` : ""}
           </div>
         </div>
       </div>
@@ -1165,8 +1167,8 @@ const Cart = (() => {
       setTimeout(() => document.getElementById("cart-phone")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
-    if (!state.customer.addressRef.trim()) {
-      showCartAlert("Agrega una referencia o nota.");
+    if (!isPickup && !state.customer.addressRef.trim()) {
+      showCartAlert("Agrega una referencia de dirección.");
       openSection("datos");
       setTimeout(() => document.getElementById("cart-address")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
