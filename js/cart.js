@@ -1329,7 +1329,7 @@ const Cart = (() => {
   }
 
   /* ──────────── WhatsApp ──────────── */
-  async function sendToWhatsApp() {
+  function sendToWhatsApp() {
     state.customer.name = document.getElementById("cart-name")?.value || state.customer.name;
     state.customer.phone = document.getElementById("cart-phone")?.value || state.customer.phone;
     state.customer.addressRef = document.getElementById("cart-address")?.value || state.customer.addressRef;
@@ -1444,33 +1444,6 @@ const Cart = (() => {
       sendBtn.disabled = true;
     }
 
-    async function doSend() {
-      saveToHistory();
-      state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: state.coupon, receiptUrl: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
-      save();
-      renderSidebar();
-      renderBadge();
-      closeSidebar();
-      if (sendBtn) {
-        sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
-        sendBtn.disabled = false;
-      }
-    }
-
-    if (receiptFile && navigator.share && navigator.canShare && navigator.canShare({ files: [receiptFile] })) {
-      try {
-        const file = new File([receiptFile], "comprobante.jpg", { type: receiptFile.type });
-        await navigator.share({ text: msg, files: [file] });
-        await doSend();
-        return;
-      } catch (shareErr) {
-        if (shareErr.name === "AbortError") {
-          if (sendBtn) { sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp'; sendBtn.disabled = false; }
-          return;
-        }
-      }
-    }
-
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
     const opened = window.open(url, "_blank", "noopener,noreferrer");
     if (!opened) {
@@ -1480,7 +1453,17 @@ const Cart = (() => {
         showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
       });
     }
-    await doSend();
+
+    saveToHistory();
+    state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: state.coupon, receiptUrl: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+    save();
+    renderSidebar();
+    renderBadge();
+    closeSidebar();
+    if (sendBtn) {
+      sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
+      sendBtn.disabled = false;
+    }
   }
 
   function openSection(name) {
