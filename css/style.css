@@ -283,8 +283,7 @@ nav ul li a:hover::after {
 .menu-item img {
     width: 100%;
     height: 200px;
-    object-fit: contain;
-    background: #fafafa;
+    object-fit: cover;
     transition: transform 0.5s ease;
 }
 
@@ -970,9 +969,8 @@ footer {
 
 .menu-item img {
     width: 100%;
-    height: 200px;
-    object-fit: contain;
-    background: #fafafa;
+    height: auto;
+    object-fit: cover;
 }
 
 .menu-item h4 {
