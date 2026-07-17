@@ -13,6 +13,11 @@ const Cart = (() => {
   const VALID_COUPONS = {
     "TORTASDELCHICHEJULIO10": { discount: 0.10, label: "10%" },
   };
+  const BANK_INFO = {
+    bank: "BBVA",
+    holder: "FERNANDO GUTIERREZ",
+    clabe: "012180015427586084",
+  };
 
   const BRANCHES = {
     atasta: {
@@ -788,6 +793,7 @@ const Cart = (() => {
     `;
 
     const paymentSummary = state.payment === "efectivo" ? "Efectivo" : "Transferencia";
+    const clabeFormatted = BANK_INFO.clabe.replace(/(\d{4})(?=\d)/g, "$1 ");
     html += `
       <div class="cart-section">
         <button class="cart-section-header" data-section="pago">
@@ -805,6 +811,25 @@ const Cart = (() => {
               <i class="fas fa-university"></i>
               <span class="cart-payment-name">Transferencia</span>
             </button>
+          </div>
+          <div class="bank-info-card ${state.payment === "transferencia" ? "visible" : ""}">
+            <div class="bank-info-title"><i class="fas fa-university"></i> Datos para transferencia</div>
+            <div class="bank-info-row">
+              <i class="fas fa-building"></i>
+              <span class="bank-info-label">Banco</span>
+              <span class="bank-info-value">${BANK_INFO.bank}</span>
+            </div>
+            <div class="bank-info-row">
+              <i class="fas fa-user"></i>
+              <span class="bank-info-label">Titular</span>
+              <span class="bank-info-value">${BANK_INFO.holder}</span>
+            </div>
+            <div class="bank-info-row">
+              <i class="fas fa-hashtag"></i>
+              <span class="bank-info-label">CLABE</span>
+              <span class="bank-info-value">${clabeFormatted}</span>
+              <button class="bank-info-copy" id="bank-copy-clabe" title="Copiar CLABE"><i class="fas fa-copy"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -988,8 +1013,20 @@ const Cart = (() => {
         btn.classList.add("active");
         const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
         if (summary) summary.textContent = btn.querySelector(".cart-payment-name")?.textContent || "";
+        const bankCard = document.querySelector(".bank-info-card");
+        if (bankCard) bankCard.classList.toggle("visible", state.payment === "transferencia");
       });
     });
+
+    const copyClabeBtn = document.getElementById("bank-copy-clabe");
+    if (copyClabeBtn) {
+      copyClabeBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(BANK_INFO.clabe).then(() => {
+          copyClabeBtn.innerHTML = '<i class="fas fa-check"></i>';
+          setTimeout(() => { copyClabeBtn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+        });
+      });
+    }
 
     document.querySelectorAll(".cart-delivery-option").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1306,6 +1343,12 @@ const Cart = (() => {
     }
     msg += `\n*Total: $${grandTotal} MXN*`;
     msg += `\n*Método de pago:* ${state.payment === "efectivo" ? "Efectivo" : "Transferencia"}`;
+    if (state.payment === "transferencia") {
+      msg += `\n*Banco:* ${BANK_INFO.bank}`;
+      msg += `\n*Titular:* ${BANK_INFO.holder}`;
+      msg += `\n*CLABE:* ${BANK_INFO.clabe.replace(/(\d{4})(?=\d)/g, "$1 ")}`;
+      msg += `\n⚠️ *Adjunta tu comprobante de transferencia*`;
+    }
 
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
     const sendBtn = document.getElementById("cart-send-whatsapp");

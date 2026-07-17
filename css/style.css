@@ -1449,6 +1449,79 @@ footer {
     100% { transform: scale(1); opacity: 1; }
 }
 
+/* ── Tarjeta de datos bancarios ── */
+.bank-info-card {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin: 0;
+    transition: max-height 0.35s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+
+.bank-info-card.visible {
+    max-height: 250px;
+    opacity: 1;
+    margin: 12px 0 0;
+}
+
+.bank-info-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-black);
+    margin-bottom: 10px;
+}
+
+.bank-info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 0.82rem;
+}
+
+.bank-info-row i {
+    color: var(--primary-orange);
+    width: 16px;
+    text-align: center;
+    font-size: 0.75rem;
+}
+
+.bank-info-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 50px;
+}
+
+.bank-info-value {
+    color: var(--primary-black);
+    font-weight: 500;
+    flex: 1;
+    letter-spacing: 0.3px;
+}
+
+.bank-info-copy {
+    background: var(--primary-orange);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.bank-info-copy:hover {
+    background: var(--primary-black);
+    color: var(--primary-yellow);
+}
+
 /* ── Campo de cupón ── */
 .cart-coupon {
     padding: 12px 20px;
