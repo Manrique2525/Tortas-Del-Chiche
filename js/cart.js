@@ -16,12 +16,16 @@ const Cart = (() => {
       address: "Av. 27 de Febrero #2616, Colonia Atasta",
       whatsapp: "529933092124",
       schedule: "7am - 2pm",
+      lat: 17.986549496538164,
+      lng: -92.95316056151032,
     },
     av_universidad: {
       name: "Sucursal AV Universidad",
       address: "Av Universidad 392, Colonia Casa Blanca",
       whatsapp: "529932206325",
       schedule: "7am - 2pm",
+      lat: 18.0128788979183,
+      lng: -92.91857173267503,
     },
   };
 
@@ -38,6 +42,39 @@ const Cart = (() => {
   let geocodeTimer = null;
   let collapsedSections = { datos: false, sucursal: false, pago: false, ubicacion: false };
   let lastAddedItemId = null;
+  let branchAutoSelected = false;
+  let userCoords = null;
+
+  /* ──────────── Distancia Haversine ──────────── */
+  function haversineDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function getClosestBranch(lat, lng) {
+    let closest = "atasta";
+    let minDist = Infinity;
+    for (const [key, branch] of Object.entries(BRANCHES)) {
+      const dist = haversineDistance(lat, lng, branch.lat, branch.lng);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = key;
+      }
+    }
+    return { key: closest, distance: minDist };
+  }
+
+  function formatDistance(km) {
+    if (km < 1) return Math.round(km * 1000) + " m";
+    return km.toFixed(1) + " km";
+  }
 
   /* ──────────── Persistencia ──────────── */
   function save() {
@@ -376,7 +413,41 @@ const Cart = (() => {
 
   function openSidebar() {
     createSidebar();
-    renderSidebar();
+    if (!branchAutoSelected) {
+      branchAutoSelected = true;
+      let userLat = null;
+      let userLng = null;
+
+      if (state.location.confirmed && state.location.lat && state.location.lng) {
+        userLat = state.location.lat;
+        userLng = state.location.lng;
+        const { key } = getClosestBranch(userLat, userLng);
+        state.branch = key;
+        save();
+        userCoords = { lat: userLat, lng: userLng };
+        renderSidebar();
+      } else {
+        renderSidebar();
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              userLat = pos.coords.latitude;
+              userLng = pos.coords.longitude;
+              const { key } = getClosestBranch(userLat, userLng);
+              state.branch = key;
+              save();
+              userCoords = { lat: userLat, lng: userLng };
+              renderSidebar();
+            },
+            () => {},
+            { enableHighAccuracy: true, timeout: 5000 }
+          );
+        }
+      }
+    } else {
+      renderSidebar();
+    }
+
     const overlay = document.getElementById("cart-overlay");
     const sidebar = document.getElementById("cart-sidebar");
     overlay.classList.add("open");
@@ -531,6 +602,17 @@ const Cart = (() => {
     `;
 
     const branchSummary = BRANCHES[state.branch].name.replace("Sucursal ", "");
+    let atastaDist = "";
+    let uniDist = "";
+
+    if (state.location.confirmed && state.location.lat && state.location.lng) {
+      atastaDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
+      uniDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
+    } else if (userCoords) {
+      atastaDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
+      uniDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
+    }
+
     html += `
       <div class="cart-section">
         <button class="cart-section-header" data-section="sucursal">
@@ -543,11 +625,13 @@ const Cart = (() => {
             <button class="cart-branch-option ${state.branch === "atasta" ? "active" : ""}" data-branch="atasta">
               <i class="fas fa-map-marker-alt"></i>
               <span class="cart-branch-name">Atasta</span>
+              ${atastaDist ? `<span class="cart-branch-distance">${atastaDist}</span>` : ""}
               <span class="cart-branch-schedule">${BRANCHES.atasta.schedule}</span>
             </button>
             <button class="cart-branch-option ${state.branch === "av_universidad" ? "active" : ""}" data-branch="av_universidad">
               <i class="fas fa-map-marker-alt"></i>
               <span class="cart-branch-name">AV Universidad</span>
+              ${uniDist ? `<span class="cart-branch-distance">${uniDist}</span>` : ""}
               <span class="cart-branch-schedule">${BRANCHES.av_universidad.schedule}</span>
             </button>
           </div>

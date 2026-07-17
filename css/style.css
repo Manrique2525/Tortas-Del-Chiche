@@ -2119,6 +2119,15 @@ footer {
     color: #999;
 }
 
+.cart-branch-distance {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary-orange);
+    background: #fff5e6;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
 .cart-branch-option:hover {
     border-color: var(--primary-orange);
     background: #fff8f0;
@@ -2135,6 +2144,11 @@ footer {
 
 .cart-branch-option.active .cart-branch-schedule {
     color: var(--primary-orange);
+}
+
+.cart-branch-option.active .cart-branch-distance {
+    background: var(--primary-orange);
+    color: var(--white);
 }
 
 /* ── Método de Pago ── */
