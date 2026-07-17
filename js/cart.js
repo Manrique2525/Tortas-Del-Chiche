@@ -18,6 +18,7 @@ const Cart = (() => {
     holder: "FERNANDO GUTIERREZ",
     clabe: "012180015427586084",
   };
+  const IMGBB_API_KEY = "44915799fbc4ad25342656bb8f4021e6";
 
   const BRANCHES = {
     atasta: {
@@ -45,6 +46,7 @@ const Cart = (() => {
     deliveryType: "domicilio",
     pickupTime: "",
     coupon: "",
+    receiptUrl: "",
     customer: { name: "", phone: "", addressRef: "" },
     location: { lat: null, lng: null, confirmed: false, address: null },
   };
@@ -118,6 +120,36 @@ const Cart = (() => {
     return getCouponData() !== null;
   }
 
+  function uploadReceipt(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result.split(",")[1];
+          const formData = new FormData();
+          formData.append("image", base64);
+          formData.append("key", IMGBB_API_KEY);
+          const res = await fetch("https://api.imgbb.com/1/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+          if (data.success) {
+            state.receiptUrl = data.data.url;
+            save();
+            resolve(data.data.url);
+          } else {
+            reject(new Error("Error al subir imagen"));
+          }
+        } catch (e) {
+          reject(e);
+        }
+      };
+      reader.onerror = () => reject(new Error("Error al leer archivo"));
+      reader.readAsDataURL(file);
+    });
+  }
+
   function getPickupHours() {
     const hours = [];
     for (let h = SCHEDULE_START; h < SCHEDULE_END; h++) {
@@ -151,7 +183,7 @@ const Cart = (() => {
         state.customer.phone = (state.customer.phone || "").replace(/\D/g, "").slice(0, 10);
         state.location = parsed.location || { lat: null, lng: null, confirmed: false, address: null };
       } catch {
-    state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: state.coupon, customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+    state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: state.coupon, receiptUrl: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
       }
     }
   }
@@ -831,6 +863,23 @@ const Cart = (() => {
               <button class="bank-info-copy" id="bank-copy-clabe" title="Copiar CLABE"><i class="fas fa-clipboard"></i></button>
             </div>
             <p class="bank-info-note"><i class="fas fa-paperclip"></i> Adjunta tu comprobante de transferencia en WhatsApp</p>
+            <div class="receipt-upload">
+              <input type="file" id="receipt-input" accept="image/*" capture="environment" hidden />
+              ${state.receiptUrl ? `
+                <div class="receipt-preview">
+                  <img src="${state.receiptUrl}" alt="Comprobante" class="receipt-thumb" />
+                  <span class="receipt-success"><i class="fas fa-check-circle"></i> Comprobante listo</span>
+                  <button class="receipt-remove" id="receipt-remove"><i class="fas fa-times"></i></button>
+                </div>
+              ` : `
+                <button class="receipt-select-btn" id="receipt-select">
+                  <i class="fas fa-camera"></i> Seleccionar comprobante
+                </button>
+                <div class="receipt-uploading" id="receipt-uploading" style="display:none;">
+                  <i class="fas fa-spinner fa-spin"></i> Subiendo comprobante...
+                </div>
+              `}
+            </div>
           </div>
         </div>
       </div>
@@ -1026,6 +1075,37 @@ const Cart = (() => {
           copyClabeBtn.innerHTML = '<i class="fas fa-clipboard-check"></i>';
           setTimeout(() => { copyClabeBtn.innerHTML = '<i class="fas fa-clipboard"></i>'; }, 1500);
         });
+      });
+    }
+
+    const receiptSelect = document.getElementById("receipt-select");
+    const receiptInput = document.getElementById("receipt-input");
+    const receiptUploading = document.getElementById("receipt-uploading");
+    const receiptRemove = document.getElementById("receipt-remove");
+    if (receiptSelect && receiptInput) {
+      receiptSelect.addEventListener("click", () => receiptInput.click());
+      receiptInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) return;
+        if (file.size > 10 * 1024 * 1024) { alert("La imagen no debe pasar de 10 MB"); return; }
+        receiptSelect.style.display = "none";
+        receiptUploading.style.display = "flex";
+        try {
+          await uploadReceipt(file);
+          renderSidebar();
+        } catch (err) {
+          receiptSelect.style.display = "flex";
+          receiptUploading.style.display = "none";
+          alert("Error al subir comprobante. Intenta de nuevo.");
+        }
+      });
+    }
+    if (receiptRemove) {
+      receiptRemove.addEventListener("click", () => {
+        state.receiptUrl = "";
+        save();
+        renderSidebar();
       });
     }
 
@@ -1348,7 +1428,11 @@ const Cart = (() => {
       msg += `\n*Banco:* ${BANK_INFO.bank}`;
       msg += `\n*Titular:* ${BANK_INFO.holder}`;
       msg += `\n*CLABE:* ${BANK_INFO.clabe.replace(/(\d{4})(?=\d)/g, "$1 ")}`;
-      msg += `\n⚠️ *Adjunta tu comprobante de transferencia*`;
+      if (state.receiptUrl) {
+        msg += `\n*Comprobante:* ${state.receiptUrl}`;
+      } else {
+        msg += `\n⚠️ *Adjunta tu comprobante de transferencia*`;
+      }
     }
 
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;

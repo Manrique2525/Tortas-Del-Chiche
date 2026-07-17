@@ -1542,6 +1542,91 @@ footer {
     color: var(--primary-orange);
 }
 
+/* ── Upload de comprobante ── */
+.receipt-upload {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.receipt-select-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    background: var(--white);
+    color: var(--primary-black);
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.receipt-select-btn:hover {
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+    background: #fff8f0;
+}
+
+.receipt-uploading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    font-size: 0.82rem;
+    color: #888;
+    font-style: italic;
+}
+
+.receipt-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    border: 1px solid #c8e6c9;
+}
+
+.receipt-thumb {
+    width: 42px;
+    height: 42px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.receipt-success {
+    flex: 1;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+.receipt-success i {
+    color: #2e7d32;
+}
+
+.receipt-remove {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.receipt-remove:hover {
+    background: #ffebee;
+    color: #c62828;
+}
+
 /* ── Campo de cupón ── */
 .cart-coupon {
     padding: 12px 20px;
