@@ -828,8 +828,9 @@ const Cart = (() => {
               <i class="fas fa-hashtag"></i>
               <span class="bank-info-label">CLABE</span>
               <span class="bank-info-value">${clabeFormatted}</span>
-              <button class="bank-info-copy" id="bank-copy-clabe" title="Copiar CLABE"><i class="fas fa-copy"></i></button>
+              <button class="bank-info-copy" id="bank-copy-clabe" title="Copiar CLABE"><i class="fas fa-clipboard"></i></button>
             </div>
+            <p class="bank-info-note"><i class="fas fa-paperclip"></i> Adjunta tu comprobante de transferencia en WhatsApp</p>
           </div>
         </div>
       </div>
@@ -1022,8 +1023,8 @@ const Cart = (() => {
     if (copyClabeBtn) {
       copyClabeBtn.addEventListener("click", () => {
         navigator.clipboard.writeText(BANK_INFO.clabe).then(() => {
-          copyClabeBtn.innerHTML = '<i class="fas fa-check"></i>';
-          setTimeout(() => { copyClabeBtn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+          copyClabeBtn.innerHTML = '<i class="fas fa-clipboard-check"></i>';
+          setTimeout(() => { copyClabeBtn.innerHTML = '<i class="fas fa-clipboard"></i>'; }, 1500);
         });
       });
     }
