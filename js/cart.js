@@ -976,10 +976,7 @@ const Cart = (() => {
       btn.addEventListener("click", () => {
         state.branch = btn.dataset.branch;
         save();
-        document.querySelectorAll(".cart-branch-option").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
-        if (summary) summary.textContent = btn.querySelector(".cart-branch-name")?.textContent || "";
+        renderSidebar();
       });
     });
 
