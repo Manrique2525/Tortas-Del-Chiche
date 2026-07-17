@@ -129,12 +129,14 @@ const Cart = (() => {
         save();
         renderSidebar();
         renderBadge();
+        hideCardQtyControl(id);
       }, 300);
     } else {
       state.items = state.items.filter((i) => i.id !== id);
       save();
       renderSidebar();
       renderBadge();
+      hideCardQtyControl(id);
     }
   }
 
@@ -149,6 +151,7 @@ const Cart = (() => {
     save();
     updateQuantityUI(id);
     renderBadge();
+    updateCardQtyDisplay(id);
   }
 
   function updateQuantityUI(id) {
@@ -193,6 +196,114 @@ const Cart = (() => {
   }
 
   /* ──────────── UI: Botón flotante + Badge ──────────── */
+  function getQuantityById(id) {
+    const item = state.items.find((i) => i.id === id);
+    return item ? item.quantity : 0;
+  }
+
+  function showCardQtyControl(id) {
+    const card = document.querySelector(`.menu-item[data-id="${id}"]`);
+    if (!card) return;
+    const originalBtn = card.querySelector(".add-to-cart-btn");
+    if (!originalBtn) return;
+
+    if (cardTimers[id]) clearTimeout(cardTimers[id]);
+
+    const qty = getQuantityById(id);
+    originalBtn.outerHTML = `
+      <div class="card-qty-control" data-card-id="${id}">
+        <button class="card-qty-btn card-qty-minus" data-id="${id}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
+        <span class="card-qty-value">${qty}</span>
+        <button class="card-qty-btn card-qty-plus" data-id="${id}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
+      </div>`;
+
+    const control = card.querySelector(".card-qty-control");
+    control.querySelector(".card-qty-minus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      decreaseCardQty(id);
+    });
+    control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      const c = card.closest(".menu-item");
+      addItem(id, c.dataset.name, c.dataset.price, c.dataset.img);
+      updateCardQtyDisplay(id);
+    });
+
+    cardTimers[id] = setTimeout(() => hideCardQtyControl(id), 5000);
+  }
+
+  function hideCardQtyControl(id) {
+    const card = document.querySelector(`.menu-item[data-id="${id}"]`);
+    if (!card) return;
+    const control = card.querySelector(`.card-qty-control[data-card-id="${id}"]`);
+    if (!control) return;
+
+    const name = card.dataset.name;
+    const price = card.dataset.price;
+    control.outerHTML = `
+      <button class="add-to-cart-btn" aria-label="Agregar ${name} al carrito">
+        <i class="fas fa-cart-plus"></i> Agregar
+      </button>`;
+
+    const btn = card.querySelector(".add-to-cart-btn");
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      addItem(id, name, price, card.dataset.img);
+      showCardQtyControl(id);
+    });
+  }
+
+  function updateCardQtyDisplay(id) {
+    const qty = getQuantityById(id);
+    const card = document.querySelector(`.menu-item[data-id="${id}"]`);
+    if (!card) return;
+    const qtyVal = card.querySelector(".card-qty-value");
+    if (qtyVal) qtyVal.textContent = qty;
+  }
+
+  function decreaseCardQty(id) {
+    const item = state.items.find((i) => i.id === id);
+    if (!item) return;
+    if (item.quantity <= 1) {
+      removeItem(id);
+    } else {
+      item.quantity--;
+      save();
+      renderBadge();
+      pulseButton();
+    }
+    updateCardQtyDisplay(id);
+  }
+
+  function syncAllCardButtons() {
+    document.querySelectorAll(".menu-item").forEach((card) => {
+      const id = Number(card.dataset.id);
+      if (getQuantityById(id) > 0 && !card.querySelector(".card-qty-control")) {
+        const qty = getQuantityById(id);
+        const name = card.dataset.name;
+        const btn = card.querySelector(".add-to-cart-btn");
+        if (btn) {
+          btn.outerHTML = `
+            <div class="card-qty-control" data-card-id="${id}">
+              <button class="card-qty-btn card-qty-minus" data-id="${id}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
+              <span class="card-qty-value">${qty}</span>
+              <button class="card-qty-btn card-qty-plus" data-id="${id}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
+            </div>`;
+          const control = card.querySelector(".card-qty-control");
+          control.querySelector(".card-qty-minus").addEventListener("click", (e) => {
+            e.stopPropagation();
+            decreaseCardQty(id);
+          });
+          control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
+            e.stopPropagation();
+            addItem(id, name, card.dataset.price, card.dataset.img);
+            updateCardQtyDisplay(id);
+          });
+          cardTimers[id] = setTimeout(() => hideCardQtyControl(id), 5000);
+        }
+      }
+    });
+  }
   function createFloatingButton() {
     if (document.getElementById("cart-float-btn")) return;
 
@@ -335,6 +446,7 @@ const Cart = (() => {
           save();
           renderSidebar();
           renderBadge();
+          syncAllCardButtons();
           showAddToast(order.items.length + " artículos del historial");
         });
       });
@@ -968,6 +1080,8 @@ const Cart = (() => {
   }
 
   /* ──────────── Init: Botones "Agregar" ──────────── */
+  let cardTimers = {};
+
   function init() {
     load();
 
@@ -981,14 +1095,7 @@ const Cart = (() => {
         const price = card.dataset.price;
         const img = card.dataset.img;
         addItem(id, name, price, img);
-
-        const original = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Agregado';
-        btn.classList.add("added");
-        setTimeout(() => {
-          btn.innerHTML = original;
-          btn.classList.remove("added");
-        }, 1000);
+        showCardQtyControl(id);
       });
     });
 

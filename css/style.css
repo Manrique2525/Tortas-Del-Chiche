@@ -89,6 +89,47 @@ a:hover {
     transform: translateY(-3px);
 }
 
+/* ── Botón Hero: Ordena Ahora ── */
+.btn-hero {
+    padding: 16px 40px;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    box-shadow: 0 6px 25px rgba(255, 107, 53, 0.45);
+    animation: heroBtnPulse 2.5s ease-in-out infinite;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-hero:hover {
+    background-color: var(--primary-black);
+    color: var(--primary-yellow);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px) scale(1.03);
+}
+
+.btn-hero-arrow {
+    animation: heroArrowBounce 1.5s ease-in-out infinite;
+    font-size: 0.95rem;
+}
+
+@keyframes heroBtnPulse {
+    0%, 100% { box-shadow: 0 6px 25px rgba(255, 107, 53, 0.45); }
+    50% { box-shadow: 0 6px 35px rgba(255, 107, 53, 0.7); }
+}
+
+@keyframes heroArrowBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-hero, .btn-hero-arrow {
+        animation: none;
+    }
+}
+
 section {
     padding: 80px 0;
 }
@@ -1347,6 +1388,65 @@ footer {
 
 .add-to-cart-btn.added {
     background-color: #27ae60;
+}
+
+/* ── Contador +/- en tarjetas del menú (estilo Didi) ── */
+.card-qty-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    width: calc(100% - 30px);
+    margin: 0 15px 15px;
+    border: 2px solid var(--primary-orange);
+    border-radius: 8px;
+    overflow: hidden;
+    animation: cardQtyPop 0.25s ease;
+}
+
+.card-qty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.card-qty-minus {
+    background: var(--white);
+    color: var(--primary-orange);
+}
+
+.card-qty-minus:hover {
+    background: #fff0e6;
+}
+
+.card-qty-plus {
+    background: var(--primary-orange);
+    color: var(--white);
+}
+
+.card-qty-plus:hover {
+    background: var(--primary-black);
+    color: var(--primary-yellow);
+}
+
+.card-qty-value {
+    flex: 1;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-orange);
+    min-width: 30px;
+}
+
+@keyframes cardQtyPop {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
 /* ── Botón flotante del carrito ── */
