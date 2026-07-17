@@ -1109,6 +1109,8 @@ const Cart = (() => {
     state.customer.addressRef = document.getElementById("cart-address")?.value || state.customer.addressRef;
     save();
 
+    const isPickup = state.deliveryType === "recoger";
+
     if (state.items.length === 0) {
       showCartAlert("Agrega productos a tu carrito primero.");
       return;
