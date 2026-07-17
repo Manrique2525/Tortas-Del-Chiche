@@ -9,7 +9,7 @@ const Cart = (() => {
   const MAX_HISTORY = 5;
   const SCHEDULE_START = 7;
   const SCHEDULE_END = 14;
-  const DELIVERY_FEE = { base: 30, baseKm: 4, perKm: 5, min: 30, max: 100 };
+  const DELIVERY_FEE = { base: 40, baseKm: 4, perKm: 10, min: 40, max: 100 };
   const VALID_COUPONS = {
     "TORTASDELCHICHEJULIO10": { discount: 0.10, label: "10%" },
   };
@@ -594,15 +594,15 @@ const Cart = (() => {
     const steps = [
       { key: "items", label: "Items", done: stepsDone.items },
       { key: "datos", label: "Datos", done: stepsDone.datos },
-      { key: "sucursal", label: "Sucursal", done: stepsDone.sucursal },
     ];
+    if (!isPickup) {
+      steps.push({ key: "ubicacion", label: "Mapa", done: stepsDone.ubicacion });
+    }
+    steps.push({ key: "sucursal", label: "Sucursal", done: stepsDone.sucursal });
     if (isPickup) {
       steps.push({ key: "horario", label: "Hora", done: stepsDone.horario });
     }
     steps.push({ key: "pago", label: "Pago", done: stepsDone.pago });
-    if (!isPickup) {
-      steps.push({ key: "ubicacion", label: "Mapa", done: stepsDone.ubicacion });
-    }
 
     const doneCount = steps.filter((s) => s.done).length;
     let html = "";
@@ -716,6 +716,38 @@ const Cart = (() => {
       </div>
     `;
 
+    if (!isPickup) {
+      const locConfirmed = state.location.confirmed;
+      const addrFormatted = formatAddress(state.location.address);
+      const locSummary = locConfirmed ? (state.location.address ? (state.location.address.road || "Ubicación OK") : "Ubicación OK") : "Elegir en mapa";
+      html += `
+        <div class="cart-section">
+          <button class="cart-section-header" data-section="ubicacion">
+            <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
+            <span class="cart-section-summary">${locSummary}</span>
+            <i class="fas fa-chevron-${collapsedSections.ubicacion ? "right" : "down"}"></i>
+          </button>
+          <div class="cart-section-body ${collapsedSections.ubicacion ? "collapsed" : ""}">
+            <div class="cart-location-inner">
+              <button class="cart-map-btn" id="cart-open-map">
+                <i class="fas fa-map-marker-alt"></i>
+                ${locConfirmed ? "Ubicación seleccionada" : "Elegir ubicación en mapa"}
+              </button>
+              ${locConfirmed ? `
+                <div class="cart-address-preview">
+                  <i class="fas fa-road"></i>
+                  <div>
+                    <p class="cart-address-street">${state.location.address ? (state.location.address.road || "Sin calle") : "Sin dirección"}</p>
+                    <p class="cart-address-detail">${addrFormatted || "Confirma tu ubicación en el mapa"}</p>
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     const branchSummary = BRANCHES[state.branch].name.replace("Sucursal ", "");
     let atastaDist = "";
     let uniDist = "";
@@ -794,38 +826,6 @@ const Cart = (() => {
                   <i class="fas fa-clock"></i> ${h}
                 </button>
               `).join("")}
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    if (!isPickup) {
-      const locConfirmed = state.location.confirmed;
-      const addrFormatted = formatAddress(state.location.address);
-      const locSummary = locConfirmed ? (state.location.address ? (state.location.address.road || "Ubicación OK") : "Ubicación OK") : "Elegir en mapa";
-      html += `
-        <div class="cart-section">
-          <button class="cart-section-header" data-section="ubicacion">
-            <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
-            <span class="cart-section-summary">${locSummary}</span>
-            <i class="fas fa-chevron-${collapsedSections.ubicacion ? "right" : "down"}"></i>
-          </button>
-          <div class="cart-section-body ${collapsedSections.ubicacion ? "collapsed" : ""}">
-            <div class="cart-location-inner">
-              <button class="cart-map-btn" id="cart-open-map">
-                <i class="fas fa-map-marker-alt"></i>
-                ${locConfirmed ? "Ubicación seleccionada" : "Elegir ubicación en mapa"}
-              </button>
-              ${locConfirmed ? `
-                <div class="cart-address-preview">
-                  <i class="fas fa-road"></i>
-                  <div>
-                    <p class="cart-address-street">${state.location.address ? (state.location.address.road || "Sin calle") : "Sin dirección"}</p>
-                    <p class="cart-address-detail">${addrFormatted || "Confirma tu ubicación en el mapa"}</p>
-                  </div>
-                </div>
-              ` : ""}
             </div>
           </div>
         </div>
