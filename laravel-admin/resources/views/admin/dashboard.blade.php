@@ -376,7 +376,7 @@
                 @foreach($products->where('category', 'comida') as $product)
                     <div class="product-row {{ $product->active ? '' : 'inactive' }}" id="product-row-{{ $product->id }}">
                         <div class="product-info">
-                            <img class="product-img" src="{{ $product->image }}" alt="{{ $product->name }}"
+                            <img class="product-img" src="/{{ ltrim($product->image, '/') }}" alt="{{ $product->name }}"
                                  onerror="this.style.background='#FF6B35'; this.style.display='flex'; this.style.alignItems='center'; this.style.justifyContent='center'; this.style.color='white'; this.style.fontSize='16px'; this.style.fontWeight='bold'; this.alt='{{ substr($product->name, 0, 2) }}'">
                             <div class="product-details">
                                 <div class="product-name">{{ $product->name }}</div>
@@ -409,7 +409,7 @@
                 @foreach($products->where('category', 'bebida') as $product)
                     <div class="product-row {{ $product->active ? '' : 'inactive' }}" id="product-row-{{ $product->id }}">
                         <div class="product-info">
-                            <img class="product-img" src="{{ $product->image }}" alt="{{ $product->name }}"
+                            <img class="product-img" src="/{{ ltrim($product->image, '/') }}" alt="{{ $product->name }}"
                                  onerror="this.style.background='#FF6B35'; this.style.display='flex'; this.style.alignItems='center'; this.style.justifyContent='center'; this.style.color='white'; this.style.fontSize='16px'; this.style.fontWeight='bold'; this.alt='{{ substr($product->name, 0, 2) }}'">
                             <div class="product-details">
                                 <div class="product-name">{{ $product->name }}</div>
