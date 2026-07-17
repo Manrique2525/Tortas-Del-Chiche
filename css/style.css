@@ -2049,6 +2049,113 @@ footer {
     to { transform: translateX(-100%); opacity: 0; max-height: 0; padding: 0; margin: 0; border: 0; overflow: hidden; }
 }
 
+/* ── Toggle Domicilio / Recoger ── */
+.cart-delivery-toggle {
+    display: flex;
+    gap: 10px;
+    padding: 0 20px 15px;
+}
+
+.cart-delivery-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.cart-delivery-option i {
+    font-size: 1.3rem;
+    color: #999;
+    transition: color 0.3s ease;
+}
+
+.cart-delivery-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.cart-delivery-option:hover {
+    border-color: var(--primary-orange);
+    background: #fff8f0;
+}
+
+.cart-delivery-option.active {
+    border-color: var(--primary-orange);
+    background: #fff5e6;
+}
+
+.cart-delivery-option.active i {
+    color: var(--primary-orange);
+}
+
+/* ── Horarios de recolección ── */
+.cart-pickup-hours {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 20px 15px;
+}
+
+.cart-pickup-hour {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.cart-pickup-hour i {
+    font-size: 0.8rem;
+    color: #bbb;
+}
+
+.cart-pickup-hour:hover {
+    border-color: var(--primary-orange);
+    background: #fff8f0;
+}
+
+.cart-pickup-hour.active {
+    border-color: var(--primary-orange);
+    background: var(--primary-orange);
+    color: var(--white);
+}
+
+.cart-pickup-hour.active i {
+    color: var(--white);
+}
+
+/* ── Dirección de sucursal (recoger) ── */
+.cart-branch-address {
+    padding: 8px 20px 10px;
+    font-size: 0.8rem;
+    color: #777;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 8px;
+}
+
+.cart-branch-address i {
+    color: var(--primary-orange);
+    margin-right: 4px;
+}
+
 /* ── Formulario del cliente ── */
 
 .cart-form-group {

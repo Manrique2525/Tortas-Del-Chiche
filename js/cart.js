@@ -33,6 +33,8 @@ const Cart = (() => {
     items: [],
     branch: "atasta",
     payment: "efectivo",
+    deliveryType: "domicilio",
+    pickupTime: "",
     customer: { name: "", phone: "", addressRef: "" },
     location: { lat: null, lng: null, confirmed: false, address: null },
   };
@@ -40,7 +42,7 @@ const Cart = (() => {
   let map = null;
   let marker = null;
   let geocodeTimer = null;
-  let collapsedSections = { datos: false, sucursal: false, pago: false, ubicacion: false };
+  let collapsedSections = { datos: false, sucursal: false, pago: false, ubicacion: false, horario: false };
   let lastAddedItemId = null;
   let branchAutoSelected = false;
   let userCoords = null;
@@ -76,6 +78,19 @@ const Cart = (() => {
     return km.toFixed(1) + " km";
   }
 
+  function getPickupHours() {
+    const hours = [];
+    for (let h = SCHEDULE_START; h < SCHEDULE_END; h++) {
+      const suffix = h >= 12 ? "PM" : "AM";
+      const h12 = h > 12 ? h - 12 : h;
+      hours.push(`${h12}:00 ${suffix}`);
+      hours.push(`${h12}:30 ${suffix}`);
+    }
+    const lastH = SCHEDULE_END > 12 ? SCHEDULE_END - 12 : SCHEDULE_END;
+    hours.push(`${lastH}:00 PM`);
+    return hours;
+  }
+
   /* ──────────── Persistencia ──────────── */
   function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -89,11 +104,13 @@ const Cart = (() => {
         state.items = parsed.items || [];
         state.branch = parsed.branch || "atasta";
         state.payment = parsed.payment || "efectivo";
+        state.deliveryType = parsed.deliveryType || "domicilio";
+        state.pickupTime = parsed.pickupTime || "";
         state.customer = parsed.customer || { name: "", phone: "", addressRef: "" };
         state.customer.phone = (state.customer.phone || "").replace(/\D/g, "").slice(0, 10);
         state.location = parsed.location || { lat: null, lng: null, confirmed: false, address: null };
       } catch {
-        state = { items: [], branch: "atasta", payment: "efectivo", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+        state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
       }
     }
   }
@@ -524,24 +541,42 @@ const Cart = (() => {
       return;
     }
 
+    const isPickup = state.deliveryType === "recoger";
+    const pickupHours = getPickupHours();
+
     const stepsDone = {
       items: state.items.length > 0,
       datos: state.customer.name.trim() && state.customer.phone.trim(),
       sucursal: true,
+      horario: !isPickup || state.pickupTime,
       pago: true,
-      ubicacion: state.location.confirmed,
+      ubicacion: isPickup || state.location.confirmed,
     };
-    const doneCount = Object.values(stepsDone).filter(Boolean).length;
+
+    const steps = [
+      { key: "items", label: "Items", done: stepsDone.items },
+      { key: "datos", label: "Datos", done: stepsDone.datos },
+      { key: "sucursal", label: "Sucursal", done: stepsDone.sucursal },
+    ];
+    if (isPickup) {
+      steps.push({ key: "horario", label: "Hora", done: stepsDone.horario });
+    }
+    steps.push({ key: "pago", label: "Pago", done: stepsDone.pago });
+    if (!isPickup) {
+      steps.push({ key: "ubicacion", label: "Mapa", done: stepsDone.ubicacion });
+    }
+
+    const doneCount = steps.filter((s) => s.done).length;
     let html = "";
     html += `
       <div class="cart-progress">
-        <div class="cart-progress-bar"><div class="cart-progress-fill" style="width:${(doneCount / 5) * 100}%"></div></div>
+        <div class="cart-progress-bar"><div class="cart-progress-fill" style="width:${(doneCount / steps.length) * 100}%"></div></div>
         <div class="cart-progress-steps">
-          <span class="cart-progress-step ${stepsDone.items ? "done" : ""}" data-goto="items"><i class="fas fa-${stepsDone.items ? "check-circle" : "circle"}"></i> Items</span>
-          <span class="cart-progress-step ${stepsDone.datos ? "done" : ""}" data-goto="datos"><i class="fas fa-${stepsDone.datos ? "check-circle" : "circle"}"></i> Datos</span>
-          <span class="cart-progress-step ${stepsDone.sucursal ? "done" : ""}" data-goto="sucursal"><i class="fas fa-${stepsDone.sucursal ? "check-circle" : "circle"}"></i> Sucursal</span>
-          <span class="cart-progress-step ${stepsDone.pago ? "done" : ""}" data-goto="pago"><i class="fas fa-${stepsDone.pago ? "check-circle" : "circle"}"></i> Pago</span>
-          <span class="cart-progress-step ${stepsDone.ubicacion ? "done" : ""}" data-goto="ubicacion"><i class="fas fa-${stepsDone.ubicacion ? "check-circle" : "circle"}"></i> Mapa</span>
+          ${steps.map((s) => `
+            <span class="cart-progress-step ${s.done ? "done" : ""}" data-goto="${s.key}">
+              <i class="fas fa-${s.done ? "check-circle" : "circle"}"></i> ${s.label}
+            </span>
+          `).join("")}
         </div>
       </div>
     `;
@@ -575,6 +610,22 @@ const Cart = (() => {
       `;
     });
     html += `</div>`;
+
+    const deliverySummary = isPickup ? (state.pickupTime || "Elegir hora") : "Envío a domicilio";
+    html += `
+      <div class="cart-section">
+        <div class="cart-delivery-toggle">
+          <button class="cart-delivery-option ${!isPickup ? "active" : ""}" data-delivery="domicilio">
+            <i class="fas fa-motorcycle"></i>
+            <span class="cart-delivery-name">Domicilio</span>
+          </button>
+          <button class="cart-delivery-option ${isPickup ? "active" : ""}" data-delivery="recoger">
+            <i class="fas fa-store"></i>
+            <span class="cart-delivery-name">Recoger en sucursal</span>
+          </button>
+        </div>
+      </div>
+    `;
 
     const datosSummary = state.customer.name ? `${state.customer.name}${state.customer.phone ? " · " + state.customer.phone : ""}` : "Completar";
     const isDatosFilled = state.customer.name && state.customer.phone;
@@ -635,6 +686,7 @@ const Cart = (() => {
               <span class="cart-branch-schedule">${BRANCHES.av_universidad.schedule}</span>
             </button>
           </div>
+          ${isPickup ? `<div class="cart-branch-address"><i class="fas fa-map-pin"></i> ${BRANCHES[state.branch].address}</div>` : ""}
         </div>
       </div>
     `;
@@ -662,35 +714,59 @@ const Cart = (() => {
       </div>
     `;
 
-    const locConfirmed = state.location.confirmed;
-    const addrFormatted = formatAddress(state.location.address);
-    const locSummary = locConfirmed ? (state.location.address ? (state.location.address.road || "Ubicación OK") : "Ubicación OK") : "Elegir en mapa";
-    html += `
-      <div class="cart-section">
-        <button class="cart-section-header" data-section="ubicacion">
-          <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
-          <span class="cart-section-summary">${locSummary}</span>
-          <i class="fas fa-chevron-${collapsedSections.ubicacion ? "right" : "down"}"></i>
-        </button>
-        <div class="cart-section-body ${collapsedSections.ubicacion ? "collapsed" : ""}">
-          <div class="cart-location-inner">
-            <button class="cart-map-btn" id="cart-open-map">
-              <i class="fas fa-map-marker-alt"></i>
-              ${locConfirmed ? "Ubicación seleccionada" : "Elegir ubicación en mapa"}
-            </button>
-            ${locConfirmed ? `
-              <div class="cart-address-preview">
-                <i class="fas fa-road"></i>
-                <div>
-                  <p class="cart-address-street">${state.location.address ? (state.location.address.road || "Sin calle") : "Sin dirección"}</p>
-                  <p class="cart-address-detail">${addrFormatted || "Confirma tu ubicación en el mapa"}</p>
-                </div>
-              </div>
-            ` : ""}
+    if (isPickup) {
+      const horarioSummary = state.pickupTime || "Elegir hora";
+      html += `
+        <div class="cart-section">
+          <button class="cart-section-header" data-section="horario">
+            <h3><i class="fas fa-clock"></i> Hora de recolección</h3>
+            <span class="cart-section-summary">${horarioSummary}</span>
+            <i class="fas fa-chevron-${collapsedSections.horario ? "right" : "down"}"></i>
+          </button>
+          <div class="cart-section-body ${collapsedSections.horario ? "collapsed" : ""}">
+            <div class="cart-pickup-hours">
+              ${pickupHours.map((h) => `
+                <button class="cart-pickup-hour ${state.pickupTime === h ? "active" : ""}" data-time="${h}">
+                  <i class="fas fa-clock"></i> ${h}
+                </button>
+              `).join("")}
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    }
+
+    if (!isPickup) {
+      const locConfirmed = state.location.confirmed;
+      const addrFormatted = formatAddress(state.location.address);
+      const locSummary = locConfirmed ? (state.location.address ? (state.location.address.road || "Ubicación OK") : "Ubicación OK") : "Elegir en mapa";
+      html += `
+        <div class="cart-section">
+          <button class="cart-section-header" data-section="ubicacion">
+            <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
+            <span class="cart-section-summary">${locSummary}</span>
+            <i class="fas fa-chevron-${collapsedSections.ubicacion ? "right" : "down"}"></i>
+          </button>
+          <div class="cart-section-body ${collapsedSections.ubicacion ? "collapsed" : ""}">
+            <div class="cart-location-inner">
+              <button class="cart-map-btn" id="cart-open-map">
+                <i class="fas fa-map-marker-alt"></i>
+                ${locConfirmed ? "Ubicación seleccionada" : "Elegir ubicación en mapa"}
+              </button>
+              ${locConfirmed ? `
+                <div class="cart-address-preview">
+                  <i class="fas fa-road"></i>
+                  <div>
+                    <p class="cart-address-street">${state.location.address ? (state.location.address.road || "Sin calle") : "Sin dirección"}</p>
+                    <p class="cart-address-detail">${addrFormatted || "Confirma tu ubicación en el mapa"}</p>
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     const total = getTotal();
     const itemCount = getItemCount();
@@ -807,6 +883,28 @@ const Cart = (() => {
         btn.classList.add("active");
         const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
         if (summary) summary.textContent = btn.querySelector(".cart-payment-name")?.textContent || "";
+      });
+    });
+
+    document.querySelectorAll(".cart-delivery-option").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const newType = btn.dataset.delivery;
+        if (state.deliveryType === newType) return;
+        state.deliveryType = newType;
+        state.pickupTime = "";
+        save();
+        renderSidebar();
+      });
+    });
+
+    document.querySelectorAll(".cart-pickup-hour").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.pickupTime = btn.dataset.time;
+        save();
+        document.querySelectorAll(".cart-pickup-hour").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
+        if (summary) summary.textContent = state.pickupTime;
       });
     });
 
@@ -1034,15 +1132,23 @@ const Cart = (() => {
       return;
     }
     if (!state.customer.addressRef.trim()) {
-      showCartAlert("Agrega una referencia de dirección.");
+      showCartAlert("Agrega una referencia o nota.");
       openSection("datos");
       setTimeout(() => document.getElementById("cart-address")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
-    if (!state.location.confirmed) {
-      showCartAlert("Selecciona tu ubicación de entrega en el mapa.");
-      openSection("ubicacion");
-      return;
+    if (isPickup) {
+      if (!state.pickupTime) {
+        showCartAlert("Selecciona la hora de recolección.");
+        openSection("horario");
+        return;
+      }
+    } else {
+      if (!state.location.confirmed) {
+        showCartAlert("Selecciona tu ubicación de entrega en el mapa.");
+        openSection("ubicacion");
+        return;
+      }
     }
 
     const total = getTotal();
@@ -1051,14 +1157,22 @@ const Cart = (() => {
 
     let msg = `*Pedido - Las Tortas Del Chiche*\n`;
     msg += `\n`;
-    msg += `*Sucursal:* ${BRANCHES[state.branch].name}`;
+    msg += `*Tipo:* ${isPickup ? "Recoger en sucursal" : "Envío a domicilio"}`;
+    msg += `\n*Sucursal:* ${BRANCHES[state.branch].name}`;
     msg += `\n*Cliente:* ${state.customer.name}`;
     msg += `\n*Tel:* ${state.customer.phone}`;
-    msg += `\n*Referencia:* ${state.customer.addressRef}`;
-    if (addrText) {
-      msg += `\n*Dirección:* ${addrText}`;
+    if (isPickup) {
+      msg += `\n*Hora de recolección:* ${state.pickupTime}`;
+      if (state.customer.addressRef.trim()) {
+        msg += `\n*Nota:* ${state.customer.addressRef}`;
+      }
+    } else {
+      msg += `\n*Referencia:* ${state.customer.addressRef}`;
+      if (addrText) {
+        msg += `\n*Dirección:* ${addrText}`;
+      }
+      msg += `\n*Ubicación:* ${mapsLink}`;
     }
-    msg += `\n*Ubicación:* ${mapsLink}`;
     msg += `\n`;
     msg += `\n-----------------------`;
     msg += `\n*Detalle del pedido:*\n`;
@@ -1089,7 +1203,7 @@ const Cart = (() => {
 
     saveToHistory();
 
-    state = { items: [], branch: "atasta", payment: "efectivo", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+    state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
     save();
     renderSidebar();
     renderBadge();
