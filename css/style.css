@@ -1513,20 +1513,21 @@ footer {
 }
 
 .bank-info-copy {
-    background: var(--primary-orange);
-    color: var(--white);
-    border: none;
+    background: transparent;
+    color: var(--primary-black);
+    border: 1px solid #ddd;
     border-radius: 6px;
     padding: 5px 10px;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
 .bank-info-copy:hover {
     background: var(--primary-black);
-    color: var(--primary-yellow);
+    color: var(--white);
+    border-color: var(--primary-black);
 }
 
 .bank-info-note {
