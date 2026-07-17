@@ -9,6 +9,7 @@ const Cart = (() => {
   const MAX_HISTORY = 5;
   const SCHEDULE_START = 7;
   const SCHEDULE_END = 14;
+  const DELIVERY_FEE = { base: 30, baseKm: 4, perKm: 5, min: 30, max: 100 };
 
   const BRANCHES = {
     atasta: {
@@ -76,6 +77,21 @@ const Cart = (() => {
   function formatDistance(km) {
     if (km < 1) return Math.round(km * 1000) + " m";
     return km.toFixed(1) + " km";
+  }
+
+  function getDeliveryFee() {
+    if (state.deliveryType === "recoger") return 0;
+    if (!state.location.lat || !state.location.lng) return DELIVERY_FEE.base;
+    const branch = BRANCHES[state.branch];
+    const dist = haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
+    const extra = Math.max(0, Math.ceil(dist) - DELIVERY_FEE.baseKm);
+    return Math.min(DELIVERY_FEE.max, Math.max(DELIVERY_FEE.min, DELIVERY_FEE.base + extra * DELIVERY_FEE.perKm));
+  }
+
+  function getDeliveryDistance() {
+    if (state.deliveryType !== "domicilio" || !state.location.lat || !state.location.lng) return null;
+    const branch = BRANCHES[state.branch];
+    return haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
   }
 
   function getPickupHours() {
@@ -216,7 +232,8 @@ const Cart = (() => {
     if (qtyEl) qtyEl.textContent = item.quantity;
     if (subEl) subEl.textContent = `$${item.price * item.quantity}`;
     const totalEl = document.getElementById("cart-total-amount");
-    if (totalEl) totalEl.textContent = `$${getTotal()}`;
+    const grandTotal = state.deliveryType === "domicilio" ? getTotal() + getDeliveryFee() : getTotal();
+    if (totalEl) totalEl.textContent = `$${grandTotal}`;
     const headerCount = document.getElementById("cart-header-count");
     if (headerCount) headerCount.textContent = `(${getItemCount()})`;
   }
@@ -768,14 +785,29 @@ const Cart = (() => {
       `;
     }
 
-    const total = getTotal();
+    const subtotal = getTotal();
+    const fee = getDeliveryFee();
+    const dist = getDeliveryDistance();
+    const showFee = isPickup;
+    const grandTotal = showFee ? subtotal : subtotal + fee;
     const itemCount = getItemCount();
     html += `
       <div class="cart-footer">
         <div class="cart-items-summary">${itemCount} ${itemCount === 1 ? "artículo" : "artículos"}</div>
+        ${!showFee ? `
+          <div class="cart-subtotal-line">
+            <span>Subtotal</span>
+            <span>$${subtotal}</span>
+          </div>
+          <div class="cart-delivery-fee-line">
+            <span>Motomandado${dist ? ` (${formatDistance(dist)})` : ""}</span>
+            <span class="cart-fee-amount">$${fee}</span>
+          </div>
+          <div class="cart-total-divider"></div>
+        ` : ""}
         <div class="cart-total">
           <span>Total</span>
-          <span class="cart-total-amount" id="cart-total-amount">$${total}</span>
+          <span class="cart-total-amount" id="cart-total-amount">$${grandTotal}</span>
         </div>
         <button class="cart-whatsapp-btn" id="cart-send-whatsapp">
           <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
@@ -1153,7 +1185,10 @@ const Cart = (() => {
       }
     }
 
-    const total = getTotal();
+    const subtotal = getTotal();
+    const fee = getDeliveryFee();
+    const dist = getDeliveryDistance();
+    const grandTotal = isPickup ? subtotal : subtotal + fee;
     const mapsLink = `https://www.google.com/maps/search/?api=1&query=${state.location.lat},${state.location.lng}`;
     const addrText = formatAddress(state.location.address);
 
@@ -1185,7 +1220,11 @@ const Cart = (() => {
       }
     });
     msg += `-----------------------`;
-    msg += `\n*Total: $${total} MXN*`;
+    if (!isPickup) {
+      msg += `\n*Subtotal:* $${subtotal} MXN`;
+      msg += `\n*Motomandado${dist ? ` (${formatDistance(dist)})` : ""}:* $${fee} MXN`;
+    }
+    msg += `\n*Total: $${grandTotal} MXN*`;
     msg += `\n*Método de pago:* ${state.payment === "efectivo" ? "Efectivo" : "Transferencia"}`;
 
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;

@@ -2404,6 +2404,27 @@ footer {
     margin-bottom: 6px;
 }
 
+.cart-subtotal-line,
+.cart-delivery-fee-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #777;
+    padding: 3px 0;
+}
+
+.cart-fee-amount {
+    font-weight: 600;
+    color: var(--primary-orange);
+}
+
+.cart-total-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 6px 0;
+}
+
 .cart-total {
     display: flex;
     justify-content: space-between;
