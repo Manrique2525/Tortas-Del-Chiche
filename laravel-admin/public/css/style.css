@@ -325,6 +325,57 @@ nav ul li a:hover::after {
     margin: 0;
 }
 
+/* ── Productos no disponibles ── */
+.menu-item-inactive {
+    position: relative;
+    opacity: 0.6;
+    filter: grayscale(70%);
+    pointer-events: none;
+}
+
+.menu-item-inactive:hover {
+    transform: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.menu-item-inactive img {
+    pointer-events: none;
+}
+
+.menu-item-image-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.unavailable-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    background: rgba(220, 53, 69, 0.9);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 8px 24px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.unavailable-btn {
+    background: #999 !important;
+    color: #fff !important;
+    cursor: not-allowed !important;
+}
+
+.unavailable-btn:hover {
+    background: #999 !important;
+    transform: none !important;
+}
+
 /* Banquets Section */
 .banquets {
     background-color: var(--light-gray);

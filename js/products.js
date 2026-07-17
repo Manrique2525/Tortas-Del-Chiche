@@ -1,6 +1,6 @@
 /**
  * products.js - Carga productos desde la API de Laravel
- * Solo activos se muestran en el menú
+ * Productos inactivos se muestran en gris con "No Disponible"
  */
 
 const PRODUCTS_API_URL = '/api/products';
@@ -9,25 +9,35 @@ let productsCache = [];
 
 function createProductCard(product) {
     const div = document.createElement('div');
-    div.className = 'menu-item';
+    const isInactive = product.active === false || product.active === 0;
+    div.className = isInactive ? 'menu-item menu-item-inactive' : 'menu-item';
     div.dataset.id = product.id;
     div.dataset.name = product.name;
     div.dataset.price = product.price;
     div.dataset.img = product.image || '';
+    if (isInactive) div.dataset.inactive = '1';
 
     const description = product.description || '';
 
     div.innerHTML = `
-        <img src="${product.image}" alt="${product.name}" loading="lazy"
-             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22250%22><rect width=%22400%22 height=%22250%22 fill=%22%23FF6B35%22/><text x=%22200%22 y=%22130%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-family=%22sans-serif%22>${encodeURIComponent(product.name)}</text></svg>'" />
+        <div class="menu-item-image-wrapper">
+            <img src="${product.image}" alt="${product.name}" loading="lazy"
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22250%22><rect width=%22400%22 height=%22250%22 fill=%22%23FF6B35%22/><text x=%22200%22 y=%22130%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-family=%22sans-serif%22>${encodeURIComponent(product.name)}</text></svg>'" />
+            ${isInactive ? '<span class="unavailable-badge">No Disponible</span>' : ''}
+        </div>
         <div class="menu-item-header">
             <h3>${product.name}</h3>
             <span class="price">$${product.price}</span>
         </div>
         ${description ? `<p>${description}</p>` : ''}
-        <button class="add-to-cart-btn" aria-label="Agregar ${product.name} al carrito">
-            <i class="fas fa-cart-plus"></i> Agregar
-        </button>
+        ${isInactive
+            ? `<button class="add-to-cart-btn unavailable-btn" disabled aria-label="${product.name} no disponible">
+                <i class="fas fa-ban"></i> No Disponible
+               </button>`
+            : `<button class="add-to-cart-btn" aria-label="Agregar ${product.name} al carrito">
+                <i class="fas fa-cart-plus"></i> Agregar
+               </button>`
+        }
     `;
 
     return div;
@@ -66,7 +76,6 @@ async function loadProducts() {
             if (bebidasGrid) bebidasGrid.appendChild(createProductCard(product));
         });
 
-        // Re-initializar eventos del carrito
         if (typeof initCartAddButtons === 'function') {
             initCartAddButtons();
         }
@@ -74,7 +83,6 @@ async function loadProducts() {
             syncAllCardButtons();
         }
 
-        // Re-initializar animaciones de scroll
         initScrollAnimations();
 
     } catch (error) {
@@ -91,7 +99,7 @@ function initScrollAnimations() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
+                entry.target.style.opacity = entry.target.classList.contains('menu-item-inactive') ? '0.6' : '1';
                 entry.target.style.transform = 'translateY(0)';
                 observer.unobserve(entry.target);
             }

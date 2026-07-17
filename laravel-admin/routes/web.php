@@ -5,6 +5,11 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductToggleController;
 use Illuminate\Support\Facades\Route;
 
+// ── Sitio público ──
+Route::get('/', function () {
+    return response()->file(public_path('index.html'));
+});
+
 // ── Admin Auth ──
 Route::get('/admin', [AuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AuthController::class, 'login'])->name('admin.login.post');
