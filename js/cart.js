@@ -10,6 +10,9 @@ const Cart = (() => {
   const SCHEDULE_START = 7;
   const SCHEDULE_END = 14;
   const DELIVERY_FEE = { base: 30, baseKm: 4, perKm: 5, min: 30, max: 100 };
+  const VALID_COUPONS = {
+    "TORTASDELCHICHEJULIO10": { discount: 0.10, label: "10%" },
+  };
 
   const BRANCHES = {
     atasta: {
@@ -36,6 +39,7 @@ const Cart = (() => {
     payment: "efectivo",
     deliveryType: "domicilio",
     pickupTime: "",
+    coupon: "",
     customer: { name: "", phone: "", addressRef: "" },
     location: { lat: null, lng: null, confirmed: false, address: null },
   };
@@ -94,6 +98,21 @@ const Cart = (() => {
     return haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
   }
 
+  function getCouponData() {
+    if (!state.coupon) return null;
+    return VALID_COUPONS[state.coupon.toUpperCase().trim()] || null;
+  }
+
+  function getCouponDiscount() {
+    const coupon = getCouponData();
+    if (!coupon) return 0;
+    return Math.round(getTotal() * coupon.discount);
+  }
+
+  function isCouponValid() {
+    return getCouponData() !== null;
+  }
+
   function getPickupHours() {
     const hours = [];
     for (let h = SCHEDULE_START; h < SCHEDULE_END; h++) {
@@ -122,11 +141,12 @@ const Cart = (() => {
         state.payment = parsed.payment || "efectivo";
         state.deliveryType = parsed.deliveryType || "domicilio";
         state.pickupTime = parsed.pickupTime || "";
+        state.coupon = parsed.coupon || "";
         state.customer = parsed.customer || { name: "", phone: "", addressRef: "" };
         state.customer.phone = (state.customer.phone || "").replace(/\D/g, "").slice(0, 10);
         state.location = parsed.location || { lat: null, lng: null, confirmed: false, address: null };
       } catch {
-        state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+    state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: state.coupon, customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
       }
     }
   }
@@ -232,7 +252,8 @@ const Cart = (() => {
     if (qtyEl) qtyEl.textContent = item.quantity;
     if (subEl) subEl.textContent = `$${item.price * item.quantity}`;
     const totalEl = document.getElementById("cart-total-amount");
-    const grandTotal = state.deliveryType === "domicilio" ? getTotal() + getDeliveryFee() : getTotal();
+    const discount = isCouponValid() ? getCouponDiscount() : 0;
+    const grandTotal = state.deliveryType === "domicilio" ? getTotal() + getDeliveryFee() - discount : getTotal() - discount;
     if (totalEl) totalEl.textContent = `$${grandTotal}`;
     const headerCount = document.getElementById("cart-header-count");
     if (headerCount) headerCount.textContent = `(${getItemCount()})`;
@@ -628,6 +649,30 @@ const Cart = (() => {
     });
     html += `</div>`;
 
+    const couponValid = isCouponValid();
+    const couponHasCode = !!state.coupon;
+    html += `
+      <div class="cart-coupon">
+        <div class="cart-coupon-row">
+          <input type="text" id="cart-coupon-input" class="cart-coupon-input" placeholder="Tienes un cupón?" value="${state.coupon}" maxlength="30" />
+          <button class="cart-coupon-btn" id="cart-coupon-apply">
+            <i class="fas fa-tag"></i> Aplicar
+          </button>
+        </div>
+        ${couponValid ? `
+          <div class="cart-coupon-success">
+            <i class="fas fa-check-circle"></i> Cupón aplicado: ${getCouponData().label} de descuento
+            <button class="cart-coupon-remove" id="cart-coupon-remove"><i class="fas fa-times"></i></button>
+          </div>
+        ` : ""}
+        ${couponHasCode && !couponValid ? `
+          <div class="cart-coupon-error">
+            <i class="fas fa-times-circle"></i> Cupón no válido
+          </div>
+        ` : ""}
+      </div>
+    `;
+
     const deliverySummary = isPickup ? (state.pickupTime || "Elegir hora") : "Envío a domicilio";
     html += `
       <div class="cart-section">
@@ -790,8 +835,10 @@ const Cart = (() => {
     const subtotal = getTotal();
     const fee = getDeliveryFee();
     const dist = getDeliveryDistance();
+    const discount = isCouponValid() ? getCouponDiscount() : 0;
+    const couponData = getCouponData();
     const showFee = isPickup;
-    const grandTotal = showFee ? subtotal : subtotal + fee;
+    const grandTotal = showFee ? subtotal - discount : subtotal + fee - discount;
     const itemCount = getItemCount();
     html += `
       <div class="cart-footer">
@@ -801,12 +848,20 @@ const Cart = (() => {
             <span>Subtotal</span>
             <span>$${subtotal}</span>
           </div>
+        ` : ""}
+        ${discount > 0 ? `
+          <div class="cart-discount-line">
+            <span>Descuento (${couponData.label})</span>
+            <span class="cart-discount-amount">-$${discount}</span>
+          </div>
+        ` : ""}
+        ${!showFee ? `
           <div class="cart-delivery-fee-line">
             <span>Motomandado${dist ? ` (${formatDistance(dist)})` : ""}</span>
             <span class="cart-fee-amount">$${fee}</span>
           </div>
-          <div class="cart-total-divider"></div>
         ` : ""}
+        ${discount > 0 || !showFee ? `<div class="cart-total-divider"></div>` : ""}
         <div class="cart-total">
           <span>Total</span>
           <span class="cart-total-amount" id="cart-total-amount">$${grandTotal}</span>
@@ -842,6 +897,25 @@ const Cart = (() => {
         updateQuantity(id, action === "increase" ? 1 : -1);
       });
     });
+
+    const couponApply = document.getElementById("cart-coupon-apply");
+    if (couponApply) {
+      couponApply.addEventListener("click", () => {
+        const input = document.getElementById("cart-coupon-input");
+        state.coupon = (input?.value || "").trim();
+        save();
+        renderSidebar();
+      });
+    }
+
+    const couponRemove = document.getElementById("cart-coupon-remove");
+    if (couponRemove) {
+      couponRemove.addEventListener("click", () => {
+        state.coupon = "";
+        save();
+        renderSidebar();
+      });
+    }
 
     document.querySelectorAll(".cart-item-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1190,7 +1264,9 @@ const Cart = (() => {
     const subtotal = getTotal();
     const fee = getDeliveryFee();
     const dist = getDeliveryDistance();
-    const grandTotal = isPickup ? subtotal : subtotal + fee;
+    const discount = isCouponValid() ? getCouponDiscount() : 0;
+    const couponData = getCouponData();
+    const grandTotal = isPickup ? subtotal - discount : subtotal + fee - discount;
     const mapsLink = `https://www.google.com/maps/search/?api=1&query=${state.location.lat},${state.location.lng}`;
     const addrText = formatAddress(state.location.address);
 
@@ -1224,6 +1300,11 @@ const Cart = (() => {
     msg += `-----------------------`;
     if (!isPickup) {
       msg += `\n*Subtotal:* $${subtotal} MXN`;
+    }
+    if (discount > 0) {
+      msg += `\n*Descuento (${couponData.label}):* -$${discount} MXN`;
+    }
+    if (!isPickup) {
       msg += `\n*Motomandado${dist ? ` (${formatDistance(dist)})` : ""}:* $${fee} MXN`;
     }
     msg += `\n*Total: $${grandTotal} MXN*`;

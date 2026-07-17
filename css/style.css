@@ -1449,6 +1449,103 @@ footer {
     100% { transform: scale(1); opacity: 1; }
 }
 
+/* ── Campo de cupón ── */
+.cart-coupon {
+    padding: 12px 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.cart-coupon-row {
+    display: flex;
+    gap: 8px;
+}
+
+.cart-coupon-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cart-coupon-input:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+}
+
+.cart-coupon-btn {
+    padding: 10px 16px;
+    background: var(--primary-orange);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.cart-coupon-btn:hover {
+    background: var(--primary-black);
+    color: var(--primary-yellow);
+}
+
+.cart-coupon-success {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.cart-coupon-success .cart-coupon-remove {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #2e7d32;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 4px;
+}
+
+.cart-coupon-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #ffebee;
+    color: #c62828;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* ── Línea de descuento en footer ── */
+.cart-discount-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #777;
+    padding: 3px 0;
+}
+
+.cart-discount-amount {
+    font-weight: 600;
+    color: #e53935;
+}
+
 /* ── Botón flotante del carrito ── */
 .cart-float-btn {
     position: fixed;
