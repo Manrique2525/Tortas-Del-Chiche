@@ -19,6 +19,7 @@ RUN mkdir -p database && touch database/database.sqlite
 RUN cp .env.render .env || true
 RUN php artisan key:generate --force || true
 RUN php artisan migrate --force || true
+RUN php artisan db:seed --force || true
 RUN php artisan storage:link --force || true
 RUN php artisan config:cache || true
 RUN php artisan route:cache || true
