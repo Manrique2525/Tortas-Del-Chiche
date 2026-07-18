@@ -14,60 +14,63 @@
 
         .admin-header {
             background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100;
         }
-        .admin-header-left { display: flex; align-items: center; gap: 14px; }
-        .admin-header-left img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #FF6B35; }
-        .admin-header-left h1 { color: #FFD700; font-size: 1.1rem; font-weight: 700; }
-        .admin-header-left p { color: #aaa; font-size: 0.75rem; }
-        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .admin-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .admin-header-left img { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #FF6B35; flex-shrink: 0; }
+        .admin-header-left h1 { color: #FFD700; font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-header-left p { color: #aaa; font-size: 0.7rem; }
+        .header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .back-btn {
             background: transparent; color: #aaa; border: 2px solid #555;
-            padding: 8px 16px; border-radius: 8px; font-family: 'Poppins', sans-serif;
-            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            padding: 7px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+            white-space: nowrap;
         }
         .back-btn:hover { border-color: #FF6B35; color: #FF6B35; }
         .logout-btn {
             background: transparent; color: #ff6b6b; border: 2px solid #ff6b6b;
-            padding: 8px 16px; border-radius: 8px; font-family: 'Poppins', sans-serif;
-            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            padding: 7px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            white-space: nowrap;
         }
         .logout-btn:hover { background: #ff6b6b; color: white; }
+        .btn-label { display: inline; }
 
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 12px; padding: 20px 24px 0; }
+        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px 20px 0; }
         .stat-card {
-            background: white; border-radius: 12px; padding: 16px; text-align: center;
+            background: white; border-radius: 12px; padding: 14px 10px; text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .stat-card .stat-number { font-size: 1.6rem; font-weight: 700; color: #1a1a1a; }
-        .stat-card .stat-label { font-size: 0.7rem; color: #888; margin-top: 2px; }
+        .stat-card .stat-number { font-size: 1.4rem; font-weight: 700; color: #1a1a1a; }
+        .stat-card .stat-label { font-size: 0.65rem; color: #888; margin-top: 2px; }
         .stat-card.pending .stat-number { color: #f39c12; }
         .stat-card.accepted .stat-number { color: #2196F3; }
         .stat-card.revenue .stat-number { color: #27ae60; }
         .stat-card.delivery .stat-number { color: #9C27B0; }
 
         .filters-bar {
-            padding: 16px 24px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+            padding: 14px 20px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
         }
         .filter-input {
-            padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px;
-            font-family: 'Poppins', sans-serif; font-size: 0.85rem; color: #333;
-            background: white; transition: border-color 0.3s ease;
+            padding: 9px 12px; border: 2px solid #e0e0e0; border-radius: 10px;
+            font-family: 'Poppins', sans-serif; font-size: 0.8rem; color: #333;
+            background: white; transition: border-color 0.3s ease; min-width: 0;
         }
         .filter-input:focus { outline: none; border-color: #FF6B35; }
         .filter-btn {
-            padding: 10px 18px; border: none; border-radius: 10px;
-            font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600;
-            cursor: pointer; transition: all 0.2s ease;
+            padding: 9px 16px; border: none; border-radius: 10px;
+            font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
         }
         .filter-btn-primary { background: #FF6B35; color: white; }
         .filter-btn-primary:hover { background: #FF8C42; }
         .filter-btn-secondary { background: #e0e0e0; color: #555; }
         .filter-btn-secondary:hover { background: #d0d0d0; }
 
-        .orders-container { padding: 0 24px 40px; }
+        .orders-container { padding: 0 20px 40px; }
 
         .order-card {
             background: white; border-radius: 12px; margin-bottom: 12px;
@@ -82,27 +85,27 @@
 
         .order-header {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 16px; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; gap: 8px;
+            padding: 12px 14px; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; gap: 6px;
         }
-        .order-id { font-weight: 700; color: #1a1a1a; font-size: 0.9rem; }
-        .order-date { color: #888; font-size: 0.75rem; margin-left: 8px; }
+        .order-id { font-weight: 700; color: #1a1a1a; font-size: 0.85rem; }
+        .order-date { color: #888; font-size: 0.7rem; margin-left: 6px; }
         .order-status {
-            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem;
-            font-weight: 700; color: white; display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 10px; border-radius: 20px; font-size: 0.7rem;
+            font-weight: 700; color: white; display: inline-flex; align-items: center; gap: 5px;
         }
 
-        .order-body { padding: 14px 16px; }
-        .order-customer { font-weight: 600; color: #1a1a1a; font-size: 0.9rem; margin-bottom: 6px; }
-        .order-detail { color: #666; font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-        .order-detail i { color: #888; width: 16px; text-align: center; }
-        .order-items { margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; }
-        .order-item { font-size: 0.8rem; color: #555; padding: 2px 0; }
+        .order-body { padding: 12px 14px; }
+        .order-customer { font-weight: 600; color: #1a1a1a; font-size: 0.85rem; margin-bottom: 6px; }
+        .order-detail { color: #666; font-size: 0.75rem; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+        .order-detail i { color: #888; width: 14px; text-align: center; flex-shrink: 0; }
+        .order-items { margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
+        .order-item { font-size: 0.75rem; color: #555; padding: 2px 0; }
         .order-item span { font-weight: 600; color: #333; }
 
-        .order-proof { margin-top: 12px; padding-top: 10px; border-top: 1px solid #f0f0f0; }
-        .order-proof-label { font-size: 0.8rem; font-weight: 600; color: #27ae60; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .order-proof { margin-top: 10px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
+        .order-proof-label { font-size: 0.75rem; font-weight: 600; color: #27ae60; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
         .order-proof-link { display: inline-block; }
-        .order-proof-img { max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid #e0e0e0; object-fit: cover; cursor: pointer; transition: transform 0.2s ease; }
+        .order-proof-img { max-width: 180px; max-height: 180px; border-radius: 10px; border: 2px solid #e0e0e0; object-fit: cover; cursor: pointer; transition: transform 0.2s ease; }
         .order-proof-img:hover { transform: scale(1.05); border-color: #27ae60; }
 
         .proof-modal-overlay {
@@ -122,20 +125,20 @@
 
         .order-footer {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 16px; background: #fafafa; border-top: 1px solid #f0f0f0;
+            padding: 10px 14px; background: #fafafa; border-top: 1px solid #f0f0f0;
             flex-wrap: wrap; gap: 8px;
         }
-        .order-total { font-weight: 700; color: #FF6B35; font-size: 1.1rem; }
+        .order-total { font-weight: 700; color: #FF6B35; font-size: 1rem; }
         .order-payment {
-            font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 4px;
+            font-size: 0.7rem; color: #888; display: flex; align-items: center; gap: 4px;
         }
 
-        .action-buttons { display: flex; gap: 8px; align-items: center; }
+        .action-buttons { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .action-btn {
-            padding: 8px 16px; border: none; border-radius: 8px;
-            font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 700;
+            padding: 7px 14px; border: none; border-radius: 8px;
+            font-family: 'Poppins', sans-serif; font-size: 0.75rem; font-weight: 700;
             cursor: pointer; transition: all 0.2s ease; display: inline-flex;
-            align-items: center; gap: 6px;
+            align-items: center; gap: 5px; white-space: nowrap;
         }
         .btn-accept { background: #27ae60; color: white; }
         .btn-accept:hover { background: #219a52; transform: translateY(-1px); }
@@ -148,41 +151,108 @@
 
         .status-select {
             padding: 6px 10px; border: 2px solid #e0e0e0; border-radius: 8px;
-            font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 600;
+            font-family: 'Poppins', sans-serif; font-size: 0.75rem; font-weight: 600;
             cursor: pointer; background: white; transition: border-color 0.3s ease;
         }
         .status-select:focus { outline: none; border-color: #FF6B35; }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
-        .empty-state i { font-size: 3rem; margin-bottom: 16px; }
-        .empty-state p { font-size: 0.95rem; }
+        .empty-state { text-align: center; padding: 50px 20px; color: #aaa; }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 14px; }
+        .empty-state p { font-size: 0.9rem; }
 
         .toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #1a1a1a; color: white; padding: 12px 24px; border-radius: 10px;
             font-size: 0.85rem; font-weight: 600; z-index: 1000; transition: transform 0.3s ease;
             box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px;
+            max-width: 90%;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
         .toast.success { border-left: 4px solid #4CAF50; }
         .toast.error { border-left: 4px solid #e74c3c; }
 
-        .admin-footer { text-align: center; padding: 20px; color: #aaa; font-size: 0.8rem; }
+        .admin-footer { text-align: center; padding: 20px; color: #aaa; font-size: 0.75rem; }
 
-        @media (max-width: 600px) {
-            .stats-row { grid-template-columns: 1fr 1fr; }
-            .filters-bar { flex-direction: column; }
-            .filter-input { width: 100%; }
-            .order-header, .order-footer { flex-direction: column; align-items: flex-start; }
+        /* ════════════════════════════════════════
+           RESPONSIVE — Pedidos
+           ════════════════════════════════════════ */
+
+        @media (max-width: 768px) {
+            .admin-header { padding: 14px 16px; }
+            .back-btn, .logout-btn { padding: 7px 10px; font-size: 0.7rem; }
+            .btn-label { display: none; }
+            .filters-bar { padding: 12px 16px; }
+            .orders-container { padding: 0 16px 32px; }
+        }
+
+        @media (max-width: 576px) {
+            .admin-header { padding: 12px 14px; flex-wrap: wrap; gap: 10px; }
+            .admin-header-left { flex: 1; min-width: 0; }
+            .admin-header-left img { width: 36px; height: 36px; }
+            .admin-header-left h1 { font-size: 0.88rem; }
+            .header-actions { width: 100%; justify-content: flex-end; }
+
+            .stats-row {
+                grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px 14px 0;
+            }
+            .stats-row .stat-card:last-child {
+                grid-column: 1 / -1;
+            }
+            .stat-card { padding: 12px 8px; border-radius: 10px; }
+            .stat-card .stat-number { font-size: 1.2rem; }
+            .stat-card .stat-label { font-size: 0.6rem; }
+
+            .filters-bar { padding: 10px 14px; gap: 6px; }
+            .filter-input { padding: 8px 10px; font-size: 0.75rem; flex: 1 1 auto; min-width: 0; }
+            .filter-btn { padding: 8px 14px; font-size: 0.75rem; width: 100%; justify-content: center; }
+
+            .orders-container { padding: 0 14px 28px; }
+            .order-card { border-radius: 10px; }
+            .order-header { padding: 10px 12px; }
+            .order-id { font-size: 0.8rem; }
+            .order-date { font-size: 0.65rem; }
+            .order-status { font-size: 0.65rem; padding: 2px 8px; }
+            .order-body { padding: 10px 12px; }
+            .order-customer { font-size: 0.8rem; }
+            .order-detail { font-size: 0.7rem; }
+            .order-item { font-size: 0.7rem; }
+            .order-proof-img { max-width: 140px; max-height: 140px; }
+            .order-footer { padding: 8px 12px; flex-direction: column; align-items: flex-start; gap: 8px; }
+            .order-total { font-size: 0.95rem; }
+            .order-payment { font-size: 0.65rem; }
             .action-buttons { width: 100%; }
-            .action-btn { flex: 1; justify-content: center; }
+            .action-btn { flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.7rem; }
+            .status-select { width: 100%; font-size: 0.7rem; }
+        }
+
+        @media (max-width: 420px) {
+            .admin-header { padding: 10px 12px; }
+            .admin-header-left img { width: 32px; height: 32px; }
+            .admin-header-left h1 { font-size: 0.8rem; }
+            .admin-header-left p { font-size: 0.6rem; }
+            .back-btn, .logout-btn { padding: 6px 8px; font-size: 0.65rem; border-radius: 6px; }
+
+            .stats-row { grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px 12px 0; }
+            .stat-card { padding: 10px 6px; border-radius: 8px; }
+            .stat-card .stat-number { font-size: 1.05rem; }
+
+            .filters-bar { padding: 8px 12px; }
+            .filter-input { padding: 7px 8px; font-size: 0.7rem; }
+            .filter-btn { padding: 7px 12px; font-size: 0.7rem; }
+
+            .orders-container { padding: 0 12px 24px; }
+            .order-header { padding: 8px 10px; }
+            .order-body { padding: 8px 10px; }
+            .order-footer { padding: 8px 10px; }
+            .action-btn { padding: 7px 8px; font-size: 0.65rem; gap: 4px; }
+            .admin-footer { padding: 16px; font-size: 0.7rem; }
         }
     </style>
 </head>
 <body>
     <div class="admin-header">
         <div class="admin-header-left">
-            <img src="https://lastortasdelchiche.com/img/imagenes/logo1.jpg" alt="Logo"
+            <img src="/img/logo.jpeg" alt="Logo"
                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2245%22><rect width=%2245%22 height=%2245%22 fill=%22%23FF6B35%22 rx=%2222%22/><text x=%2222.5%22 y=%2229%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2216%22 font-family=%22sans-serif%22 font-weight=%22bold%22>TT</text></svg>'">
             <div>
                 <h1>Las Tortas Del Chiche</h1>
@@ -190,10 +260,10 @@
             </div>
         </div>
         <div class="header-actions">
-            <a href="{{ route('admin.dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Productos</a>
+            <a href="{{ route('admin.dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> <span class="btn-label">Productos</span></a>
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf
-                <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Salir</button>
+                <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> <span class="btn-label">Salir</span></button>
             </form>
         </div>
     </div>
@@ -201,7 +271,7 @@
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-number">{{ $stats['total'] }}</div>
-            <div class="stat-label">Total pedidos</div>
+            <div class="stat-label">Total</div>
         </div>
         <div class="stat-card pending">
             <div class="stat-number">{{ $stats['pendiente'] }}</div>
@@ -217,7 +287,7 @@
         </div>
         <div class="stat-card delivery">
             <div class="stat-number">${{ number_format($stats['envios_hoy'], 0) }}</div>
-            <div class="stat-label">Envíos repartidor</div>
+            <div class="stat-label">Envíos</div>
         </div>
     </div>
 
@@ -349,7 +419,7 @@
                             </button>
                         </div>
                     @else
-                        <div>
+                        <div style="width:100%;">
                             <select class="status-select" onchange="updateStatus({{ $order->id }}, this.value)">
                                 <option value="pendiente" {{ $order->status === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
                                 <option value="aceptado" {{ $order->status === 'aceptado' ? 'selected' : '' }}>Aceptado</option>
@@ -401,7 +471,9 @@
             .then(r => r.json())
             .then(data => {
                 showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 600);
+                if (card) {
+                    setTimeout(() => { location.reload(); }, 800);
+                }
             })
             .catch(() => showToast('Error al actualizar', 'error'));
         }
@@ -415,16 +487,13 @@
         }
 
         function openProofModal(src) {
-            const modal = document.getElementById('proofModal');
-            const img = document.getElementById('proofModalImg');
-            img.src = src;
-            modal.classList.add('active');
+            document.getElementById('proofModalImg').src = src;
+            document.getElementById('proofModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-
         function closeProofModal() {
-            const modal = document.getElementById('proofModal');
-            modal.classList.remove('active');
+            document.getElementById('proofModal').classList.remove('active');
+            document.getElementById('proofModalImg').src = '';
             document.body.style.overflow = '';
         }
 

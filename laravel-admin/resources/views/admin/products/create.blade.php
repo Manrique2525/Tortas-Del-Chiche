@@ -129,17 +129,40 @@
         .toast.success { border-left: 4px solid #4CAF50; }
         .toast.error { border-left: 4px solid #e74c3c; }
 
-        @media (max-width: 480px) {
-            .form-card { padding: 20px; }
-            .form-actions { flex-direction: column; }
+        @media (max-width: 768px) {
+            .admin-header { padding: 14px 16px; }
+            .back-btn { padding: 7px 12px; font-size: 0.7rem; }
+            .form-container { margin: 24px auto; padding: 0 16px 32px; }
+        }
+        @media (max-width: 576px) {
+            .admin-header { padding: 12px 14px; flex-wrap: wrap; gap: 10px; }
+            .admin-header-left { flex: 1; min-width: 0; }
+            .admin-header-left img { width: 36px; height: 36px; }
+            .admin-header-left h1 { font-size: 0.88rem; }
+            .form-container { margin: 20px auto; padding: 0 14px 28px; }
+            .form-card { padding: 22px; border-radius: 14px; }
+            .form-card h2 { font-size: 1rem; margin-bottom: 18px; }
+            .form-group label { font-size: 0.8rem; }
+            .form-control { padding: 10px 12px; font-size: 0.85rem; }
+            .image-upload { padding: 20px; }
+        }
+        @media (max-width: 420px) {
+            .admin-header { padding: 10px 12px; }
+            .admin-header-left img { width: 32px; height: 32px; }
+            .admin-header-left h1 { font-size: 0.8rem; }
+            .back-btn { padding: 6px 10px; font-size: 0.65rem; border-radius: 6px; }
+            .form-card { padding: 18px; }
+            .form-card h2 { font-size: 0.9rem; }
+            .form-actions { flex-direction: column; gap: 10px; }
+            .btn { padding: 12px; font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
     <div class="admin-header">
         <div class="admin-header-left">
-            <img src="https://lastortasdelchiche.com/img/imagenes/logo1.jpg" alt="Logo"
-                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2245%22><rect width=%2245%22 height=%2245%22 fill=%22%23FF6B35%22 rx=%2222%22/><text x=%2222.5%22 y=%2229%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2216%22 font-family=%22sans-serif%22 font-weight=%22bold%22>TT</text></svg>'">
+            <img src="/img/logo.jpeg" alt="Logo"
+                 onerror="this.style.background='#FF6B35'; this.style.borderRadius='50%'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2245%22><rect width=%2245%22 height=%2245%22 fill=%22%23FF6B35%22 rx=%2222%22/><text x=%2222.5%22 y=%2229%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2216%22 font-family=%22sans-serif%22 font-weight=%22bold%22>TT</text></svg>'">
             <div>
                 <h1>Las Tortas Del Chiche</h1>
                 <p>{{ isset($product) ? 'Editar' : 'Nuevo' }} Producto</p>
