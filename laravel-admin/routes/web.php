@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
@@ -38,6 +39,12 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     // Pedidos
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
+
+    // Cupones
+    Route::get('/coupons', [CouponController::class, 'index'])->name('admin.coupons');
+    Route::post('/coupons', [CouponController::class, 'store'])->name('admin.coupons.store');
+    Route::patch('/coupons/{coupon}/toggle', [CouponController::class, 'toggle'])->name('admin.coupons.toggle');
+    Route::delete('/coupons/{coupon}', [CouponController::class, 'destroy'])->name('admin.coupons.destroy');
 });
 
 // ── SPA Fallback ──

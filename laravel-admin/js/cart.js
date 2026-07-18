@@ -10,9 +10,7 @@ const Cart = (() => {
   const SCHEDULE_START = 7;
   const SCHEDULE_END = 14;
   const DELIVERY_FEE = { base: 40, baseKm: 4, perKm: 10, min: 40, max: 120 };
-  const VALID_COUPONS = {
-    "TORTASDELCHICHEJULIO10": { discount: 0.10, label: "10%" },
-  };
+  let VALID_COUPONS = {};
   const BANK_INFO = {
     bank: "BBVA",
     holder: "FERNANDO GUTIERREZ",
@@ -117,6 +115,15 @@ const Cart = (() => {
 
   function isCouponValid() {
     return getCouponData() !== null;
+  }
+
+  function loadCoupons() {
+    fetch("/api/coupons")
+      .then((r) => r.json())
+      .then((data) => {
+        VALID_COUPONS = data;
+      })
+      .catch(() => {});
   }
 
   function getPickupHours() {
@@ -1571,6 +1578,7 @@ const Cart = (() => {
 
   function init() {
     load();
+    loadCoupons();
 
     bindAddButtons();
 
