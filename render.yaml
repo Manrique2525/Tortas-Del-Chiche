@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: tortas-del-chiche
+    runtime: php
+    rootDir: laravel-admin
+    buildCommand: >
+      composer install --no-dev --optimize-autoloader &&
+      cp .env.render .env &&
+      php artisan key:generate --force &&
+      touch database/database.sqlite &&
+      php artisan migrate --force &&
+      php artisan storage:link --force &&
+      php artisan config:cache &&
+      php artisan route:cache &&
+      php artisan view:cache
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        generateValue: false
+      - key: APP_KEY
+        generateValue: true
