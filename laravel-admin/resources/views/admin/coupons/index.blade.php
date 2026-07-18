@@ -170,6 +170,33 @@
             .btn-toggle { padding: 4px 8px; font-size: 0.65rem; }
             .btn-sm { padding: 4px 8px; font-size: 0.65rem; }
         }
+
+        /* ── Delete Modal ── */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 200; display: none;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: white; border-radius: 16px; padding: 28px; max-width: 400px; width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .modal-card h3 { font-size: 1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .modal-card h3 i { color: #e53935; }
+        .modal-card p { color: #666; font-size: 0.85rem; margin-bottom: 24px; }
+        .modal-card .coupon-to-delete { font-weight: 700; color: #1a1a1a; font-family: 'Courier New', monospace; }
+        .modal-actions { display: flex; gap: 12px; }
+        .modal-actions .btn {
+            flex: 1; padding: 12px; border: none; border-radius: 10px;
+            font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .btn-cancel { background: #e0e0e0; color: #555; }
+        .btn-cancel:hover { background: #d0d0d0; }
+        .btn-danger-modal { background: #e53935; color: white; }
+        .btn-danger-modal:hover { background: #c62828; }
     </style>
 </head>
 <body>
@@ -243,11 +270,10 @@
                                     <i class="fas {{ $coupon->active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                                     {{ $coupon->active ? 'Activo' : 'Inactivo' }}
                                 </button>
-                                <form method="POST" action="{{ route('admin.coupons.destroy', $coupon) }}"
-                                      onsubmit="return confirm('¿Eliminar este cupón permanentemente?')" style="display:inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                                </form>
+                                <button class="btn btn-sm btn-danger" title="Eliminar"
+                                        onclick="confirmDeleteCoupon({{ $coupon->id }}, '{{ addslashes($coupon->code) }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </li>
                     @endforeach
@@ -256,7 +282,34 @@
         </div>
     </div>
 
+    <!-- Delete Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> Eliminar cupón</h3>
+            <p>¿Estás seguro de eliminar <span class="coupon-to-delete" id="deleteCouponCode"></span> permanentemente?</p>
+            <form id="deleteForm" method="POST" style="display:none;">@csrf @method('DELETE')</form>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="btn btn-danger-modal" onclick="submitDelete()">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function confirmDeleteCoupon(id, code) {
+            document.getElementById('deleteCouponCode').textContent = code;
+            document.getElementById('deleteForm').action = `/admin/coupons/${id}`;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+        function submitDelete() {
+            document.getElementById('deleteForm').submit();
+        }
+
         async function toggleCoupon(id, btn) {
             const res = await fetch(`/admin/coupons/${id}/toggle`, {
                 method: 'PATCH',
