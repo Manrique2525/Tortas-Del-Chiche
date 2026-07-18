@@ -250,7 +250,7 @@
                     <div class="image-upload" id="dropZone" onclick="document.getElementById('imageInput').click()">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Haz clic o arrastra una imagen</p>
-                        <p style="font-size:0.75rem; color:#aaa;">JPG, PNG, WebP — Máx 2MB</p>
+                        <p style="font-size:0.75rem; color:#aaa;">Solo 896×1195px — JPG, PNG, WebP — Máx 2MB</p>
                         <input type="file" name="image" id="imageInput" accept="image/*"
                                onchange="previewImage(this)">
                         <img class="preview" id="imagePreview" alt="Preview">
@@ -285,16 +285,84 @@
     @endif
 
     <script>
-        function previewImage(input) {
+        window.imageValid = true;
+
+        function validateImageDimensions(file) {
+            return new Promise((resolve) => {
+                if (!file) { resolve(true); return; }
+                const img = new Image();
+                img.onload = function() {
+                    URL.revokeObjectURL(img.src);
+                    resolve(img.width === 896 && img.height === 1195);
+                };
+                img.onerror = function() { resolve(false); };
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        function showImageError(msg) {
+            let err = document.getElementById('imageDimError');
+            if (!err) {
+                err = document.createElement('div');
+                err.id = 'imageDimError';
+                err.style.cssText = 'color:#e74c3c; font-size:0.75rem; margin-top:6px; display:flex; align-items:center; gap:6px;';
+                document.getElementById('dropZone').after(err);
+            }
+            err.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + msg;
+            err.style.display = 'flex';
+        }
+
+        function clearImageError() {
+            const err = document.getElementById('imageDimError');
+            if (err) err.style.display = 'none';
+        }
+
+        async function previewImage(input) {
             const preview = document.getElementById('imagePreview');
             if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const valid = await validateImageDimensions(file);
+                if (!valid) {
+                    const img = new Image();
+                    img.onload = function() {
+                        showImageError('La imagen debe ser de 896×1195 píxeles. Tu imagen tiene ' + img.width + '×' + img.height);
+                        URL.revokeObjectURL(img.src);
+                    };
+                    img.src = URL.createObjectURL(file);
+                    preview.style.display = 'none';
+                    window.imageValid = false;
+                    input.value = '';
+                    return;
+                }
+                clearImageError();
+                window.imageValid = true;
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(input.files[0]);
+                reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; };
+                reader.readAsDataURL(file);
             }
+        }
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (!window.imageValid) {
+                e.preventDefault();
+                showToast('La imagen no tiene las dimensiones correctas (896×1195)', 'error');
+            }
+        });
+
+        function showToast(message, type) {
+            let toast = document.getElementById('formToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'formToast';
+                toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1a1a;color:white;padding:12px 24px;border-radius:10px;font-size:0.85rem;font-weight:600;z-index:1000;transition:transform 0.3s ease;box-shadow:0 5px 20px rgba(0,0,0,0.3);display:flex;align-items:center;gap:10px;max-width:90%;';
+                document.body.appendChild(toast);
+            }
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            const border = type === 'success' ? '#4CAF50' : '#e74c3c';
+            toast.innerHTML = '<i class="fas ' + icon + '"></i> ' + message;
+            toast.style.borderLeft = '4px solid ' + border;
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(100px)'; }, 3000);
         }
 
         const dropZone = document.getElementById('dropZone');

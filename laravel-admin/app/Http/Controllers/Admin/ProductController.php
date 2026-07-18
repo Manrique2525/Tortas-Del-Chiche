@@ -33,7 +33,7 @@ class ProductController extends Controller
             'category'    => 'required|in:comida,bebida',
             'active'      => 'boolean',
             'sort_order'  => 'integer|min:0',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
         ]);
 
         $validated['active'] = $request->boolean('active');
@@ -64,7 +64,7 @@ class ProductController extends Controller
             'category'    => 'required|in:comida,bebida',
             'active'      => 'boolean',
             'sort_order'  => 'integer|min:0',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
         ]);
 
         $validated['active'] = $request->boolean('active');
