@@ -1,0 +1,10 @@
+.git
+.htaccess
+css/
+js/
+img/
+laravel-admin/node_modules
+laravel-admin/storage/logs/*
+laravel-admin/storage/framework/cache/*
+laravel-admin/storage/framework/sessions/*
+laravel-admin/vendor
