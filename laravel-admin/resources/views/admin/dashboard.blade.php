@@ -212,9 +212,7 @@
         <div class="header-actions">
             <a href="{{ route('admin.orders') }}" class="add-btn" style="background: linear-gradient(135deg, #2196F3, #1976D2); position: relative;">
                 <i class="fas fa-receipt"></i> Pedidos
-                @if($pendingOrders > 0)
-                    <span style="position:absolute; top:-6px; right:-6px; background:#e74c3c; color:white; font-size:0.65rem; font-weight:700; min-width:18px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center; border:2px solid #1a1a1a;">{{ $pendingOrders }}</span>
-                @endif
+                <span data-pending-badge style="position:absolute; top:-6px; right:-6px; background:#e74c3c; color:white; font-size:0.65rem; font-weight:700; min-width:18px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center; border:2px solid #1a1a1a; {{ $pendingOrders > 0 ? '' : 'display:none;' }}">{{ $pendingOrders }}</span>
             </a>
             <a href="{{ route('admin.products.create') }}" class="add-btn">
                 <i class="fas fa-plus"></i> Nuevo
@@ -416,5 +414,6 @@
             });
         });
     </script>
+    <script src="/js/admin-notify.js"></script>
 </body>
 </html>

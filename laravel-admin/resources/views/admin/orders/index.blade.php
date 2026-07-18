@@ -432,5 +432,6 @@
             if (e.key === 'Escape') closeProofModal();
         });
     </script>
+    <script src="/js/admin-notify.js"></script>
 </body>
 </html>
