@@ -1,0 +1,19 @@
+# Conectar a IONOS por SFTP
+open sftp://a266392@access-5017867763.webspace-host.com:22/ -hostkey="*"
+
+# Configurar opciones de transferencia
+option transfer binary
+
+# Subir todo excepto .git, node_modules, tests
+put -resume "C:\Users\desoft\Desktop\Tortas-Del-Chiche\laravel-admin\*" / -filemask="|.git/;node_modules/;tests/;*.log;.DS_Store;Thumbs.db;.phpactor.json;.phpunit.result.cache;.fleet/;.idea/;.nova/;.vscode/;.zed/"
+
+# Renombrar .env.production a .env en el servidor
+mv /.env.production /.env
+
+# Dar permisos de escritura
+chmod 775 /storage
+chmod 775 /bootstrap/cache
+
+# Cerrar conexion
+close
+exit

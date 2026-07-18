@@ -1463,7 +1463,7 @@ footer {
 }
 
 .bank-info-card.visible {
-    max-height: 300px;
+    max-height: 500px;
     opacity: 1;
     margin: 12px 0 0;
     padding: 14px;
@@ -1540,6 +1540,59 @@ footer {
 
 .bank-info-note i {
     color: var(--primary-orange);
+}
+
+.bank-info-proof {
+    margin: 12px 0 4px;
+    text-align: center;
+}
+
+.bank-info-proof-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-black);
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.bank-info-proof-label i {
+    color: var(--primary-orange);
+}
+
+.bank-info-proof-preview {
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bank-info-proof-preview:hover {
+    border-color: var(--primary-orange);
+    background: #fff5f0;
+}
+
+.bank-info-proof-preview span {
+    color: #aaa;
+    font-size: 0.8rem;
+}
+
+.bank-info-proof-preview span i {
+    color: #ccc;
+    margin-right: 4px;
+}
+
+.bank-info-proof-preview img {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
 }
 
 /* ── Campo de cupón ── */

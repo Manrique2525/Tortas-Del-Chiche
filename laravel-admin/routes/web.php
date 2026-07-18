@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductToggleController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,8 +19,25 @@ Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.log
 
 // ── Admin Dashboard (protegido) ──
 Route::middleware('admin.auth')->prefix('admin')->group(function () {
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Productos CRUD
+    Route::get('/products/create', [ProductController::class, 'create'])->name('admin.products.create');
+    Route::post('/products', [ProductController::class, 'store'])->name('admin.products.store');
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('admin.products.edit');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('admin.products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
+
+    // Toggle
     Route::post('/products/{product}/toggle', [ProductToggleController::class, 'toggle'])->name('admin.toggle');
+
+    // Reorder
+    Route::post('/products/reorder', [ProductController::class, 'reorder'])->name('admin.products.reorder');
+
+    // Pedidos
+    Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
+    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
 });
 
 // ── SPA Fallback ──

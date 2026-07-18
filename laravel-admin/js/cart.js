@@ -47,6 +47,7 @@ const Cart = (() => {
     coupon: "",
     customer: { name: "", phone: "", addressRef: "" },
     location: { lat: null, lng: null, confirmed: false, address: null },
+    paymentProof: null,
   };
 
   let map = null;
@@ -830,7 +831,15 @@ const Cart = (() => {
               <span class="bank-info-value">${clabeFormatted}</span>
               <button class="bank-info-copy" id="bank-copy-clabe" title="Copiar CLABE"><i class="fas fa-clipboard"></i></button>
             </div>
-            <p class="bank-info-note"><i class="fas fa-paperclip"></i> Adjunta tu comprobante de transferencia en WhatsApp</p>
+            <div class="bank-info-proof">
+              <label class="bank-info-proof-label" for="cart-payment-proof">
+                <i class="fas fa-camera"></i> Comprobante de transferencia
+              </label>
+              <input type="file" id="cart-payment-proof" accept="image/*" style="display:none;">
+              <div class="bank-info-proof-preview" id="bank-proof-preview">
+                <span><i class="fas fa-cloud-upload-alt"></i> Adjunta foto del comprobante</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1015,7 +1024,12 @@ const Cart = (() => {
         const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
         if (summary) summary.textContent = btn.querySelector(".cart-payment-name")?.textContent || "";
         const bankCard = document.querySelector(".bank-info-card");
-        if (bankCard) bankCard.classList.toggle("visible", state.payment === "transferencia");
+        if (bankCard) {
+          bankCard.classList.toggle("visible", state.payment === "transferencia");
+          if (state.payment === "transferencia") {
+            setTimeout(() => bankCard.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+          }
+        }
       });
     });
 
@@ -1026,6 +1040,32 @@ const Cart = (() => {
           copyClabeBtn.innerHTML = '<i class="fas fa-clipboard-check"></i>';
           setTimeout(() => { copyClabeBtn.innerHTML = '<i class="fas fa-clipboard"></i>'; }, 1500);
         });
+      });
+    }
+
+    const proofInput = document.getElementById("cart-payment-proof");
+    const proofPreview = document.getElementById("bank-proof-preview");
+    if (proofInput && proofPreview) {
+      if (state.paymentProof) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          proofPreview.innerHTML = '<img src="' + e.target.result + '" alt="Comprobante">';
+        };
+        reader.readAsDataURL(state.paymentProof);
+      }
+      proofInput.addEventListener("change", function() {
+        if (this.files && this.files[0]) {
+          state.paymentProof = this.files[0];
+          save();
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            proofPreview.innerHTML = '<img src="' + e.target.result + '" alt="Comprobante">';
+          };
+          reader.readAsDataURL(state.paymentProof);
+        }
+      });
+      proofPreview.addEventListener("click", function() {
+        proofInput.click();
       });
     }
 
@@ -1354,29 +1394,91 @@ const Cart = (() => {
     const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
     const sendBtn = document.getElementById("cart-send-whatsapp");
     if (sendBtn) {
-      sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
+      sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando pedido...';
       sendBtn.disabled = true;
     }
-    const opened = window.open(url, "_blank", "noopener,noreferrer");
-    if (!opened) {
-      navigator.clipboard.writeText(msg).then(() => {
-        showCartAlert("No se pudo abrir WhatsApp. El mensaje se copió al portapapeles. Pégalo en WhatsApp manualmente.");
-      }).catch(() => {
-        showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
+
+    const orderPayload = {
+      customer_name: state.customer.name.trim(),
+      customer_phone: state.customer.phone.replace(/\D/g, ""),
+      customer_address: isPickup ? null : formatAddress(state.location.address),
+      branch: state.branch,
+      delivery_type: isPickup ? "recoger" : "domicilio",
+      payment_method: state.payment,
+      subtotal: subtotal,
+      delivery_fee: fee,
+      discount: discount,
+      total: grandTotal,
+      coupon_code: isCouponValid() ? state.coupon : null,
+      notes: isPickup && state.pickupTime ? `Hora de recolección: ${state.pickupTime}` : null,
+      items: state.items.map((item) => ({
+        product_id: item.id || null,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        notes: item.notes && item.notes.trim() ? item.notes.trim() : null,
+      })),
+    };
+
+    let fetchPromise;
+    if (state.paymentProof && state.payment === "transferencia") {
+      const fd = new FormData();
+      Object.keys(orderPayload).forEach(function(key) {
+        if (Array.isArray(orderPayload[key])) {
+          orderPayload[key].forEach(function(item, i) {
+            Object.keys(item).forEach(function(k) {
+              fd.append("items[" + i + "][" + k + "]", item[k] !== null ? item[k] : "");
+            });
+          });
+        } else if (orderPayload[key] !== null) {
+          fd.append(key, orderPayload[key]);
+        }
+      });
+      fd.append("payment_proof", state.paymentProof);
+      fetchPromise = fetch("/api/orders", { method: "POST", headers: { "Accept": "application/json" }, body: fd });
+    } else {
+      fetchPromise = fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(orderPayload),
       });
     }
 
-    saveToHistory();
-
-    state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
-    save();
-    renderSidebar();
-    renderBadge();
-    closeSidebar();
-    if (sendBtn) {
-      sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
-      sendBtn.disabled = false;
-    }
+    fetchPromise
+    .then(() => {
+      if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (!opened) {
+        navigator.clipboard.writeText(msg).then(() => {
+          showCartAlert("No se pudo abrir WhatsApp. El mensaje se copió al portapapeles. Pégalo en WhatsApp manualmente.");
+        }).catch(() => {
+          showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
+        });
+      }
+    })
+    .catch(() => {
+      if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (!opened) {
+        navigator.clipboard.writeText(msg).then(() => {
+          showCartAlert("No se pudo guardar el pedido, pero el mensaje se copió al portapapeles.");
+        }).catch(() => {
+          showCartAlert("Error al enviar. Intenta de nuevo.");
+        });
+      }
+    })
+    .finally(() => {
+      saveToHistory();
+      state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
+      save();
+      renderSidebar();
+      renderBadge();
+      closeSidebar();
+      if (sendBtn) {
+        sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
+        sendBtn.disabled = false;
+      }
+    });
   }
 
   function openSection(name) {
@@ -1445,14 +1547,14 @@ const Cart = (() => {
   /* ──────────── Init: Botones "Agregar" ──────────── */
   let cardTimers = {};
 
-  function init() {
-    load();
-
-    document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
+  function bindAddButtons() {
+    document.querySelectorAll(".add-to-cart-btn:not([disabled])").forEach((btn) => {
+      if (btn._cartBound) return;
+      btn._cartBound = true;
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const card = btn.closest(".menu-item");
-        if (!card) return;
+        if (!card || card.dataset.inactive === "1") return;
         const id = Number(card.dataset.id);
         const name = card.dataset.name;
         const price = card.dataset.price;
@@ -1461,6 +1563,16 @@ const Cart = (() => {
         showCardQtyControl(id);
       });
     });
+  }
+
+  function initCartAddButtons() {
+    bindAddButtons();
+  }
+
+  function init() {
+    load();
+
+    bindAddButtons();
 
     createFloatingButton();
     createSidebar();
@@ -1481,6 +1593,8 @@ const Cart = (() => {
   } else {
     init();
   }
+
+  window.initCartAddButtons = initCartAddButtons;
 
   return { addItem, removeItem, openSidebar, closeSidebar };
 })();

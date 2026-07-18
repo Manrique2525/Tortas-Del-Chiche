@@ -325,57 +325,6 @@ nav ul li a:hover::after {
     margin: 0;
 }
 
-/* ── Productos no disponibles ── */
-.menu-item-inactive {
-    position: relative;
-    opacity: 0.6;
-    filter: grayscale(70%);
-    pointer-events: none;
-}
-
-.menu-item-inactive:hover {
-    transform: none;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.menu-item-inactive img {
-    pointer-events: none;
-}
-
-.menu-item-image-wrapper {
-    position: relative;
-    overflow: hidden;
-}
-
-.unavailable-badge {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-15deg);
-    background: rgba(220, 53, 69, 0.9);
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.1rem;
-    padding: 8px 24px;
-    border-radius: 6px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 2;
-    pointer-events: none;
-}
-
-.unavailable-btn {
-    background: #999 !important;
-    color: #fff !important;
-    cursor: not-allowed !important;
-}
-
-.unavailable-btn:hover {
-    background: #999 !important;
-    transform: none !important;
-}
-
 /* Banquets Section */
 .banquets {
     background-color: var(--light-gray);
@@ -1514,7 +1463,7 @@ footer {
 }
 
 .bank-info-card.visible {
-    max-height: 300px;
+    max-height: 500px;
     opacity: 1;
     margin: 12px 0 0;
     padding: 14px;
@@ -1591,6 +1540,59 @@ footer {
 
 .bank-info-note i {
     color: var(--primary-orange);
+}
+
+.bank-info-proof {
+    margin: 12px 0 4px;
+    text-align: center;
+}
+
+.bank-info-proof-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-black);
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.bank-info-proof-label i {
+    color: var(--primary-orange);
+}
+
+.bank-info-proof-preview {
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bank-info-proof-preview:hover {
+    border-color: var(--primary-orange);
+    background: #fff5f0;
+}
+
+.bank-info-proof-preview span {
+    color: #aaa;
+    font-size: 0.8rem;
+}
+
+.bank-info-proof-preview span i {
+    color: #ccc;
+    margin-right: 4px;
+}
+
+.bank-info-proof-preview img {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
 }
 
 /* ── Campo de cupón ── */

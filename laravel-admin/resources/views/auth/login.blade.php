@@ -156,8 +156,8 @@
 <body>
     <div class="login-container">
         <div class="login-logo">
-            <img src="https://lastortasdelchiche.com/img/imagenes/logo1.jpg" alt="Las Tortas Del Chiche"
-                 onerror="this.style.background='#FF6B35'; this.style.display='flex'; this.style.alignItems='center'; this.style.justifyContent='center'; this.style.fontSize='40px'; this.style.color='white'; this.alt='TT'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22><rect width=%22120%22 height=%22120%22 fill=%22%23FF6B35%22/><text x=%2260%22 y=%2270%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2240%22 font-family=%22sans-serif%22>TT</text></svg>'">
+            <img src="/img/logo.jpeg" alt="Las Tortas Del Chiche"
+                 onerror="this.style.background='#FF6B35'; this.style.borderRadius='50%'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22><rect width=%22120%22 height=%22120%22 fill=%22%23FF6B35%22 rx=%2260%22/><text x=%2260%22 y=%2275%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2240%22 font-family=%22sans-serif%22 font-weight=%22bold%22>TT</text></svg>'">
             <h1>Las Tortas Del Chiche</h1>
             <p>Panel de Administración</p>
         </div>
