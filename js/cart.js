@@ -1015,7 +1015,12 @@ const Cart = (() => {
         const summary = btn.closest(".cart-section")?.querySelector(".cart-section-summary");
         if (summary) summary.textContent = btn.querySelector(".cart-payment-name")?.textContent || "";
         const bankCard = document.querySelector(".bank-info-card");
-        if (bankCard) bankCard.classList.toggle("visible", state.payment === "transferencia");
+        if (bankCard) {
+          bankCard.classList.toggle("visible", state.payment === "transferencia");
+          if (state.payment === "transferencia") {
+            setTimeout(() => bankCard.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+          }
+        }
       });
     });
 
@@ -1445,14 +1450,14 @@ const Cart = (() => {
   /* ──────────── Init: Botones "Agregar" ──────────── */
   let cardTimers = {};
 
-  function init() {
-    load();
-
-    document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
+  function bindAddButtons() {
+    document.querySelectorAll(".add-to-cart-btn:not([disabled])").forEach((btn) => {
+      if (btn._cartBound) return;
+      btn._cartBound = true;
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const card = btn.closest(".menu-item");
-        if (!card) return;
+        if (!card || card.dataset.inactive === "1") return;
         const id = Number(card.dataset.id);
         const name = card.dataset.name;
         const price = card.dataset.price;
@@ -1461,6 +1466,16 @@ const Cart = (() => {
         showCardQtyControl(id);
       });
     });
+  }
+
+  function initCartAddButtons() {
+    bindAddButtons();
+  }
+
+  function init() {
+    load();
+
+    bindAddButtons();
 
     createFloatingButton();
     createSidebar();
@@ -1481,6 +1496,8 @@ const Cart = (() => {
   } else {
     init();
   }
+
+  window.initCartAddButtons = initCartAddButtons;
 
   return { addItem, removeItem, openSidebar, closeSidebar };
 })();
