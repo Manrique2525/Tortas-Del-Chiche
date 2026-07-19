@@ -30,7 +30,15 @@ const Cart = (() => {
             name: item.name,
             address: item.address || "",
             whatsapp: item.whatsapp || "",
-            schedule: item.schedule_text || "",
+            schedule: item.schedule_text || item.schedule_text !== "" ? item.schedule_text : (function(s) {
+              if (!s || !s.open) return "";
+              var d = s.days || [];
+              var dayNames = {monday:"Lun",tuesday:"Mar",wednesday:"Mi\u00e9",thursday:"Jue",friday:"Vie",saturday:"S\u00e1b",sunday:"Dom"};
+              var allDays = Object.keys(dayNames);
+              var dayStr = d.length === allDays.length && d.every(function(v,i){return v===allDays[i]}) ? "Lun-Dom" : d.map(function(k){return dayNames[k]||k}).join(",");
+              var fmt = function(t){var p=t.split(":");var h=parseInt(p[0]);var m=p[1];var ampm=h>=12?"pm":"am";h=h%12||12;return h+":"+m+" "+ampm;};
+              return dayStr + " " + fmt(s.open) + " - " + fmt(s.close);
+            })(item.schedule),
             lat: item.latitude,
             lng: item.longitude,
             is_open: item.is_open,
@@ -38,6 +46,13 @@ const Cart = (() => {
         });
         BRANCHES = map;
         BRANCHES_LOADED = true;
+
+        if (state.branch && !BRANCHES[state.branch]) {
+          var keys = Object.keys(BRANCHES);
+          state.branch = keys.length > 0 ? keys[0] : "";
+          save();
+        }
+
         const sidebar = document.getElementById("cart-sidebar");
         if (sidebar && sidebar.classList.contains("open")) {
           renderSidebar();
@@ -180,7 +195,7 @@ const Cart = (() => {
       try {
         const parsed = JSON.parse(data);
         state.items = parsed.items || [];
-        state.branch = parsed.branch && BRANCHES[parsed.branch] ? parsed.branch : "";
+        state.branch = parsed.branch || "";
         state.payment = parsed.payment || "efectivo";
         state.deliveryType = parsed.deliveryType || "domicilio";
         state.pickupTime = parsed.pickupTime || "";
@@ -1543,7 +1558,7 @@ const Cart = (() => {
     })
     .finally(() => {
       saveToHistory();
-      state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
+      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
       save();
       renderSidebar();
       renderBadge();

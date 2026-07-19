@@ -176,10 +176,6 @@
                         @error('longitude') <p style="color:#e74c3c;font-size:0.65rem;margin-top:4px">{{ $message }}</p> @enderror
                     </div>
                     <div class="full form-group">
-                        <label>Texto de horario (visible)</label>
-                        <input type="text" name="schedule_text" placeholder="Lunes a Domingo de 7:00 am a 2:00 pm" value="{{ old('schedule_text', $branch->schedule_text) }}">
-                    </div>
-                    <div class="full form-group">
                         <label>URL Didi Food</label>
                         <input type="text" name="didi_url" placeholder="https://www.didi-food.com/..." value="{{ old('didi_url', $branch->didi_url) }}">
                     </div>
