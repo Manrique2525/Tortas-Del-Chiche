@@ -12,31 +12,43 @@ function createProductCard(product) {
     div.dataset.img = product.image || '';
     if (isInactive) div.dataset.inactive = '1';
 
-    const hasType = product.has_type === true || product.has_type === 1;
-    const hasMeat = product.has_meat === true || product.has_meat === 1;
-    const needsOptions = hasType || hasMeat;
+    const hasMojado = product.has_mojado === true || product.has_mojado === 1;
+    const hasSeco = product.has_seco === true || product.has_seco === 1;
+    const hasCochinita = product.has_cochinita === true || product.has_cochinita === 1;
+    const hasLechon = product.has_lechon === true || product.has_lechon === 1;
+
+    const hasTypeOptions = hasMojado || hasSeco;
+    const hasMeatOptions = hasCochinita || hasLechon;
+    const needsOptions = hasTypeOptions || hasMeatOptions;
+
     const description = product.description || '';
 
     let optionsHtml = '';
-    if (hasType) {
+    if (hasTypeOptions) {
+        let typeOpts = '';
+        if (hasMojado) typeOpts += '<option value="mojado">Mojado</option>';
+        if (hasSeco) typeOpts += '<option value="seco">Seco</option>';
         optionsHtml += `
             <div class="product-option-group" data-option="type">
                 <span class="product-option-label">Tipo:</span>
-                <div class="product-option-buttons">
-                    <button class="option-btn" data-value="mojado">Mojado</button>
-                    <button class="option-btn" data-value="seco">Seco</button>
-                </div>
+                <select class="product-option-select">
+                    <option value="">Seleccionar...</option>
+                    ${typeOpts}
+                </select>
             </div>
         `;
     }
-    if (hasMeat) {
+    if (hasMeatOptions) {
+        let meatOpts = '';
+        if (hasCochinita) meatOpts += '<option value="cochinita">Cochinita</option>';
+        if (hasLechon) meatOpts += '<option value="lechon">Lechón</option>';
         optionsHtml += `
             <div class="product-option-group" data-option="meat">
                 <span class="product-option-label">Carne:</span>
-                <div class="product-option-buttons">
-                    <button class="option-btn" data-value="cochinita">Cochinita</button>
-                    <button class="option-btn" data-value="lechon">Lechón</button>
-                </div>
+                <select class="product-option-select">
+                    <option value="">Seleccionar...</option>
+                    ${meatOpts}
+                </select>
             </div>
         `;
     }
@@ -66,21 +78,13 @@ function createProductCard(product) {
     `;
 
     if (needsOptions && !isInactive) {
-        div.querySelectorAll('.product-option-group').forEach(function(group) {
-            const buttons = group.querySelectorAll('.option-btn');
-            buttons.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const parent = btn.closest('.product-option-group');
-                    parent.querySelectorAll('.option-btn').forEach(function(b) {
-                        b.classList.remove('selected');
-                    });
-                    btn.classList.add('selected');
-                    updateAddButtonState(div);
-                });
+        div.dataset.hasTypeOptions = hasTypeOptions ? '1' : '0';
+        div.dataset.hasMeatOptions = hasMeatOptions ? '1' : '0';
+        div.querySelectorAll('.product-option-select').forEach(function(sel) {
+            sel.addEventListener('change', function() {
+                updateAddButtonState(div);
             });
         });
-        div.setAttribute('data-has-type', hasType ? '1' : '0');
-        div.setAttribute('data-has-meat', hasMeat ? '1' : '0');
     }
 
     return div;
@@ -88,16 +92,10 @@ function createProductCard(product) {
 
 function getProductOptions(card) {
     const options = {};
-    const typeGroup = card.querySelector('[data-option="type"]');
-    const meatGroup = card.querySelector('[data-option="meat"]');
-    if (typeGroup) {
-        const selected = typeGroup.querySelector('.option-btn.selected');
-        if (selected) options.type = selected.dataset.value;
-    }
-    if (meatGroup) {
-        const selected = meatGroup.querySelector('.option-btn.selected');
-        if (selected) options.meat = selected.dataset.value;
-    }
+    const typeSelect = card.querySelector('[data-option="type"] .product-option-select');
+    const meatSelect = card.querySelector('[data-option="meat"] .product-option-select');
+    if (typeSelect && typeSelect.value) options.type = typeSelect.value;
+    if (meatSelect && meatSelect.value) options.meat = meatSelect.value;
     return options;
 }
 
@@ -105,9 +103,9 @@ function updateAddButtonState(card) {
     const btn = card.querySelector('.add-to-cart-btn');
     if (!btn || btn.disabled === undefined) return;
     const options = getProductOptions(card);
-    const hasType = card.dataset.hasType === '1';
-    const hasMeat = card.dataset.hasMeat === '1';
-    const allSelected = (!hasType || options.type) && (!hasMeat || options.meat);
+    const hasTypeOptions = card.dataset.hasTypeOptions === '1';
+    const hasMeatOptions = card.dataset.hasMeatOptions === '1';
+    const allSelected = (!hasTypeOptions || options.type) && (!hasMeatOptions || options.meat);
     btn.disabled = !allSelected;
     if (allSelected) {
         btn.classList.remove('disabled');

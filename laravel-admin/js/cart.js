@@ -204,13 +204,13 @@ const Cart = (() => {
   }
 
   /* ──────────── CRUD ──────────── */
-  function addItem(id, name, price, img) {
+  function addItem(id, name, price, img, options) {
     const existing = state.items.find((i) => i.id === id);
     if (existing) {
       existing.quantity++;
       lastAddedItemId = null;
     } else {
-      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1, notes: "" });
+      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1, options: options || {} });
       lastAddedItemId = id;
     }
     save();
@@ -223,10 +223,6 @@ const Cart = (() => {
     const el = document.querySelector(`.cart-item[data-id="${id}"]`);
     if (el) {
       el.classList.add("cart-item-exit");
-      const notesEl = el.nextElementSibling;
-      if (notesEl && notesEl.classList.contains("cart-item-notes")) {
-        notesEl.classList.add("cart-item-exit");
-      }
       setTimeout(() => {
         state.items = state.items.filter((i) => i.id !== id);
         save();
@@ -330,7 +326,8 @@ const Cart = (() => {
     control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
       e.stopPropagation();
       const c = card.closest(".menu-item");
-      addItem(id, c.dataset.name, c.dataset.price, c.dataset.img);
+      const opts = getItemOptionsFromCard(c);
+      addItem(id, c.dataset.name, c.dataset.price, c.dataset.img, opts);
       updateCardQtyDisplay(id);
     });
 
@@ -345,15 +342,27 @@ const Cart = (() => {
 
     const name = card.dataset.name;
     const price = card.dataset.price;
+    const needsOptions = card.dataset.hasTypeOptions === '1' || card.dataset.hasMeatOptions === '1';
+    const opts = getItemOptionsFromCard(card);
+    const optionsOk = (!needsOptions) || (
+      (card.dataset.hasTypeOptions !== '1' || opts.type) &&
+      (card.dataset.hasMeatOptions !== '1' || opts.meat)
+    );
+    const disabledAttr = (needsOptions && !optionsOk) ? ' disabled' : '';
+    const disabledClass = (needsOptions && !optionsOk) ? ' disabled' : '';
+
     control.outerHTML = `
-      <button class="add-to-cart-btn" aria-label="Agregar ${name} al carrito">
+      <button class="add-to-cart-btn${disabledClass}" aria-label="Agregar ${name} al carrito"${disabledAttr}>
         <i class="fas fa-cart-plus"></i> Agregar
       </button>`;
 
     const btn = card.querySelector(".add-to-cart-btn");
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      addItem(id, name, price, card.dataset.img);
+      if (btn.disabled) return;
+      if (card.dataset.inactive === "1") return;
+      const opts = getItemOptionsFromCard(card);
+      addItem(id, name, price, card.dataset.img, opts);
       showCardQtyControl(id);
     });
   }
@@ -401,7 +410,8 @@ const Cart = (() => {
           });
           control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
             e.stopPropagation();
-            addItem(id, name, card.dataset.price, card.dataset.img);
+            const opts = getItemOptionsFromCard(card);
+            addItem(id, name, card.dataset.price, card.dataset.img, opts);
             updateCardQtyDisplay(id);
           });
           cardTimers[id] = setTimeout(() => hideCardQtyControl(id), 5000);
@@ -578,7 +588,7 @@ const Cart = (() => {
             if (existing) {
               existing.quantity += i.quantity;
             } else {
-              state.items.push({ ...i, notes: i.notes || "" });
+              state.items.push({ ...i });
               added++;
             }
           });
@@ -634,12 +644,18 @@ const Cart = (() => {
 
     html += `<div class="cart-items">`;
     state.items.forEach((item) => {
+      const itemOpts = item.options || {};
+      const optParts = [];
+      if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
+      if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
+      const optStr = optParts.length ? optParts.join(' · ') : '';
       html += `
         <div class="cart-item" data-id="${item.id}">
           ${item.img ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
             <h4>${item.name}</h4>
             <span class="cart-item-price">$${item.price} c/u</span>
+            ${optStr ? `<span class="cart-item-options">${optStr}</span>` : ''}
           </div>
           <div class="cart-item-controls">
             <button class="cart-qty-btn" data-id="${item.id}" data-action="decrease" aria-label="Disminuir cantidad">
@@ -654,9 +670,6 @@ const Cart = (() => {
           <button class="cart-item-remove" data-id="${item.id}" aria-label="Eliminar ${item.name}">
             <i class="fas fa-trash-alt"></i>
           </button>
-        </div>
-        <div class="cart-item-notes">
-          <input type="text" class="cart-item-note-input" data-id="${item.id}" placeholder="Ej: sin cebolla, extra salsa..." value="${item.notes || ""}" />
         </div>
       `;
     });
@@ -921,10 +934,6 @@ const Cart = (() => {
       const newItemEl = document.querySelector(`.cart-item[data-id="${lastAddedItemId}"]`);
       if (newItemEl) {
         newItemEl.classList.add("cart-item-enter");
-        const notesEl = newItemEl.nextElementSibling;
-        if (notesEl && notesEl.classList.contains("cart-item-notes")) {
-          notesEl.classList.add("cart-item-enter");
-        }
       }
       lastAddedItemId = null;
     }
@@ -1005,14 +1014,6 @@ const Cart = (() => {
       save();
     });
     if (addressInput) addressInput.addEventListener("input", (e) => { state.customer.addressRef = e.target.value; save(); });
-
-    document.querySelectorAll(".cart-item-note-input").forEach((input) => {
-      input.addEventListener("input", (e) => {
-        const id = Number(input.dataset.id);
-        const item = state.items.find((i) => i.id === id);
-        if (item) { item.notes = e.target.value; save(); }
-      });
-    });
 
     document.querySelectorAll(".cart-branch-option").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1374,10 +1375,12 @@ const Cart = (() => {
     msg += `\n-----------------------`;
     msg += `\n*Detalle del pedido:*\n`;
     state.items.forEach((item) => {
-      msg += `*${item.quantity}x* ${item.name} — $${item.price * item.quantity}\n`;
-      if (item.notes && item.notes.trim()) {
-        msg += `   Nota: ${item.notes.trim()}\n`;
-      }
+      const itemOpts = item.options || {};
+      const optParts = [];
+      if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
+      if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
+      const optStr = optParts.length ? ` [${optParts.join(' - ')}]` : '';
+      msg += `*${item.quantity}x* ${item.name}${optStr} — $${item.price * item.quantity}\n`;
     });
     msg += `-----------------------`;
     if (!isPickup) {
@@ -1417,13 +1420,12 @@ const Cart = (() => {
       discount: discount,
       total: grandTotal,
       coupon_code: isCouponValid() ? state.coupon : null,
-      notes: isPickup && state.pickupTime ? `Hora de recolección: ${state.pickupTime}` : null,
       items: state.items.map((item) => ({
         product_id: item.id || null,
         product_name: item.name,
         quantity: item.quantity,
         unit_price: item.price,
-        notes: item.notes && item.notes.trim() ? item.notes.trim() : null,
+        options: item.options && Object.keys(item.options).length ? item.options : null,
       })),
     };
 
@@ -1554,19 +1556,30 @@ const Cart = (() => {
   /* ──────────── Init: Botones "Agregar" ──────────── */
   let cardTimers = {};
 
+  function getItemOptionsFromCard(card) {
+    const options = {};
+    const typeSelect = card.querySelector('[data-option="type"] .product-option-select');
+    const meatSelect = card.querySelector('[data-option="meat"] .product-option-select');
+    if (typeSelect && typeSelect.value) options.type = typeSelect.value;
+    if (meatSelect && meatSelect.value) options.meat = meatSelect.value;
+    return options;
+  }
+
   function bindAddButtons() {
-    document.querySelectorAll(".add-to-cart-btn:not([disabled])").forEach((btn) => {
+    document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
       if (btn._cartBound) return;
       btn._cartBound = true;
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const card = btn.closest(".menu-item");
         if (!card || card.dataset.inactive === "1") return;
+        if (btn.disabled) return;
         const id = Number(card.dataset.id);
         const name = card.dataset.name;
         const price = card.dataset.price;
         const img = card.dataset.img;
-        addItem(id, name, price, img);
+        const options = getItemOptionsFromCard(card);
+        addItem(id, name, price, img, options);
         showCardQtyControl(id);
       });
     });

@@ -14,14 +14,18 @@ class Product extends Model
         'category',
         'active',
         'sort_order',
-        'has_type',
-        'has_meat',
+        'has_mojado',
+        'has_seco',
+        'has_cochinita',
+        'has_lechon',
     ];
 
     protected $casts = [
-        'active'   => 'boolean',
-        'has_type' => 'boolean',
-        'has_meat' => 'boolean',
-        'price'    => 'decimal:2',
+        'active'       => 'boolean',
+        'has_mojado'   => 'boolean',
+        'has_seco'     => 'boolean',
+        'has_cochinita' => 'boolean',
+        'has_lechon'   => 'boolean',
+        'price'        => 'decimal:2',
     ];
 }

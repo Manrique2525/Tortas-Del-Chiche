@@ -342,15 +342,27 @@ const Cart = (() => {
 
     const name = card.dataset.name;
     const price = card.dataset.price;
+    const needsOptions = card.dataset.hasTypeOptions === '1' || card.dataset.hasMeatOptions === '1';
+    const opts = getItemOptionsFromCard(card);
+    const optionsOk = (!needsOptions) || (
+      (card.dataset.hasTypeOptions !== '1' || opts.type) &&
+      (card.dataset.hasMeatOptions !== '1' || opts.meat)
+    );
+    const disabledAttr = (needsOptions && !optionsOk) ? ' disabled' : '';
+    const disabledClass = (needsOptions && !optionsOk) ? ' disabled' : '';
+
     control.outerHTML = `
-      <button class="add-to-cart-btn" aria-label="Agregar ${name} al carrito">
+      <button class="add-to-cart-btn${disabledClass}" aria-label="Agregar ${name} al carrito"${disabledAttr}>
         <i class="fas fa-cart-plus"></i> Agregar
       </button>`;
 
     const btn = card.querySelector(".add-to-cart-btn");
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      addItem(id, name, price, card.dataset.img);
+      if (btn.disabled) return;
+      if (card.dataset.inactive === "1") return;
+      const opts = getItemOptionsFromCard(card);
+      addItem(id, name, price, card.dataset.img, opts);
       showCardQtyControl(id);
     });
   }
@@ -1546,22 +1558,22 @@ const Cart = (() => {
 
   function getItemOptionsFromCard(card) {
     const options = {};
-    const typeSelected = card.querySelector('[data-option="type"] .option-btn.selected');
-    const meatSelected = card.querySelector('[data-option="meat"] .option-btn.selected');
-    if (typeSelected) options.type = typeSelected.dataset.value;
-    if (meatSelected) options.meat = meatSelected.dataset.value;
+    const typeSelect = card.querySelector('[data-option="type"] .product-option-select');
+    const meatSelect = card.querySelector('[data-option="meat"] .product-option-select');
+    if (typeSelect && typeSelect.value) options.type = typeSelect.value;
+    if (meatSelect && meatSelect.value) options.meat = meatSelect.value;
     return options;
   }
 
   function bindAddButtons() {
     document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
       if (btn._cartBound) return;
-      if (btn.disabled) return;
       btn._cartBound = true;
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const card = btn.closest(".menu-item");
         if (!card || card.dataset.inactive === "1") return;
+        if (btn.disabled) return;
         const id = Number(card.dataset.id);
         const name = card.dataset.name;
         const price = card.dataset.price;

@@ -1400,42 +1400,39 @@ footer {
 
 /* ── Selectores de opciones del producto (Mojado/Seco, Cochinita/Lechón) ── */
 .product-option-group {
-    padding: 0 15px 10px;
+    padding: 0 15px 8px;
 }
 .product-option-label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: #555;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-.product-option-buttons {
-    display: flex;
-    gap: 8px;
-}
-.option-btn {
-    flex: 1;
-    padding: 8px 0;
+.product-option-select {
+    width: 100%;
+    padding: 8px 10px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     background: #fafafa;
     font-family: 'Poppins', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #888;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #333;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease;
+    appearance: auto;
+    -webkit-appearance: auto;
 }
-.option-btn:hover {
+.product-option-select:focus {
+    outline: none;
     border-color: #FF6B35;
-    color: #FF6B35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
-.option-btn.selected {
-    border-color: #FF6B35;
-    background: #FFF5F0;
-    color: #E65100;
+.product-option-select option {
+    padding: 4px;
 }
 .add-to-cart-btn.disabled,
 .add-to-cart-btn:disabled {

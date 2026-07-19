@@ -31,23 +31,27 @@ class ProductController extends Controller
             'price'       => 'required|numeric|min:0',
             'description' => 'nullable|string|max:500',
             'category'    => 'required|in:comida,bebida',
-            'active'      => 'boolean',
-            'has_type'    => 'boolean',
-            'has_meat'    => 'boolean',
-            'sort_order'  => 'integer|min:0',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
+            'active'       => 'boolean',
+            'has_mojado'   => 'boolean',
+            'has_seco'     => 'boolean',
+            'has_cochinita' => 'boolean',
+            'has_lechon'   => 'boolean',
+            'sort_order'   => 'integer|min:0',
+            'image'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
         ]);
 
         $validated['active'] = $request->boolean('active');
-        $validated['has_type'] = $request->boolean('has_type');
-        $validated['has_meat'] = $request->boolean('has_meat');
+        $validated['has_mojado'] = $request->boolean('has_mojado');
+        $validated['has_seco'] = $request->boolean('has_seco');
+        $validated['has_cochinita'] = $request->boolean('has_cochinita');
+        $validated['has_lechon'] = $request->boolean('has_lechon');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        Product::create($validated);
+        $product = Product::create($validated);
 
         return redirect()->route('admin.dashboard')
             ->with('success', 'Producto creado correctamente.');
@@ -66,16 +70,20 @@ class ProductController extends Controller
             'price'       => 'required|numeric|min:0',
             'description' => 'nullable|string|max:500',
             'category'    => 'required|in:comida,bebida',
-            'active'      => 'boolean',
-            'has_type'    => 'boolean',
-            'has_meat'    => 'boolean',
-            'sort_order'  => 'integer|min:0',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
+            'active'       => 'boolean',
+            'has_mojado'   => 'boolean',
+            'has_seco'     => 'boolean',
+            'has_cochinita' => 'boolean',
+            'has_lechon'   => 'boolean',
+            'sort_order'   => 'integer|min:0',
+            'image'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
         ]);
 
         $validated['active'] = $request->boolean('active');
-        $validated['has_type'] = $request->boolean('has_type');
-        $validated['has_meat'] = $request->boolean('has_meat');
+        $validated['has_mojado'] = $request->boolean('has_mojado');
+        $validated['has_seco'] = $request->boolean('has_seco');
+        $validated['has_cochinita'] = $request->boolean('has_cochinita');
+        $validated['has_lechon'] = $request->boolean('has_lechon');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {

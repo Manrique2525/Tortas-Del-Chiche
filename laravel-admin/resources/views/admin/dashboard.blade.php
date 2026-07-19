@@ -358,8 +358,10 @@
                                     <div class="product-price">${{ number_format($product->price, 0) }}</div>
                                     <div class="product-status" id="status-{{ $product->id }}">
                                         {{ $product->active ? 'Activo' : 'Inactivo' }}
-                                        @if($product->has_type) <span style="display:inline-block;background:#FF6B35;color:white;padding:1px 8px;border-radius:10px;font-size:0.6rem;margin-left:4px;">Tipo</span> @endif
-                                        @if($product->has_meat) <span style="display:inline-block;background:#9C27B0;color:white;padding:1px 8px;border-radius:10px;font-size:0.6rem;margin-left:2px;">Carne</span> @endif
+                                        @if($product->has_mojado) <span style="display:inline-block;background:#FF6B35;color:white;padding:1px 8px;border-radius:10px;font-size:0.6rem;margin-left:4px;">Mojado</span> @endif
+                                        @if($product->has_seco) <span style="display:inline-block;background:#2196F3;color:white;padding:1px 8px;border-radius:10px;font-size:0.6rem;margin-left:2px;">Seco</span> @endif
+                                        @if($product->has_cochinita) <span style="display:inline-block;background:#9C27B0;color:white;padding:1px 8px;border-radius:10px;font-size:0.6rem;margin-left:2px;">Cochinita</span> @endif
+                                        @if($product->has_lechon) <span style="display:inline-block;background:#4CAF50;color:white;padding:1px 8px;border-radius:10px;font-size:0.6rem;margin-left:2px;">Lechón</span> @endif
                                     </div>
                                 </div>
                             </div>

@@ -267,18 +267,28 @@
                 </div>
 
                 <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" name="has_type" id="hasTypeCheck" value="1"
-                               {{ old('has_type', $product->has_type ?? false) ? 'checked' : '' }}>
-                        <label for="hasTypeCheck">Tiene tipo (Mojado / Seco)</label>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" name="has_meat" id="hasMeatCheck" value="1"
-                               {{ old('has_meat', $product->has_meat ?? false) ? 'checked' : '' }}>
-                        <label for="hasMeatCheck">Tiene carne (Cochinita / Lechón)</label>
+                    <label style="font-size:0.8rem;color:#888;margin-bottom:10px;">Opciones del producto</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                        <div class="checkbox-group">
+                            <input type="checkbox" name="has_mojado" id="hasMojadoCheck" value="1"
+                                   {{ old('has_mojado', $product->has_mojado ?? false) ? 'checked' : '' }}>
+                            <label for="hasMojadoCheck">Mojado</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" name="has_seco" id="hasSecoCheck" value="1"
+                                   {{ old('has_seco', $product->has_seco ?? false) ? 'checked' : '' }}>
+                            <label for="hasSecoCheck">Seco</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" name="has_cochinita" id="hasCochinitaCheck" value="1"
+                                   {{ old('has_cochinita', $product->has_cochinita ?? false) ? 'checked' : '' }}>
+                            <label for="hasCochinitaCheck">Cochinita</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" name="has_lechon" id="hasLechonCheck" value="1"
+                                   {{ old('has_lechon', $product->has_lechon ?? false) ? 'checked' : '' }}>
+                            <label for="hasLechonCheck">Lechón</label>
+                        </div>
                     </div>
                 </div>
 
