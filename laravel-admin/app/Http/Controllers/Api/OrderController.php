@@ -26,13 +26,11 @@ class OrderController extends Controller
             'discount'        => 'nullable|numeric|min:0',
             'total'           => 'required|numeric|min:0',
             'coupon_code'     => 'nullable|string|max:50',
-            'notes'           => 'nullable|string|max:1000',
             'items'           => 'required|array|min:1',
             'items.*.product_id'   => 'nullable|integer',
             'items.*.product_name' => 'required|string|max:255',
             'items.*.quantity'     => 'required|integer|min:1',
             'items.*.unit_price'   => 'required|numeric|min:0',
-            'items.*.notes'        => 'nullable|string|max:255',
             'payment_proof'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
@@ -54,7 +52,6 @@ class OrderController extends Controller
                 'discount'         => $validated['discount'] ?? 0,
                 'total'            => $validated['total'],
                 'coupon_code'      => $validated['coupon_code'] ?? null,
-                'notes'            => $validated['notes'] ?? null,
                 'payment_proof'    => $paymentProofPath,
                 'status'           => 'pendiente',
             ]);
@@ -67,7 +64,6 @@ class OrderController extends Controller
                     'quantity'     => $item['quantity'],
                     'unit_price'   => $item['unit_price'],
                     'line_total'   => $lineTotal,
-                    'notes'        => $item['notes'] ?? null,
                 ]);
             }
 

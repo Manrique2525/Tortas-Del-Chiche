@@ -359,7 +359,6 @@
                             <div class="order-item">
                                 {{ $item->quantity }}x <span>{{ $item->product_name }}</span>
                                 — ${{ number_format($item->line_total, 0) }}
-                                @if($item->notes) <em style="color:#888;">({{ $item->notes }})</em> @endif
                             </div>
                         @endforeach
                     </div>

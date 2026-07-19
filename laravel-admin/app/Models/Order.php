@@ -22,7 +22,6 @@ class Order extends Model
         'coupon_code',
         'mp_payment_id',
         'payment_proof',
-        'notes',
     ];
 
     protected $casts = [

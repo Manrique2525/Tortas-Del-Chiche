@@ -210,7 +210,7 @@ const Cart = (() => {
       existing.quantity++;
       lastAddedItemId = null;
     } else {
-      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1, notes: "" });
+      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1 });
       lastAddedItemId = id;
     }
     save();
@@ -223,10 +223,6 @@ const Cart = (() => {
     const el = document.querySelector(`.cart-item[data-id="${id}"]`);
     if (el) {
       el.classList.add("cart-item-exit");
-      const notesEl = el.nextElementSibling;
-      if (notesEl && notesEl.classList.contains("cart-item-notes")) {
-        notesEl.classList.add("cart-item-exit");
-      }
       setTimeout(() => {
         state.items = state.items.filter((i) => i.id !== id);
         save();
@@ -578,7 +574,7 @@ const Cart = (() => {
             if (existing) {
               existing.quantity += i.quantity;
             } else {
-              state.items.push({ ...i, notes: i.notes || "" });
+              state.items.push({ ...i });
               added++;
             }
           });
@@ -654,9 +650,6 @@ const Cart = (() => {
           <button class="cart-item-remove" data-id="${item.id}" aria-label="Eliminar ${item.name}">
             <i class="fas fa-trash-alt"></i>
           </button>
-        </div>
-        <div class="cart-item-notes">
-          <input type="text" class="cart-item-note-input" data-id="${item.id}" placeholder="Ej: sin cebolla, extra salsa..." value="${item.notes || ""}" />
         </div>
       `;
     });
@@ -921,10 +914,6 @@ const Cart = (() => {
       const newItemEl = document.querySelector(`.cart-item[data-id="${lastAddedItemId}"]`);
       if (newItemEl) {
         newItemEl.classList.add("cart-item-enter");
-        const notesEl = newItemEl.nextElementSibling;
-        if (notesEl && notesEl.classList.contains("cart-item-notes")) {
-          notesEl.classList.add("cart-item-enter");
-        }
       }
       lastAddedItemId = null;
     }
@@ -1005,14 +994,6 @@ const Cart = (() => {
       save();
     });
     if (addressInput) addressInput.addEventListener("input", (e) => { state.customer.addressRef = e.target.value; save(); });
-
-    document.querySelectorAll(".cart-item-note-input").forEach((input) => {
-      input.addEventListener("input", (e) => {
-        const id = Number(input.dataset.id);
-        const item = state.items.find((i) => i.id === id);
-        if (item) { item.notes = e.target.value; save(); }
-      });
-    });
 
     document.querySelectorAll(".cart-branch-option").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1375,9 +1356,6 @@ const Cart = (() => {
     msg += `\n*Detalle del pedido:*\n`;
     state.items.forEach((item) => {
       msg += `*${item.quantity}x* ${item.name} — $${item.price * item.quantity}\n`;
-      if (item.notes && item.notes.trim()) {
-        msg += `   Nota: ${item.notes.trim()}\n`;
-      }
     });
     msg += `-----------------------`;
     if (!isPickup) {
@@ -1417,13 +1395,11 @@ const Cart = (() => {
       discount: discount,
       total: grandTotal,
       coupon_code: isCouponValid() ? state.coupon : null,
-      notes: isPickup && state.pickupTime ? `Hora de recolección: ${state.pickupTime}` : null,
       items: state.items.map((item) => ({
         product_id: item.id || null,
         product_name: item.name,
         quantity: item.quantity,
         unit_price: item.price,
-        notes: item.notes && item.notes.trim() ? item.notes.trim() : null,
       })),
     };
 
