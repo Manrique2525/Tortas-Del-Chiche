@@ -1786,8 +1786,16 @@ const Cart = (() => {
       showCartAlert("El pago fue rechazado. Intenta con otro método de pago.");
     } else if (status === "pending") {
       showToast("Pago en proceso. Te notificaremos cuando se confirme.", "success");
-    } else if (wasCheckoutActive) {
-      showCartAlert("Pago cancelado. Puedes intentar de nuevo.");
+    }
+
+    if (wasCheckoutActive) {
+      load();
+      renderSidebar();
+      renderBadge();
+      closeSidebar();
+      if (!status) {
+        showCartAlert("Pago cancelado. Puedes intentar de nuevo.");
+      }
     }
 
     if (status) {
