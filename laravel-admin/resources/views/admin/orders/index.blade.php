@@ -106,8 +106,11 @@
         .order-detail { color: #666; font-size: 0.75rem; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
         .order-detail i { color: #888; width: 14px; text-align: center; flex-shrink: 0; }
         .order-items { margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
-        .order-item { font-size: 0.75rem; color: #555; padding: 2px 0; }
+        .order-item { font-size: 0.75rem; color: #555; padding: 2px 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .order-item span { font-weight: 600; color: #333; }
+        .option-badge { font-size: 0.6rem; font-weight: 700; padding: 1px 8px; border-radius: 10px; text-transform: uppercase; display: inline-block; }
+        .option-type { background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; }
+        .option-meat { background: #F3E5F5; color: #7B1FA2; border: 1px solid #CE93D8; }
 
         .order-proof { margin-top: 10px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
         .order-proof-label { font-size: 0.75rem; font-weight: 600; color: #27ae60; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
@@ -389,6 +392,10 @@
                             <div class="order-item">
                                 {{ $item->quantity }}x <span>{{ $item->product_name }}</span>
                                 — ${{ number_format($item->line_total, 0) }}
+                                @if($item->options)
+                                    @if(!empty($item->options['type'])) <span class="option-badge option-type">{{ ucfirst($item->options['type']) }}</span> @endif
+                                    @if(!empty($item->options['meat'])) <span class="option-badge option-meat">{{ ucfirst($item->options['meat']) }}</span> @endif
+                                @endif
                             </div>
                         @endforeach
                     </div>

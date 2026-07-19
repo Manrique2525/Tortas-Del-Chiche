@@ -14,10 +14,14 @@ class Product extends Model
         'category',
         'active',
         'sort_order',
+        'has_type',
+        'has_meat',
     ];
 
     protected $casts = [
-        'active' => 'boolean',
-        'price' => 'decimal:2',
+        'active'   => 'boolean',
+        'has_type' => 'boolean',
+        'has_meat' => 'boolean',
+        'price'    => 'decimal:2',
     ];
 }

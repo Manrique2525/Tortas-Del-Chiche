@@ -204,13 +204,13 @@ const Cart = (() => {
   }
 
   /* ──────────── CRUD ──────────── */
-  function addItem(id, name, price, img) {
+  function addItem(id, name, price, img, options) {
     const existing = state.items.find((i) => i.id === id);
     if (existing) {
       existing.quantity++;
       lastAddedItemId = null;
     } else {
-      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1 });
+      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1, options: options || {} });
       lastAddedItemId = id;
     }
     save();
@@ -326,7 +326,8 @@ const Cart = (() => {
     control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
       e.stopPropagation();
       const c = card.closest(".menu-item");
-      addItem(id, c.dataset.name, c.dataset.price, c.dataset.img);
+      const opts = getItemOptionsFromCard(c);
+      addItem(id, c.dataset.name, c.dataset.price, c.dataset.img, opts);
       updateCardQtyDisplay(id);
     });
 
@@ -397,7 +398,8 @@ const Cart = (() => {
           });
           control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
             e.stopPropagation();
-            addItem(id, name, card.dataset.price, card.dataset.img);
+            const opts = getItemOptionsFromCard(card);
+            addItem(id, name, card.dataset.price, card.dataset.img, opts);
             updateCardQtyDisplay(id);
           });
           cardTimers[id] = setTimeout(() => hideCardQtyControl(id), 5000);
@@ -630,12 +632,18 @@ const Cart = (() => {
 
     html += `<div class="cart-items">`;
     state.items.forEach((item) => {
+      const itemOpts = item.options || {};
+      const optParts = [];
+      if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
+      if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
+      const optStr = optParts.length ? optParts.join(' · ') : '';
       html += `
         <div class="cart-item" data-id="${item.id}">
           ${item.img ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
             <h4>${item.name}</h4>
             <span class="cart-item-price">$${item.price} c/u</span>
+            ${optStr ? `<span class="cart-item-options">${optStr}</span>` : ''}
           </div>
           <div class="cart-item-controls">
             <button class="cart-qty-btn" data-id="${item.id}" data-action="decrease" aria-label="Disminuir cantidad">
@@ -1355,7 +1363,12 @@ const Cart = (() => {
     msg += `\n-----------------------`;
     msg += `\n*Detalle del pedido:*\n`;
     state.items.forEach((item) => {
-      msg += `*${item.quantity}x* ${item.name} — $${item.price * item.quantity}\n`;
+      const itemOpts = item.options || {};
+      const optParts = [];
+      if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
+      if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
+      const optStr = optParts.length ? ` [${optParts.join(' - ')}]` : '';
+      msg += `*${item.quantity}x* ${item.name}${optStr} — $${item.price * item.quantity}\n`;
     });
     msg += `-----------------------`;
     if (!isPickup) {
@@ -1400,6 +1413,7 @@ const Cart = (() => {
         product_name: item.name,
         quantity: item.quantity,
         unit_price: item.price,
+        options: item.options && Object.keys(item.options).length ? item.options : null,
       })),
     };
 
@@ -1530,9 +1544,19 @@ const Cart = (() => {
   /* ──────────── Init: Botones "Agregar" ──────────── */
   let cardTimers = {};
 
+  function getItemOptionsFromCard(card) {
+    const options = {};
+    const typeSelected = card.querySelector('[data-option="type"] .option-btn.selected');
+    const meatSelected = card.querySelector('[data-option="meat"] .option-btn.selected');
+    if (typeSelected) options.type = typeSelected.dataset.value;
+    if (meatSelected) options.meat = meatSelected.dataset.value;
+    return options;
+  }
+
   function bindAddButtons() {
-    document.querySelectorAll(".add-to-cart-btn:not([disabled])").forEach((btn) => {
+    document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
       if (btn._cartBound) return;
+      if (btn.disabled) return;
       btn._cartBound = true;
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1542,7 +1566,8 @@ const Cart = (() => {
         const name = card.dataset.name;
         const price = card.dataset.price;
         const img = card.dataset.img;
-        addItem(id, name, price, img);
+        const options = getItemOptionsFromCard(card);
+        addItem(id, name, price, img, options);
         showCardQtyControl(id);
       });
     });

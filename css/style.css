@@ -1398,6 +1398,67 @@ footer {
    CARRITO DE COMPRAS
    ============================================================ */
 
+/* ── Selectores de opciones del producto (Mojado/Seco, Cochinita/Lechón) ── */
+.product-option-group {
+    padding: 0 15px 10px;
+}
+.product-option-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.product-option-buttons {
+    display: flex;
+    gap: 8px;
+}
+.option-btn {
+    flex: 1;
+    padding: 8px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.option-btn:hover {
+    border-color: #FF6B35;
+    color: #FF6B35;
+}
+.option-btn.selected {
+    border-color: #FF6B35;
+    background: #FFF5F0;
+    color: #E65100;
+}
+.add-to-cart-btn.disabled,
+.add-to-cart-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.add-to-cart-btn.disabled:hover,
+.add-to-cart-btn:disabled:hover {
+    background-color: #ccc;
+    color: white;
+    transform: none;
+}
+
+/* ── Opciones en el carrito (sidebar) ── */
+.cart-item-options {
+    display: block;
+    font-size: 0.72rem;
+    color: #E65100;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
 /* ── Botón "Agregar" en tarjetas ── */
 .add-to-cart-btn {
     display: flex;

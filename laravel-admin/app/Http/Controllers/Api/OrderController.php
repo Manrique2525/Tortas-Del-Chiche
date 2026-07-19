@@ -31,6 +31,7 @@ class OrderController extends Controller
             'items.*.product_name' => 'required|string|max:255',
             'items.*.quantity'     => 'required|integer|min:1',
             'items.*.unit_price'   => 'required|numeric|min:0',
+            'items.*.options'      => 'nullable|array',
             'payment_proof'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
@@ -64,6 +65,7 @@ class OrderController extends Controller
                     'quantity'     => $item['quantity'],
                     'unit_price'   => $item['unit_price'],
                     'line_total'   => $lineTotal,
+                    'options'      => $item['options'] ?? null,
                 ]);
             }
 

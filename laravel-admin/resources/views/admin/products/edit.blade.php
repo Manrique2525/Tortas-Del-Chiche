@@ -227,6 +227,22 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="has_type" id="hasTypeCheck" value="1"
+                               {{ old('has_type', $product->has_type) ? 'checked' : '' }}>
+                        <label for="hasTypeCheck">Tiene tipo (Mojado / Seco)</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="has_meat" id="hasMeatCheck" value="1"
+                               {{ old('has_meat', $product->has_meat) ? 'checked' : '' }}>
+                        <label for="hasMeatCheck">Tiene carne (Cochinita / Lechón)</label>
+                    </div>
+                </div>
+
                 <div class="form-actions">
                     <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Cancelar</a>
                     <button type="submit" class="btn btn-primary">

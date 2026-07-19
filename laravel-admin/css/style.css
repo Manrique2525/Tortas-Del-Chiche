@@ -294,19 +294,28 @@ nav ul li a:hover::after {
 /* Contenedor del nombre y precio en la misma línea */
 .menu-item-header {
     display: flex;
-    justify-content: flex-start; /* juntos */
-    align-items: center;
-    gap: 16px;                   /* separación entre título y precio */
-    padding: 15px 20px 5px;      /* 🔥 separación del borde */
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 15px 20px 5px;
     border-bottom: 2px solid var(--light-gray);
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 .menu-item h3 {
     color: var(--primary-orange);
     font-size: 1.3rem;
     margin: 0;
-    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+    flex: 1 1 auto;
+    min-width: 0;
+    word-break: break-word;
 }
 
 .price {
@@ -314,6 +323,8 @@ nav ul li a:hover::after {
     font-weight: 700;
     font-size: 1.4rem;
     margin: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .menu-item p {
@@ -323,57 +334,6 @@ nav ul li a:hover::after {
     line-height: 1.5;
     flex-grow: 1;
     margin: 0;
-}
-
-/* ── Productos no disponibles ── */
-.menu-item-inactive {
-    position: relative;
-    opacity: 0.6;
-    filter: grayscale(70%);
-    pointer-events: none;
-}
-
-.menu-item-inactive:hover {
-    transform: none;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.menu-item-inactive img {
-    pointer-events: none;
-}
-
-.menu-item-image-wrapper {
-    position: relative;
-    overflow: hidden;
-}
-
-.unavailable-badge {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-15deg);
-    background: rgba(220, 53, 69, 0.9);
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.1rem;
-    padding: 8px 24px;
-    border-radius: 6px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 2;
-    pointer-events: none;
-}
-
-.unavailable-btn {
-    background: #999 !important;
-    color: #fff !important;
-    cursor: not-allowed !important;
-}
-
-.unavailable-btn:hover {
-    background: #999 !important;
-    transform: none !important;
 }
 
 /* Banquets Section */
@@ -1028,6 +988,13 @@ footer {
     padding: 15px 15px 5px;
     color: var(--night-accent);
     font-size: 1.3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+    word-break: break-word;
 }
 
 .menu-item p {
@@ -1334,6 +1301,25 @@ footer {
     .hero {
         height: 45vh;
     }
+
+    .menu-items {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .menu-item-header {
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 15px 5px;
+    }
+
+    .menu-item h3 {
+        font-size: 1.1rem;
+    }
+
+    .price {
+        font-size: 1.2rem;
+    }
     
     /* Títulos más pequeños */
     h2 {
@@ -1411,6 +1397,67 @@ footer {
 /* ============================================================
    CARRITO DE COMPRAS
    ============================================================ */
+
+/* ── Selectores de opciones del producto (Mojado/Seco, Cochinita/Lechón) ── */
+.product-option-group {
+    padding: 0 15px 10px;
+}
+.product-option-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.product-option-buttons {
+    display: flex;
+    gap: 8px;
+}
+.option-btn {
+    flex: 1;
+    padding: 8px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.option-btn:hover {
+    border-color: #FF6B35;
+    color: #FF6B35;
+}
+.option-btn.selected {
+    border-color: #FF6B35;
+    background: #FFF5F0;
+    color: #E65100;
+}
+.add-to-cart-btn.disabled,
+.add-to-cart-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.add-to-cart-btn.disabled:hover,
+.add-to-cart-btn:disabled:hover {
+    background-color: #ccc;
+    color: white;
+    transform: none;
+}
+
+/* ── Opciones en el carrito (sidebar) ── */
+.cart-item-options {
+    display: block;
+    font-size: 0.72rem;
+    color: #E65100;
+    font-weight: 600;
+    margin-top: 2px;
+}
 
 /* ── Botón "Agregar" en tarjetas ── */
 .add-to-cart-btn {
@@ -1514,7 +1561,7 @@ footer {
 }
 
 .bank-info-card.visible {
-    max-height: 300px;
+    max-height: 500px;
     opacity: 1;
     margin: 12px 0 0;
     padding: 14px;
@@ -1591,6 +1638,59 @@ footer {
 
 .bank-info-note i {
     color: var(--primary-orange);
+}
+
+.bank-info-proof {
+    margin: 12px 0 4px;
+    text-align: center;
+}
+
+.bank-info-proof-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-black);
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.bank-info-proof-label i {
+    color: var(--primary-orange);
+}
+
+.bank-info-proof-preview {
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bank-info-proof-preview:hover {
+    border-color: var(--primary-orange);
+    background: #fff5f0;
+}
+
+.bank-info-proof-preview span {
+    color: #aaa;
+    font-size: 0.8rem;
+}
+
+.bank-info-proof-preview span i {
+    color: #ccc;
+    margin-right: 4px;
+}
+
+.bank-info-proof-preview img {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
 }
 
 /* ── Campo de cupón ── */

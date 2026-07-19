@@ -14,11 +14,13 @@ class OrderItem extends Model
         'quantity',
         'unit_price',
         'line_total',
+        'options',
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
         'line_total' => 'decimal:2',
+        'options'    => 'array',
     ];
 
     public function order(): BelongsTo

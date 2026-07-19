@@ -32,11 +32,15 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:500',
             'category'    => 'required|in:comida,bebida',
             'active'      => 'boolean',
+            'has_type'    => 'boolean',
+            'has_meat'    => 'boolean',
             'sort_order'  => 'integer|min:0',
             'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
         ]);
 
         $validated['active'] = $request->boolean('active');
+        $validated['has_type'] = $request->boolean('has_type');
+        $validated['has_meat'] = $request->boolean('has_meat');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {
@@ -63,11 +67,15 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:500',
             'category'    => 'required|in:comida,bebida',
             'active'      => 'boolean',
+            'has_type'    => 'boolean',
+            'has_meat'    => 'boolean',
             'sort_order'  => 'integer|min:0',
             'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
         ]);
 
         $validated['active'] = $request->boolean('active');
+        $validated['has_type'] = $request->boolean('has_type');
+        $validated['has_meat'] = $request->boolean('has_meat');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {

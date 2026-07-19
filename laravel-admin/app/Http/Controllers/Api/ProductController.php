@@ -11,7 +11,7 @@ class ProductController extends Controller
     public function index(): JsonResponse
     {
         $products = Product::orderBy('sort_order')
-            ->get(['id', 'name', 'price', 'image', 'description', 'category', 'active']);
+            ->get(['id', 'name', 'price', 'image', 'description', 'category', 'active', 'has_type', 'has_meat']);
 
         return response()->json($products);
     }
