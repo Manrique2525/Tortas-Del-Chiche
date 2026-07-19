@@ -348,6 +348,10 @@ const Cart = (() => {
   }
 
   function hideCardQtyControl(id) {
+    if (cardTimers[id]) {
+        clearTimeout(cardTimers[id]);
+        delete cardTimers[id];
+    }
     const card = document.querySelector(`.menu-item[data-id="${id}"]`);
     if (!card) return;
     const control = card.querySelector('.card-qty-control');
@@ -428,6 +432,7 @@ const Cart = (() => {
             const newKey = generateKey(id, opts);
             updateCardQtyDisplay(newKey);
           });
+          if (cardTimers[id]) clearTimeout(cardTimers[id]);
           cardTimers[id] = setTimeout(() => hideCardQtyControl(id), 5000);
         }
       }
