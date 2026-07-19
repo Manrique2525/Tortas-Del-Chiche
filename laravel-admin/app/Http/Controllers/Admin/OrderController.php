@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -54,7 +55,9 @@ class OrderController extends Controller
             'envios_hoy'  => $todayStats->envios,
         ];
 
-        return view('admin.orders.index', compact('orders', 'stats'));
+        $branches = Branch::orderBy('sort_order')->get();
+
+        return view('admin.orders.index', compact('orders', 'stats', 'branches'));
     }
 
     public function updateStatus(Request $request, Order $order)

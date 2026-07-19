@@ -18,7 +18,7 @@ class OrderController extends Controller
             'customer_name'   => 'required|string|max:255',
             'customer_phone'  => 'required|string|max:20',
             'customer_address'=> 'nullable|string|max:500',
-            'branch'          => 'required|in:atasta,av_universidad',
+            'branch'          => 'required|string|exists:sucursales,key',
             'delivery_type'   => 'required|in:domicilio,recoger',
             'payment_method'  => 'required|in:efectivo,transferencia,mercadopago',
             'subtotal'        => 'required|numeric|min:0',

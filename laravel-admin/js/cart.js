@@ -17,28 +17,40 @@ const Cart = (() => {
     clabe: "012180015427586084",
   };
 
-  const BRANCHES = {
-    atasta: {
-      name: "Sucursal Atasta",
-      address: "Av. 27 de Febrero #2616, Colonia Atasta",
-      whatsapp: "529933092124",
-      schedule: "7am - 2pm",
-      lat: 17.986549496538164,
-      lng: -92.95316056151032,
-    },
-    av_universidad: {
-      name: "Sucursal AV Universidad",
-      address: "Av Universidad 392, Colonia Casa Blanca",
-      whatsapp: "529932206325",
-      schedule: "7am - 2pm",
-      lat: 18.0128788979183,
-      lng: -92.91857173267503,
-    },
-  };
+  let BRANCHES = {};
+  let BRANCHES_LOADED = false;
+
+  function loadBranches() {
+    fetch("/api/branches")
+      .then((r) => r.json())
+      .then((data) => {
+        const map = {};
+        data.forEach(function(item) {
+          map[item.key] = {
+            name: item.name,
+            address: item.address || "",
+            whatsapp: item.whatsapp || "",
+            schedule: item.schedule_text || "",
+            lat: item.latitude,
+            lng: item.longitude,
+            is_open: item.is_open,
+          };
+        });
+        BRANCHES = map;
+        BRANCHES_LOADED = true;
+        const sidebar = document.getElementById("cart-sidebar");
+        if (sidebar && sidebar.classList.contains("open")) {
+          renderSidebar();
+        }
+      })
+      .catch(function() {
+        BRANCHES_LOADED = true;
+      });
+  }
 
   let state = {
     items: [],
-    branch: "atasta",
+    branch: "",
     payment: "efectivo",
     deliveryType: "domicilio",
     pickupTime: "",
@@ -79,13 +91,20 @@ const Cart = (() => {
   }
 
   function getClosestBranch(lat, lng) {
-    let closest = "atasta";
+    let closest = null;
     let minDist = Infinity;
     for (const [key, branch] of Object.entries(BRANCHES)) {
+      if (branch.is_open === false) continue;
       const dist = haversineDistance(lat, lng, branch.lat, branch.lng);
       if (dist < minDist) {
         minDist = dist;
         closest = key;
+      }
+    }
+    if (!closest) {
+      for (const key of Object.keys(BRANCHES)) {
+        closest = key;
+        break;
       }
     }
     return { key: closest, distance: minDist };
@@ -100,6 +119,7 @@ const Cart = (() => {
     if (state.deliveryType === "recoger") return 0;
     if (!state.location.lat || !state.location.lng) return DELIVERY_FEE.base;
     const branch = BRANCHES[state.branch];
+    if (!branch) return DELIVERY_FEE.base;
     const dist = haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
     const extra = Math.max(0, Math.ceil(dist) - DELIVERY_FEE.baseKm);
     return Math.min(DELIVERY_FEE.max, Math.max(DELIVERY_FEE.min, DELIVERY_FEE.base + extra * DELIVERY_FEE.perKm));
@@ -108,6 +128,7 @@ const Cart = (() => {
   function getDeliveryDistance() {
     if (state.deliveryType !== "domicilio" || !state.location.lat || !state.location.lng) return null;
     const branch = BRANCHES[state.branch];
+    if (!branch) return null;
     return haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
   }
 
@@ -159,7 +180,7 @@ const Cart = (() => {
       try {
         const parsed = JSON.parse(data);
         state.items = parsed.items || [];
-        state.branch = parsed.branch || "atasta";
+        state.branch = parsed.branch && BRANCHES[parsed.branch] ? parsed.branch : "";
         state.payment = parsed.payment || "efectivo";
         state.deliveryType = parsed.deliveryType || "domicilio";
         state.pickupTime = parsed.pickupTime || "";
@@ -168,7 +189,7 @@ const Cart = (() => {
         state.customer.phone = (state.customer.phone || "").replace(/\D/g, "").slice(0, 10);
         state.location = parsed.location || { lat: null, lng: null, confirmed: false, address: null };
       } catch {
-    state = { items: [], branch: "atasta", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: state.coupon, customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
+    state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null } };
       }
     }
   }
@@ -181,7 +202,7 @@ const Cart = (() => {
       date: new Date().toLocaleString("es-MX"),
       items: JSON.parse(JSON.stringify(state.items)),
       total: getTotal(),
-      branch: BRANCHES[state.branch].name,
+      branch: BRANCHES[state.branch] ? BRANCHES[state.branch].name : state.branch,
       payment: state.payment === "efectivo" ? "Efectivo" : "Transferencia",
     };
     history.unshift(order);
@@ -519,7 +540,7 @@ const Cart = (() => {
         userLat = state.location.lat;
         userLng = state.location.lng;
         const { key } = getClosestBranch(userLat, userLng);
-        state.branch = key;
+        if (key) state.branch = key;
         save();
         userCoords = { lat: userLat, lng: userLng };
         renderSidebar();
@@ -531,7 +552,7 @@ const Cart = (() => {
               userLat = pos.coords.latitude;
               userLng = pos.coords.longitude;
               const { key } = getClosestBranch(userLat, userLng);
-              state.branch = key;
+              if (key) state.branch = key;
               save();
               userCoords = { lat: userLat, lng: userLng };
               renderSidebar();
@@ -628,7 +649,7 @@ const Cart = (() => {
     const stepsDone = {
       items: state.items.length > 0,
       datos: state.customer.name.trim() && state.customer.phone.trim(),
-      sucursal: true,
+      sucursal: !!state.branch && !!BRANCHES[state.branch] && BRANCHES[state.branch].is_open !== false,
       horario: !isPickup || state.pickupTime,
       pago: true,
       ubicacion: isPickup || state.location.confirmed,
@@ -761,17 +782,18 @@ const Cart = (() => {
       </div>
     `;
 
-    const branchSummary = BRANCHES[state.branch].name.replace("Sucursal ", "");
-    let atastaDist = "";
-    let uniDist = "";
+    const branchKeys = Object.keys(BRANCHES);
+    const branchSummary = state.branch && BRANCHES[state.branch] ? BRANCHES[state.branch].name.replace("Sucursal ", "") : (branchKeys.length > 0 ? "Elegir" : "Cargando...");
+    const branchDists = {};
 
-    if (state.location.confirmed && state.location.lat && state.location.lng) {
-      atastaDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
-      uniDist = formatDistance(haversineDistance(state.location.lat, state.location.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
-    } else if (userCoords) {
-      atastaDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.atasta.lat, BRANCHES.atasta.lng));
-      uniDist = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, BRANCHES.av_universidad.lat, BRANCHES.av_universidad.lng));
-    }
+    branchKeys.forEach(function(key) {
+      const b = BRANCHES[key];
+      if (state.location.confirmed && state.location.lat && state.location.lng) {
+        branchDists[key] = formatDistance(haversineDistance(state.location.lat, state.location.lng, b.lat, b.lng));
+      } else if (userCoords) {
+        branchDists[key] = formatDistance(haversineDistance(userCoords.lat, userCoords.lng, b.lat, b.lng));
+      }
+    });
 
     if (!isPickup) {
       const locConfirmed = state.location.confirmed;
@@ -805,6 +827,21 @@ const Cart = (() => {
       `;
     }
 
+    var brancHtml = "";
+    branchKeys.forEach(function(key) {
+      const b = BRANCHES[key];
+      const isActive = state.branch === key;
+      const isClosed = b.is_open === false;
+      brancHtml += `
+        <button class="cart-branch-option ${isActive ? "active" : ""} ${isClosed ? "branch-closed" : ""}" data-branch="${key}">
+          <i class="fas fa-map-marker-alt"></i>
+          <span class="cart-branch-name">${b.name.replace("Sucursal ", "")}</span>
+          ${isClosed ? '<span class="cart-branch-closed-badge">Cerrada ahora</span>' : ""}
+          ${branchDists[key] ? `<span class="cart-branch-distance">${branchDists[key]}</span>` : ""}
+          <span class="cart-branch-schedule">${b.schedule}</span>
+        </button>`;
+    });
+
     html += `
       <div class="cart-section">
         <button class="cart-section-header" data-section="sucursal">
@@ -813,21 +850,13 @@ const Cart = (() => {
           <i class="fas fa-chevron-${collapsedSections.sucursal ? "right" : "down"}"></i>
         </button>
         <div class="cart-section-body ${collapsedSections.sucursal ? "collapsed" : ""}">
+          ${state.branch && BRANCHES[state.branch] && BRANCHES[state.branch].is_open === false ? `
+            <div class="cart-branch-closed-msg"><i class="fas fa-exclamation-triangle"></i> Esta sucursal está cerrada. Elige otra.</div>
+          ` : ""}
           <div class="cart-branch-options">
-            <button class="cart-branch-option ${state.branch === "atasta" ? "active" : ""}" data-branch="atasta">
-              <i class="fas fa-map-marker-alt"></i>
-              <span class="cart-branch-name">Atasta</span>
-              ${atastaDist ? `<span class="cart-branch-distance">${atastaDist}</span>` : ""}
-              <span class="cart-branch-schedule">${BRANCHES.atasta.schedule}</span>
-            </button>
-            <button class="cart-branch-option ${state.branch === "av_universidad" ? "active" : ""}" data-branch="av_universidad">
-              <i class="fas fa-map-marker-alt"></i>
-              <span class="cart-branch-name">AV Universidad</span>
-              ${uniDist ? `<span class="cart-branch-distance">${uniDist}</span>` : ""}
-              <span class="cart-branch-schedule">${BRANCHES.av_universidad.schedule}</span>
-            </button>
+            ${brancHtml || '<p style="padding:10px 20px;color:#999;font-size:0.8rem;">No hay sucursales disponibles</p>'}
           </div>
-          ${isPickup ? `<div class="cart-branch-address"><i class="fas fa-map-pin"></i> ${BRANCHES[state.branch].address}</div>` : ""}
+          ${isPickup && state.branch && BRANCHES[state.branch] ? `<div class="cart-branch-address"><i class="fas fa-map-pin"></i> ${BRANCHES[state.branch].address}</div>` : ""}
         </div>
       </div>
     `;
@@ -1349,6 +1378,16 @@ const Cart = (() => {
       setTimeout(() => document.getElementById("cart-address")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
       return;
     }
+    if (!state.branch || !BRANCHES[state.branch]) {
+      showCartAlert("Selecciona una sucursal.");
+      openSection("sucursal");
+      return;
+    }
+    if (BRANCHES[state.branch].is_open === false) {
+      showCartAlert("La sucursal seleccionada está cerrada. Elige otra.");
+      openSection("sucursal");
+      return;
+    }
     if (isPickup) {
       if (!state.pickupTime) {
         showCartAlert("Selecciona la hora de recolección.");
@@ -1375,7 +1414,7 @@ const Cart = (() => {
     let msg = `*Pedido - Las Tortas Del Chiche*\n`;
     msg += `\n`;
     msg += `*Tipo:* ${isPickup ? "Recoger en sucursal" : "Envío a domicilio"}`;
-    msg += `\n*Sucursal:* ${BRANCHES[state.branch].name}`;
+    msg += `\n*Sucursal:* ${BRANCHES[state.branch] ? BRANCHES[state.branch].name : state.branch}`;
     msg += `\n*Cliente:* ${state.customer.name}`;
     msg += `\n*Tel:* ${state.customer.phone}`;
     if (isPickup) {
@@ -1420,7 +1459,7 @@ const Cart = (() => {
       msg += `\n⚠️ *Adjunta tu comprobante de transferencia*`;
     }
 
-    const url = `https://wa.me/${BRANCHES[state.branch].whatsapp}?text=${encodeURIComponent(msg)}`;
+    const url = `https://wa.me/${BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : ""}?text=${encodeURIComponent(msg)}`;
     const sendBtn = document.getElementById("cart-send-whatsapp");
     if (sendBtn) {
       sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando pedido...';
@@ -1619,6 +1658,7 @@ const Cart = (() => {
   function init() {
     load();
     loadCoupons();
+    loadBranches();
 
     bindAddButtons();
 

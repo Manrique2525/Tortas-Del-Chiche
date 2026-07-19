@@ -360,8 +360,9 @@
             <span class="filter-label">Sucursal</span>
             <select name="branch" class="filter-input">
                 <option value="">Todas</option>
-                <option value="atasta" {{ request('branch') === 'atasta' ? 'selected' : '' }}>Atasta</option>
-                <option value="av_universidad" {{ request('branch') === 'av_universidad' ? 'selected' : '' }}>AV Universidad</option>
+                @foreach($branches as $branch)
+                    <option value="{{ $branch->key }}" {{ request('branch') === $branch->key ? 'selected' : '' }}>{{ $branch->name }}</option>
+                @endforeach
             </select>
         </div>
         <div class="filter-group">

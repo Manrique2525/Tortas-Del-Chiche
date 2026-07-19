@@ -2666,6 +2666,53 @@ footer {
     color: var(--white);
 }
 
+/* ── Sucursal Cerrada ── */
+.cart-branch-option.branch-closed {
+    opacity: 0.55;
+    cursor: not-allowed;
+    border-color: #e0e0e0;
+    background: #f5f5f5;
+    pointer-events: none;
+}
+
+.cart-branch-option.branch-closed i {
+    color: #ccc;
+}
+
+.cart-branch-option.branch-closed .cart-branch-name {
+    color: #aaa;
+}
+
+.cart-branch-closed-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #e74c3c;
+    background: #fde8e8;
+    padding: 1px 8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.cart-branch-closed-msg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 20px 10px;
+    padding: 10px 14px;
+    background: #fff3e0;
+    border: 1px solid #ffcc80;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e65100;
+}
+
+.cart-branch-closed-msg i {
+    font-size: 1rem;
+    color: #f57c00;
+}
+
 /* ── Método de Pago ── */
 .cart-payment-section {
     padding: 12px 20px;

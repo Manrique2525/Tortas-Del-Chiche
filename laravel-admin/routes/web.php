@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController;
@@ -39,6 +40,15 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     // Pedidos
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
+
+    // Sucursales
+    Route::get('/branches', [BranchController::class, 'index'])->name('admin.branches');
+    Route::get('/branches/create', [BranchController::class, 'create'])->name('admin.branches.create');
+    Route::post('/branches', [BranchController::class, 'store'])->name('admin.branches.store');
+    Route::get('/branches/{branch}/edit', [BranchController::class, 'edit'])->name('admin.branches.edit');
+    Route::put('/branches/{branch}', [BranchController::class, 'update'])->name('admin.branches.update');
+    Route::delete('/branches/{branch}', [BranchController::class, 'destroy'])->name('admin.branches.destroy');
+    Route::patch('/branches/{branch}/toggle', [BranchController::class, 'toggle'])->name('admin.branches.toggle');
 
     // Cupones
     Route::get('/coupons', [CouponController::class, 'index'])->name('admin.coupons');

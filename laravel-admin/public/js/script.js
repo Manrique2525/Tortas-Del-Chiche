@@ -247,25 +247,48 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }, 1000);
 
-  // ======== Datos de Sucursales Didi ========
-  const didiBranches = [
-    {
-      name: "Sucursal Atasta",
-      horario: { apertura: 7.0, cierre: 14.0 },
-      img: "img/logo.jpeg",
-      desc: "Cochinita Pibil",
-      url: "https://www.didi-food.com/es-MX/food/store/5764607750370494503/LAS-TORTAS-DEL-CHICHE",
-      incluyeDomingo: true, // ✅ Abre domingos
-    },
-    {
-      name: "Sucursal AV Universidad",
-      horario: { apertura: 7.0, cierre: 14.0 },
-      img: "img/logo.jpeg",
-      desc: "Cochinita Pibil",
-      url: "https://www.didi-food.com/es-MX/food/store/5764610375841221517",
-      incluyeDomingo: true, // ✅ Abre domingos
-    },
-  ];
+  // ======== Datos de Sucursales (dinámicos desde API) ========
+  let didiBranches = [];
+  let whatsappBranches = [];
+
+  function loadScriptBranches() {
+    fetch("/api/branches")
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data || data.length === 0) return;
+        didiBranches = data.map(function(b) {
+          var mon = b.schedule && b.schedule.monday || { open: "07:00", close: "14:00" };
+          var apertura = parseFloat(mon.open) || 7;
+          var cierre = parseFloat(mon.close) || 14;
+          var hasDomingo = b.schedule && b.schedule.sunday && b.schedule.sunday.open && b.schedule.sunday.close;
+          return {
+            name: b.name,
+            horario: { apertura: apertura, cierre: cierre },
+            img: "img/logo.jpeg",
+            desc: "Cochinita Pibil",
+            url: b.didi_url || "",
+            incluyeDomingo: !!hasDomingo,
+          };
+        });
+        whatsappBranches = data.map(function(b) {
+          var mon = b.schedule && b.schedule.monday || { open: "07:00", close: "14:00" };
+          var apertura = parseFloat(mon.open) || 7;
+          var cierre = parseFloat(mon.close) || 14;
+          var hasDomingo = b.schedule && b.schedule.sunday && b.schedule.sunday.open && b.schedule.sunday.close;
+          return {
+            name: b.name,
+            address: b.address || "",
+            horario: { apertura: apertura, cierre: cierre },
+            img: "img/logo.jpeg",
+            whatsapp: b.whatsapp || "",
+            incluyeDomingo: !!hasDomingo,
+          };
+        });
+      })
+      .catch(function() {});
+  }
+
+  loadScriptBranches();
 
   // ======== Funciones para Modal Didi ========
   function horaDecimal() {
@@ -527,25 +550,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ======== Modal WhatsApp con Validación de Horarios ========
   function createWhatsappModal() {
-    // Definir datos de sucursales con horarios
-    const whatsappBranches = [
-      {
-        name: "Sucursal Atasta",
-        address: "Av. 27 de Febrero #2616",
-        horario: { apertura: 7.0, cierre: 14.0 },
-        img: "img/logo.jpeg",
-        whatsapp: "529933092124",
-        incluyeDomingo: true, // ✅ Abre domingos
-      },
-      {
-        name: "Sucursal AV Universidad",
-        address: "Av universidad 392 colonia casa blanca CP 86060",
-        horario: { apertura: 7.0, cierre: 14.0 },
-        img: "img/logo.jpeg",
-        whatsapp: "529932206325",
-        incluyeDomingo: true, // ✅ Abre domingos
-      },
-    ];
+    // Los datos se cargan dinámicamente desde /api/branches
 
     const hora = horaDecimal();
 

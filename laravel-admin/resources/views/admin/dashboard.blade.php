@@ -295,6 +295,9 @@
                 <i class="fas fa-receipt"></i> <span class="btn-label">Pedidos</span>
                 <span data-pending-badge style="position:absolute; top:-6px; right:-6px; background:#e74c3c; color:white; font-size:0.6rem; font-weight:700; min-width:16px; height:16px; border-radius:8px; display:flex; align-items:center; justify-content:center; border:2px solid #1a1a1a; {{ $pendingOrders > 0 ? '' : 'display:none;' }}">{{ $pendingOrders }}</span>
             </a>
+            <a href="{{ route('admin.branches') }}" class="add-btn" style="background: linear-gradient(135deg, #FF6B35, #e55a2d);">
+                <i class="fas fa-store"></i> <span class="btn-label">Sucursales</span>
+            </a>
             <a href="{{ route('admin.coupons') }}" class="add-btn" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">
                 <i class="fas fa-tags"></i> <span class="btn-label">Cupones</span>
             </a>
