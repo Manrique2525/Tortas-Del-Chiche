@@ -214,7 +214,7 @@
         </div>
       </section>
 
-      <section id="menu" class="menu">
+            <section id="menu" class="menu">
         <div class="container">
           <h2>Nuestro Menú</h2>
           <div class="menu-items" id="comida-grid">
@@ -238,6 +238,7 @@
           </div>
         </div>
       </section>
+
 
       <section id="banquetes" class="banquets">
         <div class="container">
@@ -506,5 +507,69 @@
     <script src="js/products.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/script.js"></script>
+
+    <script>
+    // ─── Cargar datos de sucursales desde API ───
+    document.addEventListener("DOMContentLoaded", function() {
+      fetch("/api/branches")
+        .then(function(r) { return r.json(); })
+        .then(function(branches) {
+          if (!branches || branches.length === 0) return;
+
+          // ── Sección Ubicación ──
+          var ubicacionContainer = document.querySelector("#ubicacion .container");
+          if (ubicacionContainer) {
+            var html = '<h2>Nuestras Sucursales</h2>';
+            branches.forEach(function(b) {
+              var embedUrl = "https://www.google.com/maps?q=" + b.latitude + "," + b.longitude + "&z=15&output=embed";
+              html += '<div class="branch">' +
+                '<h3>' + b.name + '</h3>' +
+                '<div class="location-content">' +
+                  '<div class="location-text">' +
+                    '<p><i class="fas fa-map-marker-alt"></i> ' + b.address + '</p>' +
+                    (b.phone ? '<p><i class="fas fa-phone"></i> Tel\u00e9fono: ' + b.phone + '</p>' : '') +
+                    (b.schedule_text ? '<p><i class="fas fa-clock"></i> Horario: ' + b.schedule_text + '</p>' : '') +
+                  '</div>' +
+                  '<div class="location-map">' +
+                    '<iframe src="' + embedUrl + '" width="100%" height="300" style="border:0" allowfullscreen="" loading="lazy"></iframe>' +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+            });
+            ubicacionContainer.innerHTML = html;
+          }
+
+          // ── Sección Contacto (teléfonos) ──
+          var contactInfo = document.querySelector(".contact-info");
+          if (contactInfo) {
+            var emailEl = contactInfo.querySelector('p:has(.fa-envelope)');
+            var socialEl = contactInfo.querySelector('.social-media');
+            var schedText = branches[0].schedule_text || "7:00 am a 2:00 pm";
+            var infoHtml = '<h3>Informaci\u00f3n de contacto</h3>';
+            if (emailEl) infoHtml += emailEl.outerHTML;
+            branches.forEach(function(b) {
+              infoHtml += '<p><i class="fas fa-phone"></i> ' + b.name.replace("Sucursal ", "") + ': ' + b.phone + '</p>';
+            });
+            infoHtml += '<p><i class="fas fa-clock"></i> Abierto ' + schedText.toLowerCase() + ' o hasta agotar existencia</p>';
+            if (socialEl) infoHtml += socialEl.outerHTML;
+            contactInfo.innerHTML = infoHtml;
+          }
+
+          // ── Footer ──
+          var footerContact = document.querySelector(".footer-contact");
+          if (footerContact) {
+            var footerHtml = '<h3>Contacto</h3>';
+            branches.forEach(function(b) {
+              footerHtml += '<p><strong>' + b.name + ':</strong></p>' +
+                '<p>' + (b.address || '') + '</p>' +
+                (b.phone ? '<p>Tel: ' + b.phone + '</p>' : '');
+            });
+            footerHtml += '<p>Email: Lastortasdelchiche@outlook.com</p>';
+            footerContact.innerHTML = footerHtml;
+          }
+        })
+        .catch(function() {});
+    });
+    </script>
   </body>
 </html>
