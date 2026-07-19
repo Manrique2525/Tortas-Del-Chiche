@@ -54,6 +54,13 @@
         .filters-bar {
             padding: 14px 20px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
         }
+        .filter-group {
+            display: flex; flex-direction: column; gap: 3px;
+        }
+        .filter-label {
+            font-size: 0.65rem; font-weight: 600; color: #888; padding-left: 2px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
         .filter-input {
             padding: 9px 12px; border: 2px solid #e0e0e0; border-radius: 10px;
             font-family: 'Poppins', sans-serif; font-size: 0.8rem; color: #333;
@@ -203,7 +210,9 @@
             .stat-card .stat-label { font-size: 0.6rem; }
 
             .filters-bar { padding: 10px 14px; gap: 6px; }
-            .filter-input { padding: 8px 10px; font-size: 0.75rem; flex: 1 1 auto; min-width: 0; }
+            .filter-group { flex: 1 1 auto; min-width: 0; }
+            .filter-input { padding: 8px 10px; font-size: 0.75rem; width: 100%; }
+            .filter-label { font-size: 0.6rem; }
             .filter-btn { padding: 8px 14px; font-size: 0.75rem; width: 100%; justify-content: center; }
 
             .orders-container { padding: 0 14px 28px; }
@@ -237,7 +246,9 @@
             .stat-card .stat-number { font-size: 1.05rem; }
 
             .filters-bar { padding: 8px 12px; }
-            .filter-input { padding: 7px 8px; font-size: 0.7rem; }
+            .filter-group { flex: 1 1 auto; min-width: 0; }
+            .filter-input { padding: 7px 8px; font-size: 0.7rem; width: 100%; }
+            .filter-label { font-size: 0.55rem; }
             .filter-btn { padding: 7px 12px; font-size: 0.7rem; }
 
             .orders-container { padding: 0 12px 24px; }
@@ -292,26 +303,45 @@
     </div>
 
     <form class="filters-bar" method="GET">
-        <input type="text" name="search" class="filter-input" placeholder="Buscar nombre o teléfono..."
-               value="{{ request('search') }}">
-        <select name="status" class="filter-input">
-            <option value="">Todos los estados</option>
-            <option value="pendiente" {{ request('status') === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
-            <option value="aceptado" {{ request('status') === 'aceptado' ? 'selected' : '' }}>Aceptado</option>
-            <option value="en_preparacion" {{ request('status') === 'en_preparacion' ? 'selected' : '' }}>En Preparación</option>
-            <option value="entregado" {{ request('status') === 'entregado' ? 'selected' : '' }}>Entregado</option>
-            <option value="cancelado" {{ request('status') === 'cancelado' ? 'selected' : '' }}>Cancelado</option>
-        </select>
-        <select name="branch" class="filter-input">
-            <option value="">Todas las sucursales</option>
-            <option value="atasta" {{ request('branch') === 'atasta' ? 'selected' : '' }}>Atasta</option>
-            <option value="av_universidad" {{ request('branch') === 'av_universidad' ? 'selected' : '' }}>AV Universidad</option>
-        </select>
-        <input type="date" name="date_from" class="filter-input" value="{{ request('date_from') }}">
-        <input type="date" name="date_to" class="filter-input" value="{{ request('date_to') }}">
-        <button type="submit" class="filter-btn filter-btn-primary"><i class="fas fa-search"></i> Filtrar</button>
+        <div class="filter-group">
+            <span class="filter-label">Buscar</span>
+            <input type="text" name="search" class="filter-input" placeholder="Nombre o teléfono..."
+                   value="{{ request('search') }}">
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Estado</span>
+            <select name="status" class="filter-input">
+                <option value="">Todos</option>
+                <option value="pendiente" {{ request('status') === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                <option value="aceptado" {{ request('status') === 'aceptado' ? 'selected' : '' }}>Aceptado</option>
+                <option value="en_preparacion" {{ request('status') === 'en_preparacion' ? 'selected' : '' }}>En Preparación</option>
+                <option value="entregado" {{ request('status') === 'entregado' ? 'selected' : '' }}>Entregado</option>
+                <option value="cancelado" {{ request('status') === 'cancelado' ? 'selected' : '' }}>Cancelado</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Sucursal</span>
+            <select name="branch" class="filter-input">
+                <option value="">Todas</option>
+                <option value="atasta" {{ request('branch') === 'atasta' ? 'selected' : '' }}>Atasta</option>
+                <option value="av_universidad" {{ request('branch') === 'av_universidad' ? 'selected' : '' }}>AV Universidad</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Desde</span>
+            <input type="date" name="date_from" class="filter-input" value="{{ request('date_from') }}">
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Hasta</span>
+            <input type="date" name="date_to" class="filter-input" value="{{ request('date_to') }}">
+        </div>
+        <div class="filter-group" style="align-self: flex-end;">
+            <button type="submit" class="filter-btn filter-btn-primary"><i class="fas fa-search"></i> Filtrar</button>
+        </div>
         @if(request()->hasAny(['search','status','branch','date_from','date_to']))
-            <a href="{{ route('admin.orders') }}" class="filter-btn filter-btn-secondary">Limpiar</a>
+            <div class="filter-group" style="align-self: flex-end;">
+                <a href="{{ route('admin.orders') }}" class="filter-btn filter-btn-secondary">Limpiar</a>
+            </div>
         @endif
     </form>
 
