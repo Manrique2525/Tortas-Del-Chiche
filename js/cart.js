@@ -52,8 +52,15 @@ const Cart = (() => {
   let marker = null;
   let geocodeTimer = null;
   let collapsedSections = { datos: false, sucursal: false, pago: false, ubicacion: false, horario: false };
-  let lastAddedItemId = null;
+  let lastAddedItemKey = null;
   let branchAutoSelected = false;
+
+  function generateKey(id, options) {
+    const opts = options || {};
+    const sorted = {};
+    Object.keys(opts).sort().forEach(function(k) { sorted[k] = opts[k]; });
+    return id + '|' + JSON.stringify(sorted);
+  }
   let userCoords = null;
 
   /* ──────────── Distancia Haversine ──────────── */
@@ -205,13 +212,14 @@ const Cart = (() => {
 
   /* ──────────── CRUD ──────────── */
   function addItem(id, name, price, img, options) {
-    const existing = state.items.find((i) => i.id === id);
+    const key = generateKey(id, options);
+    const existing = state.items.find((i) => i.key === key);
     if (existing) {
       existing.quantity++;
-      lastAddedItemId = null;
+      lastAddedItemKey = null;
     } else {
-      state.items.push({ id, name, price: Number(price), img: img || "", quantity: 1, options: options || {} });
-      lastAddedItemId = id;
+      state.items.push({ key, id, name, price: Number(price), img: img || "", quantity: 1, options: options || {} });
+      lastAddedItemKey = key;
     }
     save();
     renderBadge();
@@ -219,45 +227,43 @@ const Cart = (() => {
     showAddToast(name);
   }
 
-  function removeItem(id) {
-    const el = document.querySelector(`.cart-item[data-id="${id}"]`);
+  function removeItem(key) {
+    const el = document.querySelector(`.cart-item[data-key="${CSS.escape(key)}"]`);
     if (el) {
       el.classList.add("cart-item-exit");
       setTimeout(() => {
-        state.items = state.items.filter((i) => i.id !== id);
+        state.items = state.items.filter((i) => i.key !== key);
         save();
         renderSidebar();
         renderBadge();
-        hideCardQtyControl(id);
       }, 300);
     } else {
-      state.items = state.items.filter((i) => i.id !== id);
+      state.items = state.items.filter((i) => i.key !== key);
       save();
       renderSidebar();
       renderBadge();
-      hideCardQtyControl(id);
     }
   }
 
-  function updateQuantity(id, delta) {
-    const item = state.items.find((i) => i.id === id);
+  function updateQuantity(key, delta) {
+    const item = state.items.find((i) => i.key === key);
     if (!item) return;
     item.quantity += delta;
     if (item.quantity <= 0) {
-      removeItem(id);
+      removeItem(key);
       return;
     }
     save();
-    updateQuantityUI(id);
+    updateQuantityUI(key);
     renderBadge();
-    updateCardQtyDisplay(id);
+    updateCardQtyDisplay(key);
   }
 
-  function updateQuantityUI(id) {
-    const item = state.items.find((i) => i.id === id);
+  function updateQuantityUI(key) {
+    const item = state.items.find((i) => i.key === key);
     if (!item) return;
-    const qtyEl = document.querySelector(`.cart-qty-value[data-id="${id}"]`);
-    const subEl = document.querySelector(`.cart-item-subtotal[data-id="${id}"]`);
+    const qtyEl = document.querySelector(`.cart-qty-value[data-key="${CSS.escape(key)}"]`);
+    const subEl = document.querySelector(`.cart-item-subtotal[data-key="${CSS.escape(key)}"]`);
     if (qtyEl) qtyEl.textContent = item.quantity;
     if (subEl) subEl.textContent = `$${item.price * item.quantity}`;
     const totalEl = document.getElementById("cart-total-amount");
@@ -297,12 +303,16 @@ const Cart = (() => {
   }
 
   /* ──────────── UI: Botón flotante + Badge ──────────── */
-  function getQuantityById(id) {
-    const item = state.items.find((i) => i.id === id);
+  function getQuantityByKey(key) {
+    const item = state.items.find((i) => i.key === key);
     return item ? item.quantity : 0;
   }
 
-  function showCardQtyControl(id) {
+  function getQuantityById(id) {
+    return state.items.reduce((s, i) => i.id === id ? s + i.quantity : s, 0);
+  }
+
+  function showCardQtyControl(key, id) {
     const card = document.querySelector(`.menu-item[data-id="${id}"]`);
     if (!card) return;
     const originalBtn = card.querySelector(".add-to-cart-btn");
@@ -310,25 +320,26 @@ const Cart = (() => {
 
     if (cardTimers[id]) clearTimeout(cardTimers[id]);
 
-    const qty = getQuantityById(id);
+    const qty = getQuantityByKey(key);
     originalBtn.outerHTML = `
-      <div class="card-qty-control" data-card-id="${id}">
-        <button class="card-qty-btn card-qty-minus" data-id="${id}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
+      <div class="card-qty-control" data-key="${key}">
+        <button class="card-qty-btn card-qty-minus" data-key="${key}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
         <span class="card-qty-value">${qty}</span>
-        <button class="card-qty-btn card-qty-plus" data-id="${id}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
+        <button class="card-qty-btn card-qty-plus" data-key="${key}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
       </div>`;
 
     const control = card.querySelector(".card-qty-control");
     control.querySelector(".card-qty-minus").addEventListener("click", (e) => {
       e.stopPropagation();
-      decreaseCardQty(id);
+      decreaseCardQty(key);
     });
     control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
       e.stopPropagation();
       const c = card.closest(".menu-item");
       const opts = getItemOptionsFromCard(c);
       addItem(id, c.dataset.name, c.dataset.price, c.dataset.img, opts);
-      updateCardQtyDisplay(id);
+      const newKey = generateKey(id, opts);
+      updateCardQtyDisplay(newKey);
     });
 
     cardTimers[id] = setTimeout(() => hideCardQtyControl(id), 5000);
@@ -337,11 +348,10 @@ const Cart = (() => {
   function hideCardQtyControl(id) {
     const card = document.querySelector(`.menu-item[data-id="${id}"]`);
     if (!card) return;
-    const control = card.querySelector(`.card-qty-control[data-card-id="${id}"]`);
+    const control = card.querySelector('.card-qty-control');
     if (!control) return;
 
     const name = card.dataset.name;
-    const price = card.dataset.price;
     const needsOptions = card.dataset.hasTypeOptions === '1' || card.dataset.hasMeatOptions === '1';
     const opts = getItemOptionsFromCard(card);
     const optionsOk = (!needsOptions) || (
@@ -362,57 +372,59 @@ const Cart = (() => {
       if (btn.disabled) return;
       if (card.dataset.inactive === "1") return;
       const opts = getItemOptionsFromCard(card);
-      addItem(id, name, price, card.dataset.img, opts);
-      showCardQtyControl(id);
+      const id = Number(card.dataset.id);
+      addItem(id, name, card.dataset.price, card.dataset.img, opts);
+      const newKey = generateKey(id, opts);
+      showCardQtyControl(newKey, id);
     });
   }
 
-  function updateCardQtyDisplay(id) {
-    const qty = getQuantityById(id);
-    const card = document.querySelector(`.menu-item[data-id="${id}"]`);
-    if (!card) return;
-    const qtyVal = card.querySelector(".card-qty-value");
-    if (qtyVal) qtyVal.textContent = qty;
+  function updateCardQtyDisplay(key) {
+    const qty = getQuantityByKey(key);
+    const el = document.querySelector(`.card-qty-value[data-key="${CSS.escape(key)}"]`);
+    if (el) el.textContent = qty;
   }
 
-  function decreaseCardQty(id) {
-    const item = state.items.find((i) => i.id === id);
+  function decreaseCardQty(key) {
+    const item = state.items.find((i) => i.key === key);
     if (!item) return;
     if (item.quantity <= 1) {
-      removeItem(id);
+      removeItem(key);
     } else {
       item.quantity--;
       save();
       renderBadge();
       pulseButton();
     }
-    updateCardQtyDisplay(id);
+    updateCardQtyDisplay(key);
   }
 
   function syncAllCardButtons() {
     document.querySelectorAll(".menu-item").forEach((card) => {
       const id = Number(card.dataset.id);
-      if (getQuantityById(id) > 0 && !card.querySelector(".card-qty-control")) {
-        const qty = getQuantityById(id);
-        const name = card.dataset.name;
+      const opts = getItemOptionsFromCard(card);
+      const key = generateKey(id, opts);
+      const qty = getQuantityByKey(key);
+      if (qty > 0 && !card.querySelector(".card-qty-control")) {
         const btn = card.querySelector(".add-to-cart-btn");
         if (btn) {
           btn.outerHTML = `
-            <div class="card-qty-control" data-card-id="${id}">
-              <button class="card-qty-btn card-qty-minus" data-id="${id}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
+            <div class="card-qty-control" data-key="${key}">
+              <button class="card-qty-btn card-qty-minus" data-key="${key}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
               <span class="card-qty-value">${qty}</span>
-              <button class="card-qty-btn card-qty-plus" data-id="${id}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
+              <button class="card-qty-btn card-qty-plus" data-key="${key}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
             </div>`;
           const control = card.querySelector(".card-qty-control");
           control.querySelector(".card-qty-minus").addEventListener("click", (e) => {
             e.stopPropagation();
-            decreaseCardQty(id);
+            decreaseCardQty(key);
           });
           control.querySelector(".card-qty-plus").addEventListener("click", (e) => {
             e.stopPropagation();
             const opts = getItemOptionsFromCard(card);
-            addItem(id, name, card.dataset.price, card.dataset.img, opts);
-            updateCardQtyDisplay(id);
+            addItem(id, card.dataset.name, card.dataset.price, card.dataset.img, opts);
+            const newKey = generateKey(id, opts);
+            updateCardQtyDisplay(newKey);
           });
           cardTimers[id] = setTimeout(() => hideCardQtyControl(id), 5000);
         }
@@ -584,11 +596,12 @@ const Cart = (() => {
           if (!order) return;
           let added = 0;
           order.items.forEach((i) => {
-            const existing = state.items.find((si) => si.id === i.id);
+            const itemKey = i.key || generateKey(i.id, i.options);
+            const existing = state.items.find((si) => si.key === itemKey);
             if (existing) {
               existing.quantity += i.quantity;
             } else {
-              state.items.push({ ...i });
+              state.items.push({ ...i, key: itemKey });
               added++;
             }
           });
@@ -650,24 +663,23 @@ const Cart = (() => {
       if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
       const optStr = optParts.length ? optParts.join(' · ') : '';
       html += `
-        <div class="cart-item" data-id="${item.id}">
+        <div class="cart-item" data-key="${CSS.escape(item.key)}">
           ${item.img ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
-            <h4>${item.name}</h4>
+            <h4>${item.name}${optStr ? ` <span class="cart-item-options">(${optStr})</span>` : ''}</h4>
             <span class="cart-item-price">$${item.price} c/u</span>
-            ${optStr ? `<span class="cart-item-options">${optStr}</span>` : ''}
           </div>
           <div class="cart-item-controls">
-            <button class="cart-qty-btn" data-id="${item.id}" data-action="decrease" aria-label="Disminuir cantidad">
+            <button class="cart-qty-btn" data-key="${CSS.escape(item.key)}" data-action="decrease" aria-label="Disminuir cantidad">
               <i class="fas fa-minus"></i>
             </button>
-            <span class="cart-qty-value" data-id="${item.id}">${item.quantity}</span>
-            <button class="cart-qty-btn" data-id="${item.id}" data-action="increase" aria-label="Aumentar cantidad">
+            <span class="cart-qty-value" data-key="${CSS.escape(item.key)}">${item.quantity}</span>
+            <button class="cart-qty-btn" data-key="${CSS.escape(item.key)}" data-action="increase" aria-label="Aumentar cantidad">
               <i class="fas fa-plus"></i>
             </button>
           </div>
-          <div class="cart-item-subtotal" data-id="${item.id}">$${item.price * item.quantity}</div>
-          <button class="cart-item-remove" data-id="${item.id}" aria-label="Eliminar ${item.name}">
+          <div class="cart-item-subtotal" data-key="${CSS.escape(item.key)}">$${item.price * item.quantity}</div>
+          <button class="cart-item-remove" data-key="${CSS.escape(item.key)}" aria-label="Eliminar ${item.name}">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -930,12 +942,12 @@ const Cart = (() => {
     body.innerHTML = html;
     const headerCount = document.getElementById("cart-header-count");
     if (headerCount) headerCount.textContent = `(${getItemCount()})`;
-    if (lastAddedItemId) {
-      const newItemEl = document.querySelector(`.cart-item[data-id="${lastAddedItemId}"]`);
+    if (lastAddedItemKey) {
+      const newItemEl = document.querySelector(`.cart-item[data-key="${CSS.escape(lastAddedItemKey)}"]`);
       if (newItemEl) {
         newItemEl.classList.add("cart-item-enter");
       }
-      lastAddedItemId = null;
+      lastAddedItemKey = null;
     }
     attachSidebarEvents();
   }
@@ -943,9 +955,9 @@ const Cart = (() => {
   function attachSidebarEvents() {
     document.querySelectorAll(".cart-qty-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const id = Number(btn.dataset.id);
+        const key = btn.dataset.key;
         const action = btn.dataset.action;
-        updateQuantity(id, action === "increase" ? 1 : -1);
+        updateQuantity(key, action === "increase" ? 1 : -1);
       });
     });
 
@@ -970,9 +982,9 @@ const Cart = (() => {
 
     document.querySelectorAll(".cart-item-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const id = Number(btn.dataset.id);
+        const key = btn.dataset.key;
         if (btn.classList.contains("confirming")) {
-          removeItem(id);
+          removeItem(key);
         } else {
           btn.classList.add("confirming");
           btn.innerHTML = '<i class="fas fa-check"></i>';
@@ -1579,8 +1591,9 @@ const Cart = (() => {
         const price = card.dataset.price;
         const img = card.dataset.img;
         const options = getItemOptionsFromCard(card);
+        const key = generateKey(id, options);
         addItem(id, name, price, img, options);
-        showCardQtyControl(id);
+        showCardQtyControl(key, id);
       });
     });
   }

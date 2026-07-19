@@ -100,6 +100,18 @@ function getProductOptions(card) {
 }
 
 function updateAddButtonState(card) {
+    const qtyControl = card.querySelector('.card-qty-control');
+    if (qtyControl) {
+        const id = Number(card.dataset.id);
+        const name = card.dataset.name;
+        qtyControl.outerHTML = `
+            <button class="add-to-cart-btn disabled" aria-label="Agregar ${name} al carrito" disabled>
+                <i class="fas fa-cart-plus"></i> Agregar
+            </button>`;
+        if (typeof initCartAddButtons === 'function') {
+            initCartAddButtons();
+        }
+    }
     const btn = card.querySelector('.add-to-cart-btn');
     if (!btn || btn.disabled === undefined) return;
     const options = getProductOptions(card);
