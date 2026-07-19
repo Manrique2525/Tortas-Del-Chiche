@@ -1689,6 +1689,7 @@ const Cart = (() => {
     .then(function(data) {
       if (data.success) {
         sessionStorage.setItem("mp_order_id", data.order_id);
+        sessionStorage.setItem("mp_checkout_active", "1");
         window.location.href = data.init_point;
       } else {
         showCartAlert("Error al conectar con el procesador. Intenta de nuevo.");
@@ -1766,9 +1767,9 @@ const Cart = (() => {
     var status = params.get("mp_status");
     var orderId = params.get("order_id") || sessionStorage.getItem("mp_order_id");
 
-    if (!status) return;
-
-    history.replaceState({}, "", window.location.pathname);
+    var wasCheckoutActive = sessionStorage.getItem("mp_checkout_active");
+    sessionStorage.removeItem("mp_checkout_active");
+    sessionStorage.removeItem("mp_order_id");
 
     if (status === "success") {
       showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
@@ -1781,13 +1782,16 @@ const Cart = (() => {
       renderSidebar();
       renderBadge();
       closeSidebar();
-      sessionStorage.removeItem("mp_order_id");
     } else if (status === "failure") {
       showCartAlert("El pago fue rechazado. Intenta con otro método de pago.");
-      sessionStorage.removeItem("mp_order_id");
     } else if (status === "pending") {
       showToast("Pago en proceso. Te notificaremos cuando se confirme.", "success");
-      sessionStorage.removeItem("mp_order_id");
+    } else if (wasCheckoutActive) {
+      showCartAlert("Pago cancelado. Puedes intentar de nuevo.");
+    }
+
+    if (status) {
+      history.replaceState({}, "", window.location.pathname);
     }
   }
 
@@ -1893,6 +1897,13 @@ const Cart = (() => {
 
   function init() {
     checkMpReturn();
+
+    window.addEventListener("pageshow", function(e) {
+      if (e.persisted) {
+        checkMpReturn();
+      }
+    });
+
     load();
     loadCoupons();
     loadBranches();

@@ -163,11 +163,14 @@ class MercadoPagoController extends Controller
 
             $order->update(['mp_preference_id' => $preference->id]);
 
+            $isSandbox = Config::get('services.mercadopago.env') === 'test';
+            $checkoutUrl = $isSandbox ? $preference->sandbox_init_point : $preference->init_point;
+
             return response()->json([
                 'success'       => true,
                 'order_id'      => $order->id,
                 'preference_id' => $preference->id,
-                'init_point'    => $preference->init_point,
+                'init_point'    => $checkoutUrl,
             ]);
         } catch (\Exception $e) {
             $msg = $e->getMessage();

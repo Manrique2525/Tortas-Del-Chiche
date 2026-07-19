@@ -37,6 +37,7 @@ return [
 
     'mercadopago' => [
         'access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),
+        'env'          => env('MERCADO_PAGO_ENV', 'prod'),
     ],
 
 ];
