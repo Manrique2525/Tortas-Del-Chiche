@@ -552,8 +552,7 @@
                 showToast(data.message, 'success');
                 if ((status === 'en_preparacion' || status === 'entregado') && data.customer_phone) {
                     showWANotify(data.customer_name, data.customer_phone, status);
-                }
-                if (card) {
+                } else if (card) {
                     setTimeout(() => { location.reload(); }, 800);
                 }
             })
@@ -585,8 +584,8 @@
                         '<span>\u00bfNotificar a <strong>' + name + '</strong> que su pedido est\u00e1 ' + statusText + '?</span>' +
                     '</div>' +
                     '<div class="wa-notify-actions">' +
-                        '<a href="' + waUrl + '" target="_blank" class="wa-notify-btn wa-notify-btn-send"><i class="fab fa-whatsapp"></i> Notificar</a>' +
-                        '<button class="wa-notify-btn wa-notify-btn-skip" onclick="this.closest(\'#wa-notify-bar\').remove()">Omitir</button>' +
+                        '<a href="' + waUrl + '" target="_blank" class="wa-notify-btn wa-notify-btn-send" onclick="setTimeout(function(){ location.reload(); }, 1500)"><i class="fab fa-whatsapp"></i> Notificar</a>' +
+                        '<button class="wa-notify-btn wa-notify-btn-skip" onclick="this.closest(\'#wa-notify-bar\').remove();setTimeout(function(){ location.reload(); }, 300)">Omitir</button>' +
                     '</div>' +
                 '</div>';
             document.body.appendChild(bar);
