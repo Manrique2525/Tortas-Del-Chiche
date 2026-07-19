@@ -65,7 +65,7 @@ class OrderTotalCalculator
 
     public function verify(array $clientCalculated, array $serverCalculated, string $context = 'order'): array
     {
-        $mode = config("security.{$context}_validation", 'log');
+        $mode = config("security.price_recalculation", 'log');
 
         $discrepancies = [];
         foreach (['subtotal', 'delivery_fee', 'discount', 'total'] as $field) {
