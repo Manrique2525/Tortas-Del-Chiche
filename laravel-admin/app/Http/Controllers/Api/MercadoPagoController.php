@@ -9,21 +9,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use MercadoPago\SDK;
-use MercadoPago\Preference;
-use MercadoPago\Item;
-use MercadoPago\Payment;
+use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\Client\Payment\PaymentClient;
 
 class MercadoPagoController extends Controller
 {
-    public function __construct()
+    private function initSDK(): void
     {
         $token = Config::get('services.mercadopago.access_token');
         if (!$token) {
-            Log::error('[MercadoPago] Access token no configurado en services.php o .env');
-        } else {
-            SDK::setAccessToken($token);
+            throw new \RuntimeException('MERCADO_PAGO_ACCESS_TOKEN no configurado');
         }
+        MercadoPagoConfig::setAccessToken($token);
     }
 
     public function test(): JsonResponse
@@ -36,17 +34,10 @@ class MercadoPagoController extends Controller
                     'message' => 'MERCADO_PAGO_ACCESS_TOKEN no está configurado en el .env',
                 ]);
             }
-
-            $payment = new Payment();
-            $payment->transaction_amount = 1;
-            $payment->description = 'Test';
-            $payment->payment_method_id = 'pix';
-            $payment->payer = ['email' => 'test@test.com'];
-            // No guardamos, solo probamos conexión
-
+            $this->initSDK();
             return response()->json([
                 'success' => true,
-                'message' => 'SDK de Mercado Pago funcionando',
+                'message' => 'SDK de Mercado Pago v3 funcionando correctamente',
                 'token_prefix' => substr($token, 0, 12) . '...',
             ]);
         } catch (\Exception $e) {
@@ -81,11 +72,7 @@ class MercadoPagoController extends Controller
                 'items.*.options'      => 'nullable|array',
             ]);
         } catch (\Exception $e) {
-            Log::error('[MercadoPago] Validación fallida: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Datos inválidos: ' . $e->getMessage(),
-            ], 422);
+            return response()->json(['success' => false, 'message' => 'Datos inválidos: ' . $e->getMessage()], 422);
         }
 
         try {
@@ -121,72 +108,60 @@ class MercadoPagoController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[MercadoPago] Error al crear orden: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al registrar el pedido: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Error al registrar el pedido'], 500);
         }
 
         try {
-            $preference = new Preference();
+            $this->initSDK();
 
             $mpItems = [];
             foreach ($validated['items'] as $item) {
-                $mpItem = new Item();
-                $mpItem->title = $item['product_name'];
-                $mpItem->quantity = (int) $item['quantity'];
-                $mpItem->unit_price = (float) $item['unit_price'];
-                $mpItem->currency_id = 'MXN';
-                $mpItems[] = $mpItem;
+                $mpItems[] = [
+                    'title'      => $item['product_name'],
+                    'quantity'   => (int) $item['quantity'],
+                    'unit_price' => (float) $item['unit_price'],
+                    'currency_id'=> 'MXN',
+                ];
             }
 
             if (($validated['delivery_fee'] ?? 0) > 0) {
-                $feeItem = new Item();
-                $feeItem->title = 'Costo de envío';
-                $feeItem->quantity = 1;
-                $feeItem->unit_price = (float) $validated['delivery_fee'];
-                $feeItem->currency_id = 'MXN';
-                $mpItems[] = $feeItem;
+                $mpItems[] = [
+                    'title'      => 'Costo de envío',
+                    'quantity'   => 1,
+                    'unit_price' => (float) $validated['delivery_fee'],
+                    'currency_id'=> 'MXN',
+                ];
             }
 
-            $preference->items = $mpItems;
-            $preference->payer = [
-                'name'  => $validated['customer_name'],
-                'phone' => ['number' => $validated['customer_phone']],
+            $preferenceData = [
+                'items'               => $mpItems,
+                'payer'               => [
+                    'name'  => $validated['customer_name'],
+                    'phone' => ['number' => $validated['customer_phone']],
+                ],
+                'external_reference'  => (string) $order->id,
+                'back_urls'           => [
+                    'success' => 'https://tortas-del-chiche.onrender.com/?mp_status=success&order_id=' . $order->id,
+                    'failure' => 'https://tortas-del-chiche.onrender.com/?mp_status=failure&order_id=' . $order->id,
+                    'pending' => 'https://tortas-del-chiche.onrender.com/?mp_status=pending&order_id=' . $order->id,
+                ],
+                'auto_return'         => 'approved',
+                'binary_mode'         => true,
+                'statement_descriptor'=> 'TORTAS DEL CHICHE',
+                'notification_url'    => 'https://tortas-del-chiche.onrender.com/api/mercadopago/webhook',
+                'expires'             => true,
+                'expiration_date_to'  => now()->addMinutes(30)->format('c'),
             ];
-            $preference->external_reference = (string) $order->id;
-            $preference->back_urls = [
-                'success' => 'https://tortas-del-chiche.onrender.com/?mp_status=success&order_id=' . $order->id,
-                'failure' => 'https://tortas-del-chiche.onrender.com/?mp_status=failure&order_id=' . $order->id,
-                'pending' => 'https://tortas-del-chiche.onrender.com/?mp_status=pending&order_id=' . $order->id,
-            ];
-            $preference->auto_return = 'approved';
-            $preference->binary_mode = true;
-            $preference->statement_descriptor = 'TORTAS DEL CHICHE';
-            $preference->notification_url = 'https://tortas-del-chiche.onrender.com/api/mercadopago/webhook';
-            $preference->expires = true;
-            $preference->expiration_date_to = now()->addMinutes(30)->format('c');
 
-            $saveResult = $preference->save();
+            $client = new PreferenceClient();
+            $preference = $client->create($preferenceData);
 
-            if (!$saveResult || !$preference->id) {
-                $error = '';
-                if (method_exists($preference, 'getLastApiResponse')) {
-                    $apiRes = $preference->getLastApiResponse();
-                    if ($apiRes) {
-                        $error = json_encode($apiRes->getBody() ?? []);
-                    }
-                }
-                Log::error('[MercadoPago] Preferencia no creada. Respuesta: ' . $error);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Mercado Pago rechazó la preferencia: ' . ($error ?: 'sin respuesta'),
-                ], 500);
+            if (!$preference || !$preference->id) {
+                Log::error('[MercadoPago] Preferencia no creada (sin ID)');
+                return response()->json(['success' => false, 'message' => 'Mercado Pago no devolvió una preferencia válida'], 500);
             }
 
-            $order->update([
-                'mp_preference_id' => $preference->id,
-            ]);
+            $order->update(['mp_preference_id' => $preference->id]);
 
             return response()->json([
                 'success'       => true,
@@ -195,43 +170,44 @@ class MercadoPagoController extends Controller
                 'init_point'    => $preference->init_point,
             ]);
         } catch (\Exception $e) {
-            Log::error('[MercadoPago] Excepción al crear preferencia: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al conectar con Mercado Pago: ' . $e->getMessage(),
-            ], 500);
+            $msg = $e->getMessage();
+            if (method_exists($e, 'getApiResponse')) {
+                $apiRes = $e->getApiResponse();
+                $msg .= ' | API: ' . ($apiRes ? json_encode($apiRes->getContent()) : 'sin respuesta');
+            }
+            Log::error('[MercadoPago] Excepción: ' . $msg . "\n" . $e->getTraceAsString());
+            return response()->json(['success' => false, 'message' => $msg], 500);
         }
     }
 
     public function webhook(Request $request): JsonResponse
     {
         $topic = $request->input('topic') ?: $request->input('type');
-
         if ($topic !== 'payment') {
             return response()->json(['received' => true]);
         }
 
         $paymentId = $request->input('data.id') ?: $request->input('id');
-
         if (!$paymentId) {
             return response()->json(['received' => true]);
         }
 
         try {
-            $payment = Payment::find_by_id($paymentId);
+            $this->initSDK();
+            $client = new PaymentClient();
+            $payment = $client->get((int) $paymentId);
 
             if (!$payment) {
                 return response()->json(['received' => true]);
             }
 
-            $orderId = (int) $payment->external_reference;
+            $orderId = (int) ($payment->external_reference ?? 0);
             $order = Order::find($orderId);
-
             if (!$order) {
                 return response()->json(['received' => true]);
             }
 
-            $order->mp_payment_id = $paymentId;
+            $order->mp_payment_id = (string) $paymentId;
 
             switch ($payment->status) {
                 case 'approved':
