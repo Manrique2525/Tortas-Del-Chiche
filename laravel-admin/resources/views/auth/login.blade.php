@@ -174,6 +174,12 @@
             <form method="POST" action="{{ route('admin.login.post') }}">
                 @csrf
                 <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email <span style="color:#999;font-weight:400;">(opcional)</span>
+                    </label>
+                    <input type="email" id="email" name="email" placeholder="usuario@ejemplo.com" autocomplete="email">
+                </div>
+                <div class="form-group">
                     <label for="password">
                         <i class="fas fa-key"></i> Contraseña
                     </label>

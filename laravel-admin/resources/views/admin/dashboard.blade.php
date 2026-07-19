@@ -355,7 +355,7 @@
                             <span class="drag-handle" title="Arrastrar para reordenar"><i class="fas fa-grip-vertical"></i></span>
                             <div class="product-info">
                                 <img class="product-img" src="/{{ ltrim($product->image, '/') }}" alt="{{ $product->name }}"
-                                     onerror="this.style.background='#FF6B35'; this.style.display='flex'; this.style.alignItems='center'; this.style.justifyContent='center'; this.style.color='white'; this.style.fontSize='16px'; this.style.fontWeight='bold'; this.alt='{{ substr($product->name, 0, 2) }}'">
+                                     onerror="this.style.background='#FF6B35'; this.style.display='flex'; this.style.alignItems='center'; this.style.justifyContent='center'; this.style.color='white'; this.style.fontSize='16px'; this.style.fontWeight='bold'; this.alt=''">
                                 <div class="product-details">
                                     <div class="product-name">{{ $product->name }}</div>
                                     <div class="product-price">${{ number_format($product->price, 0) }}</div>
@@ -373,7 +373,7 @@
                                     <i class="fas fa-pen"></i>
                                 </a>
                                 <button class="action-btn delete-btn" title="Eliminar"
-                                        onclick="confirmDelete({{ $product->id }}, '{{ addslashes($product->name) }}')">
+                                        onclick="confirmDelete({{ $product->id }}, @json($product->name))">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>

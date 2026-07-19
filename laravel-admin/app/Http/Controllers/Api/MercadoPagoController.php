@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\MercadoPagoWebhookValidator;
+use App\Services\OrderTotalCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -38,14 +40,11 @@ class MercadoPagoController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'SDK de Mercado Pago v3 funcionando correctamente',
-                'token_prefix' => substr($token, 0, 12) . '...',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al inicializar SDK: ' . $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
             ]);
         }
     }
@@ -75,8 +74,21 @@ class MercadoPagoController extends Controller
             return response()->json(['success' => false, 'message' => 'Datos inválidos: ' . $e->getMessage()], 422);
         }
 
+        $calculator = new OrderTotalCalculator();
+        $serverCalculated = $calculator->calculate(
+            $validated['items'],
+            (float) ($validated['delivery_fee'] ?? 0),
+            $validated['coupon_code'] ?? null
+        );
+
         try {
-            $order = DB::transaction(function () use ($validated) {
+            $serverCalculated = $calculator->verify($validated, $serverCalculated, 'price');
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        try {
+            $order = DB::transaction(function () use ($validated, $serverCalculated) {
                 $order = Order::create([
                     'customer_name'    => $validated['customer_name'],
                     'customer_phone'   => $validated['customer_phone'],
@@ -84,22 +96,21 @@ class MercadoPagoController extends Controller
                     'branch'           => $validated['branch'],
                     'delivery_type'    => $validated['delivery_type'],
                     'payment_method'   => 'mercadopago',
-                    'subtotal'         => $validated['subtotal'],
-                    'delivery_fee'     => $validated['delivery_fee'] ?? 0,
-                    'discount'         => $validated['discount'] ?? 0,
-                    'total'            => $validated['total'],
-                    'coupon_code'      => $validated['coupon_code'] ?? null,
+                    'subtotal'         => $serverCalculated['subtotal'],
+                    'delivery_fee'     => $serverCalculated['delivery_fee'],
+                    'discount'         => $serverCalculated['discount'],
+                    'total'            => $serverCalculated['total'],
+                    'coupon_code'      => $serverCalculated['coupon_code'],
                     'status'           => 'pendiente',
                 ]);
 
-                foreach ($validated['items'] as $item) {
-                    $lineTotal = $item['quantity'] * $item['unit_price'];
+                foreach ($serverCalculated['items'] as $item) {
                     $order->items()->create([
-                        'product_id'   => $item['product_id'] ?? null,
+                        'product_id'   => $item['product_id'],
                         'product_name' => $item['product_name'],
                         'quantity'     => $item['quantity'],
                         'unit_price'   => $item['unit_price'],
-                        'line_total'   => $lineTotal,
+                        'line_total'   => $item['line_total'],
                         'options'      => $item['options'] ?? null,
                     ]);
                 }
@@ -115,7 +126,7 @@ class MercadoPagoController extends Controller
             $this->initSDK();
 
             $mpItems = [];
-            foreach ($validated['items'] as $item) {
+            foreach ($serverCalculated['items'] as $item) {
                 $mpItems[] = [
                     'title'      => $item['product_name'],
                     'quantity'   => (int) $item['quantity'],
@@ -124,14 +135,16 @@ class MercadoPagoController extends Controller
                 ];
             }
 
-            if (($validated['delivery_fee'] ?? 0) > 0) {
+            if ($serverCalculated['delivery_fee'] > 0) {
                 $mpItems[] = [
                     'title'      => 'Costo de envío',
                     'quantity'   => 1,
-                    'unit_price' => (float) $validated['delivery_fee'],
+                    'unit_price' => $serverCalculated['delivery_fee'],
                     'currency_id'=> 'MXN',
                 ];
             }
+
+            $appUrl = config('app.url', 'https://tortas-del-chiche.onrender.com');
 
             $preferenceData = [
                 'items'               => $mpItems,
@@ -141,14 +154,14 @@ class MercadoPagoController extends Controller
                 ],
                 'external_reference'  => (string) $order->id,
                 'back_urls'           => [
-                    'success' => 'https://tortas-del-chiche.onrender.com/?mp_status=success&order_id=' . $order->id,
-                    'failure' => 'https://tortas-del-chiche.onrender.com/?mp_status=failure&order_id=' . $order->id,
-                    'pending' => 'https://tortas-del-chiche.onrender.com/?mp_status=pending&order_id=' . $order->id,
+                    'success' => $appUrl . '/?mp_status=success&order_id=' . $order->id,
+                    'failure' => $appUrl . '/?mp_status=failure&order_id=' . $order->id,
+                    'pending' => $appUrl . '/?mp_status=pending&order_id=' . $order->id,
                 ],
                 'auto_return'         => 'approved',
                 'binary_mode'         => true,
                 'statement_descriptor'=> 'TORTAS DEL CHICHE',
-                'notification_url'    => 'https://tortas-del-chiche.onrender.com/api/mercadopago/webhook',
+                'notification_url'    => $appUrl . '/api/mercadopago/webhook',
                 'expires'             => true,
                 'expiration_date_to'  => now()->addMinutes(30)->format('c'),
             ];
@@ -178,13 +191,19 @@ class MercadoPagoController extends Controller
                 $apiRes = $e->getApiResponse();
                 $msg .= ' | API: ' . ($apiRes ? json_encode($apiRes->getContent()) : 'sin respuesta');
             }
-            Log::error('[MercadoPago] Excepción: ' . $msg . "\n" . $e->getTraceAsString());
+            Log::error('[MercadoPago] Excepción: ' . $msg);
             return response()->json(['success' => false, 'message' => $msg], 500);
         }
     }
 
     public function webhook(Request $request): JsonResponse
     {
+        $validator = new MercadoPagoWebhookValidator();
+        if (!$validator->validateSignature($request)) {
+            Log::warning('[MercadoPago Webhook] Rechazado por firma inválida');
+            return response()->json(['error' => 'Invalid signature'], 401);
+        }
+
         $topic = $request->input('topic') ?: $request->input('type');
         if ($topic !== 'payment') {
             return response()->json(['received' => true]);
@@ -208,6 +227,19 @@ class MercadoPagoController extends Controller
             $order = Order::find($orderId);
             if (!$order) {
                 return response()->json(['received' => true]);
+            }
+
+            if ($order->mp_payment_id === (string) $paymentId && $order->status === 'pagado') {
+                return response()->json(['received' => true]);
+            }
+
+            if (!$validator->validateAmount((float) ($payment->transaction_amount ?? 0), (float) $order->total)) {
+                Log::warning('[MercadoPago Webhook] Rechazado por monto不一致', [
+                    'order' => $order->id,
+                    'payment_amount' => $payment->transaction_amount,
+                    'order_total' => $order->total,
+                ]);
+                return response()->json(['error' => 'Amount mismatch'], 422);
             }
 
             $order->mp_payment_id = (string) $paymentId;
@@ -250,7 +282,6 @@ class MercadoPagoController extends Controller
             'order_id'      => $order->id,
             'status'        => $order->status,
             'status_label'  => $order->status_label,
-            'mp_payment_id' => $order->mp_payment_id,
         ]);
     }
 }

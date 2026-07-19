@@ -17,6 +17,11 @@ const Cart = (() => {
     clabe: "012180015427586084",
   };
 
+  function escapeHtml(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
   let BRANCHES = {};
   let BRANCHES_LOADED = false;
 
@@ -630,9 +635,9 @@ const Cart = (() => {
                   <span class="cart-history-total">$${order.total}</span>
                 </div>
                 <div class="cart-history-detail">
-                  ${order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
+                  ${order.items.map((i) => escapeHtml(i.quantity + "x " + i.name)).join(", ")}
                 </div>
-                <div class="cart-history-meta">${order.branch} &middot; ${order.payment}</div>
+                <div class="cart-history-meta">${escapeHtml(order.branch)} &middot; ${escapeHtml(order.payment)}</div>
                 <button class="cart-history-reorder" data-index="${history.indexOf(order)}">
                   <i class="fas fa-redo"></i> Volver a pedir
                 </button>
@@ -714,11 +719,12 @@ const Cart = (() => {
       if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
       if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
       const optStr = optParts.length ? optParts.join(' · ') : '';
+      const safeName = escapeHtml(item.name);
       html += `
         <div class="cart-item" data-key="${item.key}">
-          ${item.img ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img" />` : ""}
+          ${item.img ? `<img src="${item.img}" alt="${safeName}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
-            <h4>${item.name}${optStr ? ` <span class="cart-item-options">(${optStr})</span>` : ''}</h4>
+            <h4>${safeName}${optStr ? ` <span class="cart-item-options">(${optStr})</span>` : ''}</h4>
             <span class="cart-item-price">$${item.price} c/u</span>
           </div>
           <div class="cart-item-controls">
@@ -731,7 +737,7 @@ const Cart = (() => {
             </button>
           </div>
           <div class="cart-item-subtotal" data-key="${item.key}">$${item.price * item.quantity}</div>
-          <button class="cart-item-remove" data-key="${item.key}" aria-label="Eliminar ${item.name}">
+          <button class="cart-item-remove" data-key="${item.key}" aria-label="Eliminar ${safeName}">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -791,7 +797,7 @@ const Cart = (() => {
         <div class="cart-section-body ${collapsedSections.datos ? "collapsed" : ""}">
           <div class="cart-customer-form-inner">
             <div class="cart-form-group">
-              <input type="text" id="cart-name" placeholder="Tu nombre *" value="${state.customer.name}" required />
+              <input type="text" id="cart-name" placeholder="Tu nombre *" value="${escapeHtml(state.customer.name)}" required />
             </div>
             <div class="cart-form-group">
               <input type="tel" id="cart-phone" placeholder="Teléfono * (10 dígitos)" value="${state.customer.phone.replace(/(\d{3})(?=\d)/g, "$1 ").trim()}" maxlength="12" required />
@@ -856,10 +862,11 @@ const Cart = (() => {
       const b = BRANCHES[key];
       const isActive = state.branch === key;
       const isClosed = b.is_open === false;
+      const safeBranchName = escapeHtml(b.name.replace("Sucursal ", ""));
       brancHtml += `
         <button class="cart-branch-option ${isActive ? "active" : ""} ${isClosed ? "branch-closed" : ""}" data-branch="${key}">
           <i class="fas fa-map-marker-alt"></i>
-          <span class="cart-branch-name">${b.name.replace("Sucursal ", "")}</span>
+          <span class="cart-branch-name">${safeBranchName}</span>
           ${isClosed ? '<span class="cart-branch-closed-badge">Cerrada ahora</span>' : ""}
           ${branchDists[key] ? `<span class="cart-branch-distance">${branchDists[key]}</span>` : ""}
           <span class="cart-branch-schedule">${b.schedule}</span>
@@ -1859,13 +1866,23 @@ const Cart = (() => {
       toast.className = "cart-add-toast";
       document.body.appendChild(toast);
     }
-    toast.innerHTML = `
-      <div class="cart-add-toast-content">
-        <i class="fas fa-check-circle"></i>
-        <span><strong>${name}</strong> agregado al carrito</span>
-      </div>
-      <button class="cart-add-toast-btn" id="cart-add-toast-view">Ver carrito</button>
-    `;
+    const nameNode = document.createTextNode(name);
+    toast.innerHTML = "";
+    const content = document.createElement("div");
+    content.className = "cart-add-toast-content";
+    content.innerHTML = '<i class="fas fa-check-circle"></i>';
+    const span = document.createElement("span");
+    const strong = document.createElement("strong");
+    strong.appendChild(nameNode);
+    span.appendChild(strong);
+    span.append(" agregado al carrito");
+    content.appendChild(span);
+    toast.appendChild(content);
+    const btn = document.createElement("button");
+    btn.className = "cart-add-toast-btn";
+    btn.id = "cart-add-toast-view";
+    btn.textContent = "Ver carrito";
+    toast.appendChild(btn);
     toast.classList.add("show");
     document.getElementById("cart-add-toast-view").addEventListener("click", () => {
       toast.classList.remove("show");
