@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
@@ -28,4 +29,11 @@ class Product extends Model
         'has_lechon'   => 'boolean',
         'price'        => 'decimal:2',
     ];
+
+    public function branches(): BelongsToMany
+    {
+        return $this->belongsToMany(Branch::class, 'branch_product')
+            ->withPivot(['active', 'available_options', 'price_override'])
+            ->withTimestamps();
+    }
 }

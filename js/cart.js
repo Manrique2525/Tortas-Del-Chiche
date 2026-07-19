@@ -311,6 +311,34 @@ const Cart = (() => {
     updateCardQtyDisplay(key);
   }
 
+  function clearCart() {
+    if (state.items.length === 0) return;
+    state.items.forEach(function(item) {
+      var id = item.id;
+      if (cardTimers[id]) {
+        clearTimeout(cardTimers[id]);
+        delete cardTimers[id];
+      }
+      hideCardQtyControl(id);
+    });
+    state.items = [];
+    save();
+    renderSidebar();
+    renderBadge();
+    showClearToast();
+  }
+
+  function showClearToast() {
+    var existing = document.querySelector(".cart-toast-container");
+    if (existing) existing.remove();
+    var container = document.createElement("div");
+    container.className = "cart-toast-container";
+    container.innerHTML = '<i class="fas fa-check-circle"></i> Carrito vaciado';
+    container.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:white;padding:12px 24px;border-radius:10px;font-size:0.85rem;font-weight:600;z-index:99999;box-shadow:0 5px 20px rgba(0,0,0,0.3);display:flex;align-items:center;gap:10px;animation:fadeInUp 0.3s ease;';
+    document.body.appendChild(container);
+    setTimeout(function() { container.remove(); }, 2000);
+  }
+
   function updateQuantityUI(key) {
     const item = state.items.find((i) => i.key === key);
     if (!item) return;
@@ -560,40 +588,13 @@ const Cart = (() => {
 
   function openSidebar() {
     createSidebar();
-    if (!branchAutoSelected) {
-      branchAutoSelected = true;
-      let userLat = null;
-      let userLng = null;
 
-      if (state.location.confirmed && state.location.lat && state.location.lng) {
-        userLat = state.location.lat;
-        userLng = state.location.lng;
-        const { key } = getClosestBranch(userLat, userLng);
-        if (key) state.branch = key;
-        save();
-        userCoords = { lat: userLat, lng: userLng };
-        renderSidebar();
-      } else {
-        renderSidebar();
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              userLat = pos.coords.latitude;
-              userLng = pos.coords.longitude;
-              const { key } = getClosestBranch(userLat, userLng);
-              if (key) state.branch = key;
-              save();
-              userCoords = { lat: userLat, lng: userLng };
-              renderSidebar();
-            },
-            () => {},
-            { enableHighAccuracy: true, timeout: 5000 }
-          );
-        }
-      }
-    } else {
-      renderSidebar();
+    if (window.selectedBranch) {
+      state.branch = window.selectedBranch;
+      save();
     }
+
+    renderSidebar();
 
     const overlay = document.getElementById("cart-overlay");
     const sidebar = document.getElementById("cart-sidebar");
@@ -857,37 +858,33 @@ const Cart = (() => {
       `;
     }
 
-    var brancHtml = "";
-    branchKeys.forEach(function(key) {
-      const b = BRANCHES[key];
-      const isActive = state.branch === key;
-      const isClosed = b.is_open === false;
-      const safeBranchName = escapeHtml(b.name.replace("Sucursal ", ""));
-      brancHtml += `
-        <button class="cart-branch-option ${isActive ? "active" : ""} ${isClosed ? "branch-closed" : ""}" data-branch="${key}">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="cart-branch-name">${safeBranchName}</span>
-          ${isClosed ? '<span class="cart-branch-closed-badge">Cerrada ahora</span>' : ""}
-          ${branchDists[key] ? `<span class="cart-branch-distance">${branchDists[key]}</span>` : ""}
-          <span class="cart-branch-schedule">${b.schedule}</span>
-        </button>`;
-    });
-
     html += `
       <div class="cart-section">
-        <button class="cart-section-header" data-section="sucursal">
-          <h3><i class="fas fa-store"></i> Elige sucursal</h3>
+        <div class="cart-section-header" style="cursor:default;">
+          <h3><i class="fas fa-store"></i> Sucursal</h3>
           <span class="cart-section-summary">${branchSummary}</span>
-          <i class="fas fa-chevron-${collapsedSections.sucursal ? "right" : "down"}"></i>
-        </button>
-        <div class="cart-section-body ${collapsedSections.sucursal ? "collapsed" : ""}">
-          ${state.branch && BRANCHES[state.branch] && BRANCHES[state.branch].is_open === false ? `
-            <div class="cart-branch-closed-msg"><i class="fas fa-exclamation-triangle"></i> Esta sucursal está cerrada. Elige otra.</div>
-          ` : ""}
-          <div class="cart-branch-options">
-            ${brancHtml || '<p style="padding:10px 20px;color:#999;font-size:0.8rem;">No hay sucursales disponibles</p>'}
+        </div>
+        <div class="cart-section-body">
+          <div class="cart-branch-current">
+            <i class="fas fa-map-marker-alt" style="color:#FF6B35;"></i>
+            <div>
+              <div class="cart-branch-current-name">${branchSummary}</div>
+              ${state.branch && BRANCHES[state.branch] ? `
+                <div class="cart-branch-current-address">${BRANCHES[state.branch].address}</div>
+                <div class="cart-branch-current-schedule">
+                  <span class="branch-selector-status ${BRANCHES[state.branch].is_open ? 'open' : 'closed'}" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:${BRANCHES[state.branch].is_open ? '#4CAF50' : '#e74c3c'};"></span>
+                  ${BRANCHES[state.branch].schedule}
+                  ${BRANCHES[state.branch].is_open === false ? '<span style="color:#e74c3c;font-weight:600;margin-left:6px;">Cerrada ahora</span>' : ''}
+                </div>
+              ` : '<div style="color:#999;font-size:0.8rem;">Selecciona una sucursal en la parte superior</div>'}
+            </div>
           </div>
-          ${isPickup && state.branch && BRANCHES[state.branch] ? `<div class="cart-branch-address"><i class="fas fa-map-pin"></i> ${BRANCHES[state.branch].address}</div>` : ""}
+          ${state.branch && BRANCHES[state.branch] ? `
+            <div style="padding:8px 16px 12px;font-size:0.7rem;color:#999;display:flex;align-items:center;gap:6px;border-top:1px solid #f0f0f0;margin-top:8px;">
+              <i class="fas fa-sync-alt" style="font-size:0.6rem;"></i>
+              Cambia de sucursal desde el menú superior
+            </div>
+          ` : ""}
         </div>
       </div>
     `;
@@ -980,7 +977,10 @@ const Cart = (() => {
     const itemCount = getItemCount();
     html += `
       <div class="cart-footer">
-        <div class="cart-items-summary">${itemCount} ${itemCount === 1 ? "artículo" : "artículos"}</div>
+        <div class="cart-footer-top">
+          <div class="cart-items-summary">${itemCount} ${itemCount === 1 ? "artículo" : "artículos"}</div>
+          ${state.items.length > 0 ? '<button class="cart-clear-btn" id="cartClearBtn"><i class="fas fa-trash-alt"></i> Vaciar carrito</button>' : ''}
+        </div>
         ${!showFee ? `
           <div class="cart-subtotal-line">
             <span>Subtotal</span>
@@ -1086,6 +1086,11 @@ const Cart = (() => {
       });
     }
 
+    const clearBtn = document.getElementById("cartClearBtn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", clearCart);
+    }
+
     const sendBtn = document.getElementById("cart-send-whatsapp");
     if (sendBtn) {
       sendBtn.addEventListener("click", sendToWhatsApp);
@@ -1108,14 +1113,6 @@ const Cart = (() => {
       save();
     });
     if (addressInput) addressInput.addEventListener("input", (e) => { state.customer.addressRef = e.target.value; save(); });
-
-    document.querySelectorAll(".cart-branch-option").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        state.branch = btn.dataset.branch;
-        save();
-        renderSidebar();
-      });
-    });
 
     document.querySelectorAll(".cart-payment-option").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1942,6 +1939,27 @@ const Cart = (() => {
     loadCoupons();
     loadBranches();
 
+    // Sync branch from header selector
+    if (window.selectedBranch) {
+      state.branch = window.selectedBranch;
+      save();
+    }
+
+    // When branch changes via header, update state and clear cart
+    (window.branchCallbacks || (window.branchCallbacks = [])).push(function(newBranch) {
+      state.branch = newBranch;
+      if (state.items.length > 0) {
+        state.items = [];
+        save();
+        renderBadge();
+        var sidebar = document.getElementById("cart-sidebar");
+        if (sidebar && sidebar.classList.contains("open")) {
+          renderSidebar();
+        }
+      }
+      save();
+    });
+
     bindAddButtons();
 
     createFloatingButton();
@@ -1966,5 +1984,5 @@ const Cart = (() => {
 
   window.initCartAddButtons = initCartAddButtons;
 
-  return { addItem, removeItem, openSidebar, closeSidebar };
+  return { addItem, removeItem, clearCart, openSidebar, closeSidebar };
 })();

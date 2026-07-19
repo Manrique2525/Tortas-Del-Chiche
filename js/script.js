@@ -789,4 +789,151 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+  // ======== SELECTOR DE SUCURSAL EN HEADER ========
+  (function initBranchSelector() {
+    var btn = document.getElementById("branchSelectorBtn");
+    var dropdown = document.getElementById("branchDropdown");
+    var nameEl = document.getElementById("branchSelectorName");
+    var statusEl = document.getElementById("branchSelectorStatus");
+
+    if (!btn || !dropdown) return;
+
+    window.branches = [];
+    if (!window.branchCallbacks) window.branchCallbacks = [];
+
+    function notifyBranchChange(branchKey) {
+      window.selectedBranch = branchKey;
+      localStorage.setItem("tortas_chiche_branch", branchKey);
+      (window.branchCallbacks || []).forEach(function(fn) {
+        try { fn(branchKey); } catch(e) {}
+      });
+    }
+
+    function renderDropdown(branches, selected) {
+      dropdown.innerHTML = "";
+      if (!branches || branches.length === 0) {
+        dropdown.innerHTML = '<div style="padding:12px;text-align:center;color:#999;font-size:0.8rem;">No hay sucursales disponibles</div>';
+        return;
+      }
+
+      branches.forEach(function(b) {
+        var isActive = b.key === selected;
+        var isOpen = b.is_open;
+        var item = document.createElement("button");
+        item.className = "branch-dropdown-item" + (isActive ? " active" : "");
+        item.dataset.branch = b.key;
+
+        var name = b.name.replace("Sucursal ", "");
+
+        var statusText = isOpen ? "Abierta" : "Cerrada";
+        var statusClass = isOpen ? "open" : "closed";
+
+        item.innerHTML =
+          '<div class="branch-dropdown-item-icon"><i class="fas fa-store"></i></div>' +
+          '<div class="branch-dropdown-item-info">' +
+            '<div class="branch-dropdown-item-name">' + name + '</div>' +
+            '<div class="branch-dropdown-item-schedule">' + (b.schedule_text || "") + '</div>' +
+          '</div>' +
+          '<span class="branch-dropdown-item-status ' + (isActive ? 'current' : statusClass) + '">' +
+            (isActive ? 'Actual' : statusText) +
+          '</span>';
+
+        item.addEventListener("click", function() {
+          if (b.key !== selected) {
+            notifyBranchChange(b.key);
+          }
+          dropdown.classList.remove("show");
+          btn.classList.remove("active");
+        });
+
+        dropdown.appendChild(item);
+      });
+    }
+
+    function updateBranchSelector(branches, selectedKey) {
+      window.branches = branches;
+      var branch = null;
+      branches.forEach(function(b) {
+        if (b.key === selectedKey) branch = b;
+      });
+
+      if (!branch && branches.length > 0) {
+        branch = branches[0];
+        selectedKey = branch.key;
+        notifyBranchChange(selectedKey);
+      }
+
+      if (branch) {
+        var displayName = branch.name.replace("Sucursal ", "");
+        nameEl.textContent = displayName;
+        statusEl.className = "branch-selector-status " + (branch.is_open ? "open" : "closed");
+        btn.title = branch.name + " - " + (branch.is_open ? "Abierta" : "Cerrada");
+      } else {
+        nameEl.textContent = "Sin sucursal";
+        statusEl.className = "branch-selector-status";
+      }
+
+      renderDropdown(branches, selectedKey);
+    }
+
+    // Cargar sucursales
+    fetch("/api/branches")
+      .then(function(r) { return r.json(); })
+      .then(function(branches) {
+        var selected = window.selectedBranch;
+
+        // Auto-detect via geolocation
+        if (!selected && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(pos) {
+              var userLat = pos.coords.latitude;
+              var userLng = pos.coords.longitude;
+              var closest = null;
+              var minDist = Infinity;
+              branches.forEach(function(b) {
+                if (!b.is_open) return;
+                var dlat = b.latitude - userLat;
+                var dlng = b.longitude - userLng;
+                var dist = Math.sqrt(dlat * dlat + dlng * dlng);
+                if (dist < minDist) {
+                  minDist = dist;
+                  closest = b;
+                }
+              });
+              if (closest) {
+                selected = closest.key;
+                notifyBranchChange(selected);
+              }
+              updateBranchSelector(branches, selected);
+            },
+            function() {
+              updateBranchSelector(branches, selected || (branches.length > 0 ? branches[0].key : ""));
+            },
+            { enableHighAccuracy: false, timeout: 3000 }
+          );
+        } else {
+          updateBranchSelector(branches, selected || (branches.length > 0 ? branches[0].key : ""));
+        }
+      })
+      .catch(function() {
+        nameEl.textContent = "Sin sucursal";
+        statusEl.className = "branch-selector-status";
+      });
+
+    // Toggle dropdown
+    btn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle("show");
+      btn.classList.toggle("active");
+    });
+
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener("click", function(e) {
+      if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.remove("show");
+        btn.classList.remove("active");
+      }
+    });
+  })();
 });

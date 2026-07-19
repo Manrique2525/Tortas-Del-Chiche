@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BranchController;
+use App\Http\Controllers\Admin\BranchProductController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController;
@@ -56,6 +57,10 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     Route::put('/branches/{branch}', [BranchController::class, 'update'])->name('admin.branches.update');
     Route::delete('/branches/{branch}', [BranchController::class, 'destroy'])->name('admin.branches.destroy');
     Route::patch('/branches/{branch}/toggle', [BranchController::class, 'toggle'])->name('admin.branches.toggle');
+
+    // Branch-Products (disponibilidad por sucursal)
+    Route::get('/branch-products', [BranchProductController::class, 'index'])->name('admin.branch-products');
+    Route::post('/branch-products/update', [BranchProductController::class, 'update'])->name('admin.branch-products.update');
 
     // Cupones
     Route::get('/coupons', [CouponController::class, 'index'])->name('admin.coupons');

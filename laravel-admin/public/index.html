@@ -148,6 +148,16 @@
           <img src="img/logo.jpeg" alt="Logo Cochinita Pibil" class="logo" />
           <h1>Las Tortas Del Chiche</h1>
         </div>
+        <div class="branch-selector" id="branchSelector">
+          <button class="branch-selector-btn" id="branchSelectorBtn">
+            <i class="fas fa-store"></i>
+            <span class="branch-selector-name" id="branchSelectorName">Cargando...</span>
+            <span class="branch-selector-status" id="branchSelectorStatus"></span>
+            <i class="fas fa-chevron-down branch-selector-arrow"></i>
+          </button>
+          <div class="branch-dropdown" id="branchDropdown">
+          </div>
+        </div>
         <nav>
           <ul class="nav-links">
             <li><a href="#inicio">Inicio</a></li>
@@ -505,6 +515,13 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script>
+      window.branchCallbacks = [];
+      window.selectedBranch = localStorage.getItem("tortas_chiche_branch") || "";
+      window.onBranchChange = function(fn) {
+        window.branchCallbacks.push(fn);
+      };
+    </script>
     <script src="js/products.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/script.js"></script>

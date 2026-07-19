@@ -1,21 +1,35 @@
 const PRODUCTS_API_URL = '/api/products';
 
 let productsCache = [];
+let currentBranch = "";
+
+function getProductsApiUrl() {
+    currentBranch = window.selectedBranch || "";
+    return currentBranch ? PRODUCTS_API_URL + '?branch=' + encodeURIComponent(currentBranch) : PRODUCTS_API_URL;
+}
 
 function createProductCard(product) {
     const div = document.createElement('div');
-    const isInactive = product.active === false || product.active === 0;
+    const isInactive = product.active === false || product.active === 0 || product.branch_active === false;
     div.className = isInactive ? 'menu-item menu-item-inactive' : 'menu-item';
     div.dataset.id = product.id;
     div.dataset.name = product.name;
-    div.dataset.price = product.price;
+    div.dataset.price = product.branch_price || product.price;
     div.dataset.img = product.image || '';
     if (isInactive) div.dataset.inactive = '1';
 
-    const hasMojado = product.has_mojado === true || product.has_mojado === 1;
-    const hasSeco = product.has_seco === true || product.has_seco === 1;
-    const hasCochinita = product.has_cochinita === true || product.has_cochinita === 1;
-    const hasLechon = product.has_lechon === true || product.has_lechon === 1;
+    const hasMojado = product.available_options
+        ? (product.available_options.type && product.available_options.type.includes('mojado'))
+        : (product.has_mojado === true || product.has_mojado === 1);
+    const hasSeco = product.available_options
+        ? (product.available_options.type && product.available_options.type.includes('seco'))
+        : (product.has_seco === true || product.has_seco === 1);
+    const hasCochinita = product.available_options
+        ? (product.available_options.meat && product.available_options.meat.includes('cochinita'))
+        : (product.has_cochinita === true || product.has_cochinita === 1);
+    const hasLechon = product.available_options
+        ? (product.available_options.meat && product.available_options.meat.includes('lechon'))
+        : (product.has_lechon === true || product.has_lechon === 1);
 
     const hasTypeOptions = hasMojado || hasSeco;
     const hasMeatOptions = hasCochinita || hasLechon;
@@ -163,7 +177,8 @@ function updateAddButtonState(card) {
 
 async function loadProducts() {
     try {
-        const res = await fetch(PRODUCTS_API_URL);
+        const url = getProductsApiUrl();
+        const res = await fetch(url);
         if (!res.ok) throw new Error('HTTP ' + res.status);
 
         const products = await res.json();
@@ -236,4 +251,13 @@ function getProductOptionsByCard(card) {
     return getProductOptions(card);
 }
 
-document.addEventListener('DOMContentLoaded', loadProducts);
+document.addEventListener('DOMContentLoaded', function() {
+    loadProducts();
+
+    (window.branchCallbacks || (window.branchCallbacks = [])).push(function() {
+        loadProducts();
+        if (typeof syncAllCardButtons === 'function') {
+            syncAllCardButtons();
+        }
+    });
+});

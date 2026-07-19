@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CouponSeeder::class,
             BranchSeeder::class,
             AdminUserSeeder::class,
+            BranchProductSeeder::class,
         ]);
     }
 }

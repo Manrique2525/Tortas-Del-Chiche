@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 
 class Branch extends Model
@@ -89,5 +90,12 @@ class Branch extends Model
             $key = $base . '-' . $i++;
         }
         return $key;
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'branch_product')
+            ->withPivot(['active', 'available_options', 'price_override'])
+            ->withTimestamps();
     }
 }

@@ -298,6 +298,9 @@
             <a href="{{ route('admin.branches') }}" class="add-btn" style="background: linear-gradient(135deg, #FF6B35, #e55a2d);">
                 <i class="fas fa-store"></i> <span class="btn-label">Sucursales</span>
             </a>
+            <a href="{{ route('admin.branch-products') }}" class="add-btn" style="background: linear-gradient(135deg, #FF6B35, #e55a2d);">
+                <i class="fas fa-store-alt"></i> <span class="btn-label">Disponibilidad</span>
+            </a>
             <a href="{{ route('admin.coupons') }}" class="add-btn" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">
                 <i class="fas fa-tags"></i> <span class="btn-label">Cupones</span>
             </a>
