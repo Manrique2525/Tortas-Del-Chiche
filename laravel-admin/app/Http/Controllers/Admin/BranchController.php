@@ -33,18 +33,12 @@ class BranchController extends Controller
             'sort_order'     => 'nullable|integer|min:0',
         ]);
 
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        $schedule = [];
-        foreach ($days as $day) {
-            $openKey = $day . '_open';
-            $closeKey = $day . '_close';
-            $schedule[$day] = [
-                'open' => $request->input($openKey, '07:00'),
-                'close' => $request->input($closeKey, '14:00'),
-            ];
-        }
-
-        $validated['schedule'] = $schedule;
+        $selectedDays = $request->input('days', []);
+        $validated['schedule'] = [
+            'open' => $request->input('schedule_open', '07:00'),
+            'close' => $request->input('schedule_close', '14:00'),
+            'days' => $selectedDays,
+        ];
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
@@ -72,18 +66,12 @@ class BranchController extends Controller
             'sort_order'     => 'nullable|integer|min:0',
         ]);
 
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        $schedule = [];
-        foreach ($days as $day) {
-            $openKey = $day . '_open';
-            $closeKey = $day . '_close';
-            $schedule[$day] = [
-                'open' => $request->input($openKey, '07:00'),
-                'close' => $request->input($closeKey, '14:00'),
-            ];
-        }
-
-        $validated['schedule'] = $schedule;
+        $selectedDays = $request->input('days', []);
+        $validated['schedule'] = [
+            'open' => $request->input('schedule_open', '07:00'),
+            'close' => $request->input('schedule_close', '14:00'),
+            'days' => $selectedDays,
+        ];
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 

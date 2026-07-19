@@ -257,10 +257,10 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(function(data) {
         if (!data || data.length === 0) return;
         didiBranches = data.map(function(b) {
-          var mon = b.schedule && b.schedule.monday || { open: "07:00", close: "14:00" };
-          var apertura = parseFloat(mon.open) || 7;
-          var cierre = parseFloat(mon.close) || 14;
-          var hasDomingo = b.schedule && b.schedule.sunday && b.schedule.sunday.open && b.schedule.sunday.close;
+          var sched = b.schedule || {};
+          var apertura = parseFloat(sched.open) || 7;
+          var cierre = parseFloat(sched.close) || 14;
+          var hasDomingo = sched.days && sched.days.indexOf('sunday') !== -1;
           return {
             name: b.name,
             horario: { apertura: apertura, cierre: cierre },
@@ -271,10 +271,10 @@ document.addEventListener("DOMContentLoaded", function () {
           };
         });
         whatsappBranches = data.map(function(b) {
-          var mon = b.schedule && b.schedule.monday || { open: "07:00", close: "14:00" };
-          var apertura = parseFloat(mon.open) || 7;
-          var cierre = parseFloat(mon.close) || 14;
-          var hasDomingo = b.schedule && b.schedule.sunday && b.schedule.sunday.open && b.schedule.sunday.close;
+          var sched = b.schedule || {};
+          var apertura = parseFloat(sched.open) || 7;
+          var cierre = parseFloat(sched.close) || 14;
+          var hasDomingo = sched.days && sched.days.indexOf('sunday') !== -1;
           return {
             name: b.name,
             address: b.address || "",

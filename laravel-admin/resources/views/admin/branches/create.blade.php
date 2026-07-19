@@ -66,26 +66,6 @@
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #FF6B35; }
         .form-group textarea { resize: vertical; min-height: 60px; }
 
-        .schedule-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px;
-            margin-top: 6px;
-        }
-        .schedule-day {
-            background: #fafafa; border: 2px solid #e0e0e0; border-radius: 10px; padding: 10px 12px;
-        }
-        .schedule-day-label {
-            font-size: 0.7rem; font-weight: 700; color: #1a1a1a; margin-bottom: 6px;
-            text-transform: capitalize; text-align: center;
-        }
-        .schedule-day-inputs {
-            display: flex; gap: 6px; align-items: center;
-        }
-        .schedule-day-inputs input {
-            flex: 1; padding: 5px 6px; border: 1px solid #ddd; border-radius: 6px;
-            font-family: 'Poppins', sans-serif; font-size: 0.75rem; text-align: center;
-        }
-        .schedule-day-inputs span { font-size: 0.65rem; color: #888; }
-
         .btn {
             padding: 11px 24px; border: none; border-radius: 10px;
             font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700;
@@ -113,7 +93,6 @@
             .btn-label { display: none; }
             .content { padding: 0 16px; margin: 24px auto; }
             .form-grid { grid-template-columns: 1fr; }
-            .schedule-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
         }
         @media (max-width: 576px) {
             .admin-header { padding: 12px 14px; flex-wrap: wrap; gap: 10px; }
@@ -124,7 +103,6 @@
             .content { padding: 0 14px; margin: 20px auto; }
             .card { padding: 20px; border-radius: 14px; }
             .card h2 { font-size: 0.88rem; }
-            .schedule-grid { grid-template-columns: 1fr 1fr; }
             .form-actions { flex-direction: column; }
             .form-actions .btn { width: 100%; justify-content: center; }
         }
@@ -135,7 +113,7 @@
             .admin-header-left p { font-size: 0.6rem; }
             .content { padding: 0 12px; margin: 16px auto; }
             .card { padding: 16px; border-radius: 12px; }
-            .schedule-grid { grid-template-columns: 1fr; }
+
         }
     </style>
 </head>
@@ -219,8 +197,18 @@
             </div>
 
             <div class="card">
-                <h2><i class="fas fa-clock"></i> Horario por día</h2>
-                <p style="font-size:0.75rem;color:#888;margin-bottom:14px;">Configura el horario de apertura y cierre para cada día de la semana.</p>
+                <h2><i class="fas fa-clock"></i> Horario</h2>
+                <p style="font-size:0.75rem;color:#888;margin-bottom:14px;">Define el horario y selecciona los días en que aplica.</p>
+                <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
+                    <div class="form-group" style="flex:1;min-width:130px;">
+                        <label>Apertura</label>
+                        <input type="time" name="schedule_open" value="{{ old('schedule_open', '07:00') }}">
+                    </div>
+                    <div class="form-group" style="flex:1;min-width:130px;">
+                        <label>Cierre</label>
+                        <input type="time" name="schedule_close" value="{{ old('schedule_close', '14:00') }}">
+                    </div>
+                </div>
                 @php
                     $days = [
                         'monday' => 'Lunes',
@@ -232,16 +220,14 @@
                         'sunday' => 'Domingo',
                     ];
                 @endphp
-                <div class="schedule-grid">
+                <div style="display:flex;flex-wrap:wrap;gap:10px;">
                     @foreach($days as $dayKey => $dayLabel)
-                        <div class="schedule-day">
-                            <div class="schedule-day-label">{{ $dayLabel }}</div>
-                            <div class="schedule-day-inputs">
-                                <input type="time" name="{{ $dayKey }}_open" value="{{ old($dayKey . '_open', '07:00') }}">
-                                <span>a</span>
-                                <input type="time" name="{{ $dayKey }}_close" value="{{ old($dayKey . '_close', '14:00') }}">
-                            </div>
-                        </div>
+                        <label style="display:flex;align-items:center;gap:5px;padding:7px 14px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;color:#555;transition:all 0.2s;background:#fafafa;user-select:none;">
+                            <input type="checkbox" name="days[]" value="{{ $dayKey }}"
+                                   {{ in_array($dayKey, old('days', ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'])) ? 'checked' : '' }}
+                                   style="width:16px;height:16px;accent-color:#FF6B35;cursor:pointer;">
+                            {{ $dayLabel }}
+                        </label>
                     @endforeach
                 </div>
             </div>

@@ -30,12 +30,15 @@ class Branch extends Model
         if (!$this->is_active) return false;
 
         $day = strtolower(now()->format('l'));
-        $today = $this->schedule[$day] ?? null;
+        $days = $this->schedule['days'] ?? [];
 
-        if (!$today || empty($today['open']) || empty($today['close'])) return false;
+        if (!in_array($day, $days)) return false;
+
+        $open = $this->schedule['open'] ?? '07:00';
+        $close = $this->schedule['close'] ?? '14:00';
 
         $now = now()->format('H:i');
-        return $now >= $today['open'] && $now <= $today['close'];
+        return $now >= $open && $now <= $close;
     }
 
     protected static function booted(): void
