@@ -2929,6 +2929,14 @@ footer {
     box-shadow: none;
 }
 
+.mercadopago-btn {
+    background: #009EE3 !important;
+}
+.mercadopago-btn:hover {
+    background: #0089C4 !important;
+    box-shadow: 0 4px 12px rgba(0, 158, 227, 0.4) !important;
+}
+
 /* ── Toast container (cola de mensajes) ── */
 .cart-toast-container {
     position: fixed;

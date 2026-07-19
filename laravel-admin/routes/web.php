@@ -40,6 +40,13 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     // Pedidos
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
+    Route::get('/orders/check-paid', function () {
+        $order = \App\Models\Order::where('status', 'pagado')
+            ->where('payment_method', 'mercadopago')
+            ->latest()
+            ->first(['id', 'customer_name', 'total', 'status']);
+        return response()->json($order);
+    })->name('admin.orders.check-paid');
 
     // Sucursales
     Route::get('/branches', [BranchController::class, 'index'])->name('admin.branches');

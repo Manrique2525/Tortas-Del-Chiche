@@ -876,7 +876,7 @@ const Cart = (() => {
       </div>
     `;
 
-    const paymentSummary = state.payment === "efectivo" ? "Efectivo" : "Transferencia";
+    const paymentSummary = state.payment === "efectivo" ? "Efectivo" : state.payment === "transferencia" ? "Transferencia" : "Tarjeta";
     const clabeFormatted = BANK_INFO.clabe.replace(/(\d{4})(?=\d)/g, "$1 ");
     html += `
       <div class="cart-section">
@@ -894,6 +894,10 @@ const Cart = (() => {
             <button class="cart-payment-option ${state.payment === "transferencia" ? "active" : ""}" data-payment="transferencia">
               <i class="fas fa-university"></i>
               <span class="cart-payment-name">Transferencia</span>
+            </button>
+            <button class="cart-payment-option ${state.payment === "mercadopago" ? "active" : ""}" data-payment="mercadopago">
+              <i class="fas fa-credit-card"></i>
+              <span class="cart-payment-name">Tarjeta</span>
             </button>
           </div>
           <div class="bank-info-card ${state.payment === "transferencia" ? "visible" : ""}">
@@ -984,9 +988,15 @@ const Cart = (() => {
           <span>Total</span>
           <span class="cart-total-amount" id="cart-total-amount">$${grandTotal}</span>
         </div>
-        <button class="cart-whatsapp-btn" id="cart-send-whatsapp">
-          <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
-        </button>
+        ${state.payment === "mercadopago" ? `
+          <button class="cart-whatsapp-btn mercadopago-btn" id="cart-mp-pay">
+            <i class="fas fa-credit-card"></i> Pagar con tarjeta
+          </button>
+        ` : `
+          <button class="cart-whatsapp-btn" id="cart-send-whatsapp">
+            <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
+          </button>
+        `}
       </div>
     `;
 
@@ -1065,6 +1075,11 @@ const Cart = (() => {
       sendBtn.addEventListener("click", sendToWhatsApp);
     }
 
+    const mpPayBtn = document.getElementById("cart-mp-pay");
+    if (mpPayBtn) {
+      mpPayBtn.addEventListener("click", startMpCheckout);
+    }
+
     const nameInput = document.getElementById("cart-name");
     const phoneInput = document.getElementById("cart-phone");
     const addressInput = document.getElementById("cart-address");
@@ -1097,10 +1112,8 @@ const Cart = (() => {
         const bankCard = document.querySelector(".bank-info-card");
         if (bankCard) {
           bankCard.classList.toggle("visible", state.payment === "transferencia");
-          if (state.payment === "transferencia") {
-            setTimeout(() => bankCard.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
-          }
         }
+        renderSidebar();
       });
     });
 
@@ -1466,7 +1479,7 @@ const Cart = (() => {
       msg += `\n*Motomandado${dist ? ` (${formatDistance(dist)})` : ""}:* $${fee} MXN`;
     }
     msg += `\n*Total: $${grandTotal} MXN*`;
-    msg += `\n*Método de pago:* ${state.payment === "efectivo" ? "Efectivo" : "Transferencia"}`;
+    msg += `\n*Método de pago:* ${state.payment === "efectivo" ? "Efectivo" : state.payment === "transferencia" ? "Transferencia" : "Tarjeta débito/crédito"}`;
     if (state.payment === "transferencia") {
       msg += `\n*Banco:* ${BANK_INFO.bank}`;
       msg += `\n*Titular:* ${BANK_INFO.holder}`;
@@ -1570,6 +1583,214 @@ const Cart = (() => {
     });
   }
 
+  /* ──────────── Mercado Pago Checkout ──────────── */
+  function startMpCheckout() {
+    state.customer.name = document.getElementById("cart-name")?.value || state.customer.name;
+    state.customer.phone = document.getElementById("cart-phone")?.value || state.customer.phone;
+    state.customer.addressRef = document.getElementById("cart-address")?.value || state.customer.addressRef;
+    save();
+
+    const isPickup = state.deliveryType === "recoger";
+
+    if (state.items.length === 0) {
+      showCartAlert("Agrega productos a tu carrito primero.");
+      return;
+    }
+    if (!state.customer.name.trim()) {
+      showCartAlert("Ingresa tu nombre.");
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-name")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+      return;
+    }
+    if (!state.customer.phone.trim()) {
+      showCartAlert("Ingresa tu teléfono.");
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-phone")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+      return;
+    }
+    if (!/^\d{10}$/.test(state.customer.phone.replace(/\D/g, ""))) {
+      showCartAlert("El teléfono debe tener 10 dígitos.");
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-phone")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+      return;
+    }
+    if (!isPickup && !state.customer.addressRef.trim()) {
+      showCartAlert("Agrega una referencia de dirección.");
+      openSection("datos");
+      setTimeout(() => document.getElementById("cart-address")?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+      return;
+    }
+    if (!state.branch || !BRANCHES[state.branch]) {
+      showCartAlert("Selecciona una sucursal.");
+      openSection("sucursal");
+      return;
+    }
+    if (BRANCHES[state.branch].is_open === false) {
+      showCartAlert("La sucursal seleccionada está cerrada. Elige otra.");
+      openSection("sucursal");
+      return;
+    }
+    if (isPickup) {
+      if (!state.pickupTime) {
+        showCartAlert("Selecciona la hora de recolección.");
+        openSection("horario");
+        return;
+      }
+    } else {
+      if (!state.location.confirmed) {
+        showCartAlert("Selecciona tu ubicación de entrega en el mapa.");
+        openSection("ubicacion");
+        return;
+      }
+    }
+
+    const subtotal = getTotal();
+    const fee = getDeliveryFee();
+    const discount = isCouponValid() ? getCouponDiscount() : 0;
+    const grandTotal = isPickup ? subtotal - discount : subtotal + fee - discount;
+
+    const payload = {
+      customer_name: state.customer.name.trim(),
+      customer_phone: state.customer.phone.replace(/\D/g, ""),
+      customer_address: isPickup ? null : formatAddress(state.location.address),
+      branch: state.branch,
+      delivery_type: isPickup ? "recoger" : "domicilio",
+      subtotal: subtotal,
+      delivery_fee: fee,
+      discount: discount,
+      total: grandTotal,
+      coupon_code: isCouponValid() ? state.coupon : null,
+      items: state.items.map(function(item) {
+        return {
+          product_id: item.id || null,
+          product_name: item.name,
+          quantity: item.quantity,
+          unit_price: item.price,
+          options: item.options && Object.keys(item.options).length ? item.options : null,
+        };
+      }),
+    };
+
+    const btn = document.getElementById("cart-mp-pay");
+    if (btn) {
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando con Mercado Pago...';
+      btn.disabled = true;
+    }
+
+    fetch("/api/mercadopago/create-preference", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    .then(function(r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      if (data.success) {
+        sessionStorage.setItem("mp_order_id", data.order_id);
+        window.location.href = data.init_point;
+      } else {
+        showCartAlert("Error al conectar con el procesador. Intenta de nuevo.");
+        if (btn) { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pagar con tarjeta'; btn.disabled = false; }
+      }
+    })
+    .catch(function() {
+      showCartAlert("Error de conexión. Intenta de nuevo.");
+      if (btn) { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pagar con tarjeta'; btn.disabled = false; }
+    });
+  }
+
+  function sendPaidWhatsApp(orderId) {
+    const isPickup = state.deliveryType === "recoger";
+    const subtotal = getTotal();
+    const fee = getDeliveryFee();
+    const dist = getDeliveryDistance();
+    const discount = isCouponValid() ? getCouponDiscount() : 0;
+    const couponData = getCouponData();
+    const grandTotal = isPickup ? subtotal - discount : subtotal + fee - discount;
+    const mapsLink = state.location.lat ? "https://www.google.com/maps/search/?api=1&query=" + state.location.lat + "," + state.location.lng : "";
+    const addrText = formatAddress(state.location.address);
+
+    let msg = "\u2705 *PAGO CON TARJETA CONFIRMADO*\n";
+    msg += "Orden #" + orderId + "\n";
+    msg += "\n";
+    msg += "*Pedido - Las Tortas Del Chiche*\n";
+    msg += "\n";
+    msg += "*Tipo:* " + (isPickup ? "Recoger en sucursal" : "Envío a domicilio");
+    msg += "\n*Sucursal:* " + (BRANCHES[state.branch] ? BRANCHES[state.branch].name : state.branch);
+    msg += "\n*Cliente:* " + state.customer.name;
+    msg += "\n*Tel:* " + state.customer.phone;
+    if (isPickup) {
+      msg += "\n*Hora de recolección:* " + state.pickupTime;
+      if (state.customer.addressRef.trim()) {
+        msg += "\n*Nota:* " + state.customer.addressRef;
+      }
+    } else {
+      msg += "\n*Referencia:* " + state.customer.addressRef;
+      if (addrText) msg += "\n*Dirección:* " + addrText;
+      if (mapsLink) msg += "\n*Ubicación:* " + mapsLink;
+    }
+    msg += "\n";
+    msg += "\n-----------------------";
+    msg += "\n*Detalle del pedido:*\n";
+    state.items.forEach(function(item) {
+      var itemOpts = item.options || {};
+      var optParts = [];
+      if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
+      if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
+      var optStr = optParts.length ? " [" + optParts.join(" - ") + "]" : "";
+      msg += "*" + item.quantity + "x* " + item.name + optStr + " — $" + (item.price * item.quantity) + "\n";
+    });
+    msg += "-----------------------";
+    if (!isPickup) msg += "\n*Subtotal:* $" + subtotal + " MXN";
+    if (discount > 0) msg += "\n*Descuento (" + (couponData ? couponData.label : "") + "):* -$" + discount + " MXN";
+    if (!isPickup) msg += "\n*Motomandado" + (dist ? " (" + formatDistance(dist) + ")" : "") + ":* $" + fee + " MXN";
+    msg += "\n*Total: $" + grandTotal + " MXN*";
+    msg += "\n\ud83d\udcb3 *Pagado con tarjeta* (ID: " + orderId + ")";
+
+    var whatsapp = BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "";
+    var url = "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(msg);
+    var opened = window.open(url, "_blank", "noopener,noreferrer");
+    if (!opened) {
+      navigator.clipboard.writeText(msg).then(function() {
+        showToast("Mensaje de confirmación copiado al portapapeles", "success");
+      }).catch(function() {
+        showCartAlert("No se pudo abrir WhatsApp. Copia el mensaje manualmente.");
+      });
+    }
+  }
+
+  function checkMpReturn() {
+    var params = new URLSearchParams(window.location.search);
+    var status = params.get("mp_status");
+    var orderId = params.get("order_id") || sessionStorage.getItem("mp_order_id");
+
+    if (!status) return;
+
+    history.replaceState({}, "", window.location.pathname);
+
+    if (status === "success") {
+      showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
+      if (orderId) {
+        sendPaidWhatsApp(orderId);
+      }
+      saveToHistory();
+      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
+      save();
+      renderSidebar();
+      renderBadge();
+      closeSidebar();
+      sessionStorage.removeItem("mp_order_id");
+    } else if (status === "failure") {
+      showCartAlert("El pago fue rechazado. Intenta con otro método de pago.");
+      sessionStorage.removeItem("mp_order_id");
+    } else if (status === "pending") {
+      showToast("Pago en proceso. Te notificaremos cuando se confirme.", "success");
+      sessionStorage.removeItem("mp_order_id");
+    }
+  }
+
   function openSection(name) {
     if (collapsedSections[name]) {
       collapsedSections[name] = false;
@@ -1671,6 +1892,7 @@ const Cart = (() => {
   }
 
   function init() {
+    checkMpReturn();
     load();
     loadCoupons();
     loadBranches();

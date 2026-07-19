@@ -88,7 +88,8 @@
         .order-card.is-aceptado { border-left-color: #2196F3; }
         .order-card.is-en_preparacion { border-left-color: #3498db; }
         .order-card.is-entregado { border-left-color: #27ae60; }
-        .order-card.is-cancelado { border-left-color: #e74c3c; }
+        .order-card.is-pagado { border-left-color: #2ecc71; }
+        .order-card.is-reembolsado { border-left-color: #e74c3c; }
 
         .order-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -350,10 +351,12 @@
             <select name="status" class="filter-input">
                 <option value="">Todos</option>
                 <option value="pendiente" {{ request('status') === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                <option value="pagado" {{ request('status') === 'pagado' ? 'selected' : '' }}>Pagado</option>
                 <option value="aceptado" {{ request('status') === 'aceptado' ? 'selected' : '' }}>Aceptado</option>
                 <option value="en_preparacion" {{ request('status') === 'en_preparacion' ? 'selected' : '' }}>En Preparación</option>
                 <option value="entregado" {{ request('status') === 'entregado' ? 'selected' : '' }}>Entregado</option>
                 <option value="cancelado" {{ request('status') === 'cancelado' ? 'selected' : '' }}>Cancelado</option>
+                <option value="reembolsado" {{ request('status') === 'reembolsado' ? 'selected' : '' }}>Reembolsado</option>
             </select>
         </div>
         <div class="filter-group">
@@ -398,6 +401,8 @@
                             'en_preparacion' => 'fire',
                             'entregado' => 'check-double',
                             'cancelado' => 'times',
+                            'pagado' => 'credit-card',
+                            'reembolsado' => 'undo',
                             default => 'circle',
                         } }}"></i>
                         {{ $order->status_label }}
@@ -502,10 +507,12 @@
                         <div style="width:100%;">
                             <select class="status-select" onchange="updateStatus({{ $order->id }}, this.value)">
                                 <option value="pendiente" {{ $order->status === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                                <option value="pagado" {{ $order->status === 'pagado' ? 'selected' : '' }}>Pagado</option>
                                 <option value="aceptado" {{ $order->status === 'aceptado' ? 'selected' : '' }}>Aceptado</option>
                                 <option value="en_preparacion" {{ $order->status === 'en_preparacion' ? 'selected' : '' }}>En Preparación</option>
                                 <option value="entregado" {{ $order->status === 'entregado' ? 'selected' : '' }}>Entregado</option>
                                 <option value="cancelado" {{ $order->status === 'cancelado' ? 'selected' : '' }}>Cancelado</option>
+                                <option value="reembolsado" {{ $order->status === 'reembolsado' ? 'selected' : '' }}>Reembolsado</option>
                             </select>
                         </div>
                     @endif

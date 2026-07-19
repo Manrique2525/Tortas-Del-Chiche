@@ -21,6 +21,7 @@ class Order extends Model
         'status',
         'coupon_code',
         'mp_payment_id',
+        'mp_preference_id',
         'payment_proof',
     ];
 
@@ -54,6 +55,8 @@ class Order extends Model
             'en_preparacion' => 'En Preparación',
             'entregado'      => 'Entregado',
             'cancelado'      => 'Cancelado',
+            'pagado'         => 'Pagado',
+            'reembolsado'    => 'Reembolsado',
             default          => ucfirst($this->status),
         };
     }
@@ -66,6 +69,8 @@ class Order extends Model
             'en_preparacion' => '#3498db',
             'entregado'      => '#27ae60',
             'cancelado'      => '#e74c3c',
+            'pagado'         => '#2ecc71',
+            'reembolsado'    => '#e74c3c',
             default          => '#888',
         };
     }
@@ -75,7 +80,7 @@ class Order extends Model
         return match($this->payment_method) {
             'efectivo'      => 'Efectivo',
             'transferencia' => 'Transferencia',
-            'mercadopago'   => 'MercadoPago',
+            'mercadopago'   => 'Tarjeta',
             default         => ucfirst($this->payment_method),
         };
     }
