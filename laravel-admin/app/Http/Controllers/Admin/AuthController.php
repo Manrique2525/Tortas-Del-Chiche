@@ -22,8 +22,17 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if ($request->password === config('app.admin_password')) {
+        $adminPassword = config('app.admin_password');
+        if (!$adminPassword) {
+            return back()->withErrors([
+                'password' => 'Error de configuración. Contacta al administrador.',
+            ]);
+        }
+
+        if ($request->password === $adminPassword) {
+            session()->regenerate(true);
             session(['admin_authenticated' => true]);
+            session(['admin_last_activity' => now()->timestamp]);
             return redirect()->route('admin.dashboard');
         }
 

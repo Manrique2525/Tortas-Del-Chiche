@@ -16,7 +16,7 @@ Route::get('/', function () {
 
 // ── Admin Auth ──
 Route::get('/admin', [AuthController::class, 'showLogin'])->name('admin.login');
-Route::post('/admin/login', [AuthController::class, 'login'])->name('admin.login.post');
+Route::post('/admin/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('admin.login.post');
 Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
 // ── Admin Dashboard (protegido) ──

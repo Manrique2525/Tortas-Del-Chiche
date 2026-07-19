@@ -19,3 +19,12 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Seguridad: Bloquear archivos sensibles
+<FilesMatch "\.(env|env\.|sqlite|sqlite3|log|htaccess)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(composer\.(json|lock)|package\.json|package-lock\.json|artisan)$">
+    Require all denied
+</FilesMatch>

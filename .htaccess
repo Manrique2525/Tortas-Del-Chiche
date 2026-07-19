@@ -19,3 +19,16 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
   ExpiresByType image/x-icon "access plus 1 year"
   ExpiresByType application/manifest+json "access plus 1 month"
 </IfModule>
+
+# Seguridad: Bloquear archivos sensibles
+<FilesMatch "\.(env|env\.|sqlite|sqlite3|log|htaccess|htpasswd|md|txt)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(composer\.(json|lock)|package\.json|package-lock\.json|vite\.config\.js|Dockerfile|docker-compose\.yml|artisan|phpunit\.xml)$">
+    Require all denied
+</FilesMatch>
+
+RedirectMatch 403 ^/storage/
+RedirectMatch 403 ^/vendor/
+RedirectMatch 403 ^/database/

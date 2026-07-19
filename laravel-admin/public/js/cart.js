@@ -266,6 +266,15 @@ const Cart = (() => {
   }
 
   function removeItem(key) {
+    const item = state.items.find((i) => i.key === key);
+    const id = item ? item.id : null;
+    if (id) {
+      if (cardTimers[id]) {
+        clearTimeout(cardTimers[id]);
+        delete cardTimers[id];
+      }
+      hideCardQtyControl(id);
+    }
     const el = document.querySelector(`.cart-item[data-key="${key}"]`);
     if (el) {
       el.classList.add("cart-item-exit");
