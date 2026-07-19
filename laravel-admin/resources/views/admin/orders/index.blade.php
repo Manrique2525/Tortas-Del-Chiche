@@ -237,6 +237,40 @@
             .status-select { width: 100%; font-size: 0.7rem; }
         }
 
+        /* ── WhatsApp Button ── */
+        .wa-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 50%; background: #25D366;
+            color: white; font-size: 0.78rem; text-decoration: none;
+            transition: all 0.2s ease; margin-left: 4px; flex-shrink: 0;
+        }
+        .wa-btn:hover { background: #1da851; transform: scale(1.15); color: white; }
+
+        /* ── WhatsApp Notification Bar ── */
+        #wa-notify-bar {
+            position: fixed; bottom: 24px; right: 24px; background: white;
+            border-radius: 14px; box-shadow: 0 6px 30px rgba(0,0,0,0.18);
+            padding: 16px 20px; z-index: 9999; max-width: 440px; width: calc(100% - 48px);
+            transform: translateY(140px); opacity: 0; transition: all 0.4s ease;
+        }
+        #wa-notify-bar.show { transform: translateY(0); opacity: 1; }
+        .wa-notify-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .wa-notify-text {
+            display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: #333; flex: 1; min-width: 160px;
+        }
+        .wa-notify-text i { font-size: 1.6rem; color: #25D366; }
+        .wa-notify-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .wa-notify-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 8px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none;
+            text-decoration: none; transition: all 0.2s ease; white-space: nowrap;
+        }
+        .wa-notify-btn-send { background: #25D366; color: white; }
+        .wa-notify-btn-send:hover { background: #1da851; transform: translateY(-1px); color: white; }
+        .wa-notify-btn-skip { background: #f0f0f0; color: #888; }
+        .wa-notify-btn-skip:hover { background: #e0e0e0; }
+
         @media (max-width: 420px) {
             .admin-header { padding: 10px 12px; }
             .admin-header-left img { width: 32px; height: 32px; }
@@ -374,7 +408,16 @@
                         <i class="fas fa-user"></i> {{ $order->customer_name }}
                     </div>
                     @if($order->customer_phone)
-                        <div class="order-detail"><i class="fas fa-phone"></i> {{ $order->customer_phone }}</div>
+                        @php
+                            $cleanPhone = preg_replace('/\D/', '', $order->customer_phone);
+                            $waPhone = str_starts_with($cleanPhone, '52') ? $cleanPhone : '52' . $cleanPhone;
+                        @endphp
+                        <div class="order-detail">
+                            <i class="fas fa-phone"></i> {{ $order->customer_phone }}
+                            <a href="https://wa.me/{{ $waPhone }}" target="_blank" class="wa-btn" title="Enviar WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </div>
                     @endif
                     <div class="order-detail">
                         <i class="fas fa-map-marker-alt"></i>
@@ -507,11 +550,47 @@
             .then(r => r.json())
             .then(data => {
                 showToast(data.message, 'success');
+                if ((status === 'en_preparacion' || status === 'entregado') && data.customer_phone) {
+                    showWANotify(data.customer_name, data.customer_phone, status);
+                }
                 if (card) {
                     setTimeout(() => { location.reload(); }, 800);
                 }
             })
             .catch(() => showToast('Error al actualizar', 'error'));
+        }
+
+        function showWANotify(name, phone, status) {
+            const existing = document.getElementById('wa-notify-bar');
+            if (existing) existing.remove();
+
+            const p = phone.replace(/\D/g, '');
+            const waPhone = p.startsWith('52') ? p : '52' + p;
+            const statusText = status === 'en_preparacion' ? 'en preparaci\u00f3n' : 'entregado';
+            var msg;
+            if (status === 'en_preparacion') {
+                msg = `\u00a1Hola ${name}! \ud83d\ude4c%0A%0ATu pedido en *Las Tortas Del Chiche* ya est\u00e1 *en preparaci\u00f3n*.%0A%0A\ud83d\udd25 Pronto estar\u00e1 listo. \u00a1Gracias por tu paciencia!`;
+            } else {
+                msg = `\u00a1Hola ${name}! \ud83c\udf89%0A%0ATu pedido en *Las Tortas Del Chiche* ya est\u00e1 *entregado*.%0A%0A\u00a1Gracias por tu compra! Esperamos verte pronto. \ud83d\ude4c`;
+            }
+
+            const waUrl = `https://wa.me/${waPhone}?text=${msg}`;
+
+            var bar = document.createElement('div');
+            bar.id = 'wa-notify-bar';
+            bar.innerHTML =
+                '<div class="wa-notify-inner">' +
+                    '<div class="wa-notify-text">' +
+                        '<i class="fab fa-whatsapp"></i>' +
+                        '<span>\u00bfNotificar a <strong>' + name + '</strong> que su pedido est\u00e1 ' + statusText + '?</span>' +
+                    '</div>' +
+                    '<div class="wa-notify-actions">' +
+                        '<a href="' + waUrl + '" target="_blank" class="wa-notify-btn wa-notify-btn-send"><i class="fab fa-whatsapp"></i> Notificar</a>' +
+                        '<button class="wa-notify-btn wa-notify-btn-skip" onclick="this.closest(\'#wa-notify-bar\').remove()">Omitir</button>' +
+                    '</div>' +
+                '</div>';
+            document.body.appendChild(bar);
+            setTimeout(function() { bar.classList.add('show'); }, 50);
         }
 
         function showToast(message, type) {

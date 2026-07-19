@@ -66,10 +66,12 @@ class OrderController extends Controller
         $order->update(['status' => $request->status]);
 
         return response()->json([
-            'status'       => $order->status,
-            'status_label' => $order->status_label,
-            'status_color' => $order->status_color,
-            'message'      => 'Estado actualizado',
+            'status'         => $order->status,
+            'status_label'   => $order->status_label,
+            'status_color'   => $order->status_color,
+            'message'        => 'Estado actualizado',
+            'customer_name'  => $order->customer_name,
+            'customer_phone' => $order->customer_phone,
         ]);
     }
 }
