@@ -1455,7 +1455,13 @@ const Cart = (() => {
         if (Array.isArray(orderPayload[key])) {
           orderPayload[key].forEach(function(item, i) {
             Object.keys(item).forEach(function(k) {
-              fd.append("items[" + i + "][" + k + "]", item[k] !== null ? item[k] : "");
+              if (k === "options" && typeof item[k] === "object" && item[k] !== null) {
+                Object.keys(item[k]).forEach(function(optKey) {
+                  fd.append("items[" + i + "][options][" + optKey + "]", item[k][optKey]);
+                });
+              } else {
+                fd.append("items[" + i + "][" + k + "]", item[k] !== null ? item[k] : "");
+              }
             });
           });
         } else if (orderPayload[key] !== null) {
@@ -1473,24 +1479,25 @@ const Cart = (() => {
     }
 
     fetchPromise
-    .then(() => {
+    .then(function(r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
       if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
       const opened = window.open(url, "_blank", "noopener,noreferrer");
       if (!opened) {
-        navigator.clipboard.writeText(msg).then(() => {
+        navigator.clipboard.writeText(msg).then(function() {
           showCartAlert("No se pudo abrir WhatsApp. El mensaje se copió al portapapeles. Pégalo en WhatsApp manualmente.");
-        }).catch(() => {
+        }).catch(function() {
           showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
         });
       }
     })
-    .catch(() => {
+    .catch(function() {
       if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
       const opened = window.open(url, "_blank", "noopener,noreferrer");
       if (!opened) {
-        navigator.clipboard.writeText(msg).then(() => {
+        navigator.clipboard.writeText(msg).then(function() {
           showCartAlert("No se pudo guardar el pedido, pero el mensaje se copió al portapapeles.");
-        }).catch(() => {
+        }).catch(function() {
           showCartAlert("Error al enviar. Intenta de nuevo.");
         });
       }
