@@ -1411,28 +1411,31 @@ footer {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-.product-option-select {
-    width: 100%;
-    padding: 8px 10px;
+.product-option-buttons {
+    display: flex;
+    gap: 8px;
+}
+.option-btn {
+    flex: 1;
+    padding: 8px 0;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     background: #fafafa;
     font-family: 'Poppins', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #333;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #888;
     cursor: pointer;
-    transition: border-color 0.2s ease;
-    appearance: auto;
-    -webkit-appearance: auto;
+    transition: all 0.2s ease;
 }
-.product-option-select:focus {
-    outline: none;
+.option-btn:hover {
     border-color: #FF6B35;
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    color: #FF6B35;
 }
-.product-option-select option {
-    padding: 4px;
+.option-btn.selected {
+    border-color: #FF6B35;
+    background: #FFF5F0;
+    color: #E65100;
 }
 .add-to-cart-btn.disabled,
 .add-to-cart-btn:disabled {

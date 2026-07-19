@@ -25,30 +25,24 @@ function createProductCard(product) {
 
     let optionsHtml = '';
     if (hasTypeOptions) {
-        let typeOpts = '';
-        if (hasMojado) typeOpts += '<option value="mojado">Mojado</option>';
-        if (hasSeco) typeOpts += '<option value="seco">Seco</option>';
+        let btns = '';
+        if (hasMojado) btns += '<button class="option-btn" data-value="mojado">Mojado</button>';
+        if (hasSeco) btns += '<button class="option-btn" data-value="seco">Seco</button>';
         optionsHtml += `
             <div class="product-option-group" data-option="type">
                 <span class="product-option-label">Tipo:</span>
-                <select class="product-option-select">
-                    <option value="">Seleccionar...</option>
-                    ${typeOpts}
-                </select>
+                <div class="product-option-buttons">${btns}</div>
             </div>
         `;
     }
     if (hasMeatOptions) {
-        let meatOpts = '';
-        if (hasCochinita) meatOpts += '<option value="cochinita">Cochinita</option>';
-        if (hasLechon) meatOpts += '<option value="lechon">Lechón</option>';
+        let btns = '';
+        if (hasCochinita) btns += '<button class="option-btn" data-value="cochinita">Cochinita</button>';
+        if (hasLechon) btns += '<button class="option-btn" data-value="lechon">Lechón</button>';
         optionsHtml += `
             <div class="product-option-group" data-option="meat">
                 <span class="product-option-label">Carne:</span>
-                <select class="product-option-select">
-                    <option value="">Seleccionar...</option>
-                    ${meatOpts}
-                </select>
+                <div class="product-option-buttons">${btns}</div>
             </div>
         `;
     }
@@ -80,9 +74,16 @@ function createProductCard(product) {
     if (needsOptions && !isInactive) {
         div.dataset.hasTypeOptions = hasTypeOptions ? '1' : '0';
         div.dataset.hasMeatOptions = hasMeatOptions ? '1' : '0';
-        div.querySelectorAll('.product-option-select').forEach(function(sel) {
-            sel.addEventListener('change', function() {
-                updateAddButtonState(div);
+        div.querySelectorAll('.product-option-group').forEach(function(group) {
+            group.querySelectorAll('.option-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const parent = btn.closest('.product-option-group');
+                    parent.querySelectorAll('.option-btn').forEach(function(b) {
+                        b.classList.remove('selected');
+                    });
+                    btn.classList.add('selected');
+                    updateAddButtonState(div);
+                });
             });
         });
     }
@@ -92,10 +93,10 @@ function createProductCard(product) {
 
 function getProductOptions(card) {
     const options = {};
-    const typeSelect = card.querySelector('[data-option="type"] .product-option-select');
-    const meatSelect = card.querySelector('[data-option="meat"] .product-option-select');
-    if (typeSelect && typeSelect.value) options.type = typeSelect.value;
-    if (meatSelect && meatSelect.value) options.meat = meatSelect.value;
+    const typeSelected = card.querySelector('[data-option="type"] .option-btn.selected');
+    const meatSelected = card.querySelector('[data-option="meat"] .option-btn.selected');
+    if (typeSelected) options.type = typeSelected.dataset.value;
+    if (meatSelected) options.meat = meatSelected.dataset.value;
     return options;
 }
 

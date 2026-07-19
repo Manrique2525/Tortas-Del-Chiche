@@ -57,9 +57,11 @@ const Cart = (() => {
 
   function generateKey(id, options) {
     const opts = options || {};
-    const sorted = {};
-    Object.keys(opts).sort().forEach(function(k) { sorted[k] = opts[k]; });
-    return id + '|' + JSON.stringify(sorted);
+    const parts = [id];
+    Object.keys(opts).sort().forEach(function(k) {
+      parts.push(k + '-' + opts[k]);
+    });
+    return parts.join('_');
   }
   let userCoords = null;
 
@@ -228,7 +230,7 @@ const Cart = (() => {
   }
 
   function removeItem(key) {
-    const el = document.querySelector(`.cart-item[data-key="${CSS.escape(key)}"]`);
+    const el = document.querySelector(`.cart-item[data-key="${key}"]`);
     if (el) {
       el.classList.add("cart-item-exit");
       setTimeout(() => {
@@ -262,8 +264,8 @@ const Cart = (() => {
   function updateQuantityUI(key) {
     const item = state.items.find((i) => i.key === key);
     if (!item) return;
-    const qtyEl = document.querySelector(`.cart-qty-value[data-key="${CSS.escape(key)}"]`);
-    const subEl = document.querySelector(`.cart-item-subtotal[data-key="${CSS.escape(key)}"]`);
+    const qtyEl = document.querySelector(`.cart-qty-value[data-key="${key}"]`);
+    const subEl = document.querySelector(`.cart-item-subtotal[data-key="${key}"]`);
     if (qtyEl) qtyEl.textContent = item.quantity;
     if (subEl) subEl.textContent = `$${item.price * item.quantity}`;
     const totalEl = document.getElementById("cart-total-amount");
@@ -381,7 +383,7 @@ const Cart = (() => {
 
   function updateCardQtyDisplay(key) {
     const qty = getQuantityByKey(key);
-    const el = document.querySelector(`.card-qty-value[data-key="${CSS.escape(key)}"]`);
+    const el = document.querySelector(`.card-qty-value[data-key="${key}"]`);
     if (el) el.textContent = qty;
   }
 
@@ -663,23 +665,23 @@ const Cart = (() => {
       if (itemOpts.meat) optParts.push(itemOpts.meat === 'cochinita' ? 'Cochinita' : 'Lechón');
       const optStr = optParts.length ? optParts.join(' · ') : '';
       html += `
-        <div class="cart-item" data-key="${CSS.escape(item.key)}">
+        <div class="cart-item" data-key="${item.key}">
           ${item.img ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
             <h4>${item.name}${optStr ? ` <span class="cart-item-options">(${optStr})</span>` : ''}</h4>
             <span class="cart-item-price">$${item.price} c/u</span>
           </div>
           <div class="cart-item-controls">
-            <button class="cart-qty-btn" data-key="${CSS.escape(item.key)}" data-action="decrease" aria-label="Disminuir cantidad">
+            <button class="cart-qty-btn" data-key="${item.key}" data-action="decrease" aria-label="Disminuir cantidad">
               <i class="fas fa-minus"></i>
             </button>
-            <span class="cart-qty-value" data-key="${CSS.escape(item.key)}">${item.quantity}</span>
-            <button class="cart-qty-btn" data-key="${CSS.escape(item.key)}" data-action="increase" aria-label="Aumentar cantidad">
+            <span class="cart-qty-value" data-key="${item.key}">${item.quantity}</span>
+            <button class="cart-qty-btn" data-key="${item.key}" data-action="increase" aria-label="Aumentar cantidad">
               <i class="fas fa-plus"></i>
             </button>
           </div>
-          <div class="cart-item-subtotal" data-key="${CSS.escape(item.key)}">$${item.price * item.quantity}</div>
-          <button class="cart-item-remove" data-key="${CSS.escape(item.key)}" aria-label="Eliminar ${item.name}">
+          <div class="cart-item-subtotal" data-key="${item.key}">$${item.price * item.quantity}</div>
+          <button class="cart-item-remove" data-key="${item.key}" aria-label="Eliminar ${item.name}">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -943,7 +945,7 @@ const Cart = (() => {
     const headerCount = document.getElementById("cart-header-count");
     if (headerCount) headerCount.textContent = `(${getItemCount()})`;
     if (lastAddedItemKey) {
-      const newItemEl = document.querySelector(`.cart-item[data-key="${CSS.escape(lastAddedItemKey)}"]`);
+      const newItemEl = document.querySelector(`.cart-item[data-key="${lastAddedItemKey}"]`);
       if (newItemEl) {
         newItemEl.classList.add("cart-item-enter");
       }
@@ -1570,10 +1572,10 @@ const Cart = (() => {
 
   function getItemOptionsFromCard(card) {
     const options = {};
-    const typeSelect = card.querySelector('[data-option="type"] .product-option-select');
-    const meatSelect = card.querySelector('[data-option="meat"] .product-option-select');
-    if (typeSelect && typeSelect.value) options.type = typeSelect.value;
-    if (meatSelect && meatSelect.value) options.meat = meatSelect.value;
+    const typeSelected = card.querySelector('[data-option="type"] .option-btn.selected');
+    const meatSelected = card.querySelector('[data-option="meat"] .option-btn.selected');
+    if (typeSelected) options.type = typeSelected.dataset.value;
+    if (meatSelected) options.meat = meatSelected.dataset.value;
     return options;
   }
 
