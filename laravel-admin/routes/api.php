@@ -32,3 +32,4 @@ Route::get('/coupons', function () {
 Route::post('/mercadopago/create-preference', [MercadoPagoController::class, 'createPreference']);
 Route::post('/mercadopago/webhook', [MercadoPagoController::class, 'webhook'])->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
 Route::get('/mercadopago/status', [MercadoPagoController::class, 'getPaymentStatus']);
+Route::get('/mercadopago/test', [MercadoPagoController::class, 'test']);
