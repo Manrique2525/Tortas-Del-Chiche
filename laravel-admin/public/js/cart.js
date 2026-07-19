@@ -326,7 +326,7 @@ const Cart = (() => {
     originalBtn.outerHTML = `
       <div class="card-qty-control" data-key="${key}">
         <button class="card-qty-btn card-qty-minus" data-key="${key}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
-        <span class="card-qty-value">${qty}</span>
+        <span class="card-qty-value" data-key="${key}">${qty}</span>
         <button class="card-qty-btn card-qty-plus" data-key="${key}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
       </div>`;
 
@@ -413,7 +413,7 @@ const Cart = (() => {
           btn.outerHTML = `
             <div class="card-qty-control" data-key="${key}">
               <button class="card-qty-btn card-qty-minus" data-key="${key}" aria-label="Disminuir"><i class="fas fa-minus"></i></button>
-              <span class="card-qty-value">${qty}</span>
+              <span class="card-qty-value" data-key="${key}">${qty}</span>
               <button class="card-qty-btn card-qty-plus" data-key="${key}" aria-label="Aumentar"><i class="fas fa-plus"></i></button>
             </div>`;
           const control = card.querySelector(".card-qty-control");
