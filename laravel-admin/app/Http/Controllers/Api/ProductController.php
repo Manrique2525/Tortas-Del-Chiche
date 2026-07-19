@@ -43,9 +43,7 @@ class ProductController extends Controller
                     return $product;
                 });
 
-                $products = $products->filter(function ($p) {
-                    return $p->active && $p->branch_active;
-                })->values();
+                $products = $products->values();
             }
         }
 

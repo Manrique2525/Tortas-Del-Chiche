@@ -86,7 +86,7 @@ function createProductCard(product) {
             if (hasSeco) btns += '<button class="option-btn" data-value="seco">Seco</button>';
             optionsHtml +=
                 '<div class="product-option-group" data-option="type">' +
-                '<span class="product-option-label">Tipo:</span>' +
+                '<span class="product-option-label">Preparación:</span>' +
                 '<div class="product-option-buttons">' + btns + '</div>' +
                 '</div>';
         }
@@ -96,7 +96,7 @@ function createProductCard(product) {
             if (hasLechon) btns += '<button class="option-btn" data-value="lechon">Lechón</button>';
             optionsHtml +=
                 '<div class="product-option-group" data-option="meat">' +
-                '<span class="product-option-label">Carne:</span>' +
+                '<span class="product-option-label">Elige:</span>' +
                 '<div class="product-option-buttons">' + btns + '</div>' +
                 '</div>';
         }
