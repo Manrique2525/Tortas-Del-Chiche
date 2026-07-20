@@ -47,6 +47,11 @@ class ProductController extends Controller
             }
         }
 
+        $products = $products->map(function ($product) {
+            $product->image = $product->image ? asset('storage/' . $product->image) : null;
+            return $product;
+        });
+
         return response()->json($products);
     }
 }
