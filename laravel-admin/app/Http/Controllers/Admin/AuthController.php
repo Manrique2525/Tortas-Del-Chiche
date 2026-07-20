@@ -23,37 +23,26 @@ class AuthController extends Controller
     {
         $request->validate([
             'password' => 'required',
-            'email'    => 'nullable|email',
+            'email'    => 'required|email',
         ]);
 
-        $authenticated = false;
+        $user = User::where('email', $request->email)->where('is_admin', true)->first();
 
-        if ($request->email) {
-            $user = User::where('email', $request->email)->where('is_admin', true)->first();
-            if ($user && Hash::check($request->password, $user->password)) {
-                $authenticated = true;
-                session(['admin_user_id' => $user->id, 'admin_user_name' => $user->name]);
-            }
-        }
-
-        if (!$authenticated) {
-            $adminPassword = config('app.admin_password');
-            if ($adminPassword && $request->password === $adminPassword) {
-                $authenticated = true;
-            }
-        }
-
-        if ($authenticated) {
+        if ($user && Hash::check($request->password, $user->password)) {
             session()->regenerate(true);
-            session(['admin_authenticated' => true]);
-            session(['admin_last_activity' => now()->timestamp]);
-            Log::info('Admin login exitoso', ['email' => $request->email ?? 'legacy']);
+            session([
+                'admin_authenticated' => true,
+                'admin_user_id'       => $user->id,
+                'admin_user_name'     => $user->name,
+                'admin_last_activity' => now()->timestamp,
+            ]);
+            Log::info('Admin login exitoso', ['email' => $request->email]);
             return redirect()->route('admin.dashboard');
         }
 
         return back()->withErrors([
-            'password' => 'Contraseña incorrecta.',
-        ]);
+            'password' => 'Credenciales incorrectas.',
+        ])->withInput($request->only('email'));
     }
 
     public function logout()

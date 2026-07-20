@@ -13,7 +13,7 @@ return new class extends Migration
         });
 
         Schema::table('order_items', function (Blueprint $table) {
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete()->index()->change();
+            $table->index('order_id');
         });
     }
 

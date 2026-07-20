@@ -175,9 +175,9 @@
                 @csrf
                 <div class="form-group">
                     <label for="email">
-                        <i class="fas fa-envelope"></i> Email <span style="color:#999;font-weight:400;">(opcional)</span>
+                        <i class="fas fa-envelope"></i> Email
                     </label>
-                    <input type="email" id="email" name="email" placeholder="usuario@ejemplo.com" autocomplete="email">
+                    <input type="email" id="email" name="email" placeholder="admin@lastortasdelchiche.com" required autocomplete="email" value="{{ old('email') }}">
                 </div>
                 <div class="form-group">
                     <label for="password">

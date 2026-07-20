@@ -4,18 +4,17 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = config('app.admin_email') ?: 'admin@lastortasdelchiche.com';
-
         User::updateOrCreate(
-            ['email' => $email],
+            ['email' => 'admin@lastortasdelchiche.com'],
             [
                 'name'     => 'Administrador',
-                'password' => config('app.admin_password') ?: 'admin',
+                'password' => Hash::make('torta2026'),
                 'is_admin' => true,
             ]
         );
