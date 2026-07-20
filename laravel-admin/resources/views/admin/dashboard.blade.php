@@ -23,6 +23,14 @@
         .admin-header-left h1 { color: #FFD700; font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .admin-header-left p { color: #aaa; font-size: 0.7rem; }
         .header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .profile-btn {
+            background: transparent; color: #FFD700; border: 2px solid #FFD700;
+            padding: 7px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+            white-space: nowrap;
+        }
+        .profile-btn:hover { background: #FFD700; color: #1a1a1a; }
         .logout-btn {
             background: transparent; color: #ff6b6b; border: 2px solid #ff6b6b;
             padding: 7px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif;
@@ -303,6 +311,9 @@
             </a>
             <a href="{{ route('admin.coupons') }}" class="add-btn" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">
                 <i class="fas fa-tags"></i> <span class="btn-label">Cupones</span>
+            </a>
+            <a href="{{ route('admin.profile') }}" class="profile-btn">
+                <i class="fas fa-user"></i> <span class="btn-label">Perfil</span>
             </a>
             <a href="{{ route('admin.products.create') }}" class="add-btn">
                 <i class="fas fa-plus"></i> <span class="btn-label">Nuevo</span>

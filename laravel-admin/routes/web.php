@@ -62,6 +62,11 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     Route::get('/branch-products', [BranchProductController::class, 'index'])->name('admin.branch-products');
     Route::post('/branch-products/update', [BranchProductController::class, 'update'])->name('admin.branch-products.update');
 
+    // Perfil
+    Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('admin.profile');
+    Route::post('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('admin.profile.password');
+    Route::post('/profile/email', [\App\Http\Controllers\Admin\ProfileController::class, 'updateEmail'])->name('admin.profile.email');
+
     // Cupones
     Route::get('/coupons', [CouponController::class, 'index'])->name('admin.coupons');
     Route::post('/coupons', [CouponController::class, 'store'])->name('admin.coupons.store');
