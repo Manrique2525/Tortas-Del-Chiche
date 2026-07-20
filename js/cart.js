@@ -367,7 +367,7 @@ const Cart = (() => {
     var unavailable = [];
     state.items.forEach(function(item) {
       var found = branchProducts.find(function(p) {
-        return p.id === item.id;
+        return String(p.id) === String(item.id);
       });
       var isAvailable = found && found.branch_active !== false;
       if (!isAvailable) {
