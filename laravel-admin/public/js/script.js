@@ -89,7 +89,6 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("scroll", animateOnScroll);
 
   // ======== Modales: Selección de Sucursal + Bienvenida ========
-  var branchSelected = localStorage.getItem("tortas_chiche_branch");
 
   function showWelcomeModal() {
     var wOverlay = document.createElement("div");
@@ -218,11 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  if (!branchSelected) {
-    showBranchModal();
-  } else {
-    showWelcomeModal();
-  }
+  showBranchModal();
 
   // ======== Botones Flotantes ========
   setTimeout(function () {
