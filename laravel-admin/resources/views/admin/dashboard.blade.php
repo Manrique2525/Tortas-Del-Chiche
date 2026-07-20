@@ -312,9 +312,6 @@
             <a href="{{ route('admin.coupons') }}" class="add-btn" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">
                 <i class="fas fa-tags"></i> <span class="btn-label">Cupones</span>
             </a>
-            <a href="{{ route('admin.profile') }}" class="profile-btn">
-                <i class="fas fa-user"></i> <span class="btn-label">Perfil</span>
-            </a>
             <a href="{{ route('admin.products.create') }}" class="add-btn">
                 <i class="fas fa-plus"></i> <span class="btn-label">Nuevo</span>
             </a>
@@ -324,6 +321,9 @@
                     <i class="fas fa-sign-out-alt"></i> <span class="btn-label">Salir</span>
                 </button>
             </form>
+            <a href="{{ route('admin.profile') }}" class="profile-btn">
+                <i class="fas fa-user"></i> <span class="btn-label">Perfil</span>
+            </a>
         </div>
     </div>
 
