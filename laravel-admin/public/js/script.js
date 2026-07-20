@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
           var statusClass = isOpen ? "open" : "closed";
           var statusText = isOpen ? "Abierta" : "Cerrada";
           item.innerHTML =
-            '<div class="branch-modal-item-icon"><i class="fas fa-store"></i></div>' +
+            '<div class="branch-modal-item-icon"><img src="img/logo.jpeg" alt="Logo"></div>' +
             '<div class="branch-modal-item-info">' +
               '<div class="branch-modal-item-name">' + name + '</div>' +
               '<div class="branch-modal-item-schedule">' + (b.schedule_text || "") + '</div>' +
