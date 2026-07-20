@@ -1069,6 +1069,134 @@ footer {
         top: -10px;
         right: -10px;
     }
+
+    .branch-modal-container {
+        max-width: 320px !important;
+        width: 90% !important;
+    }
+
+    .branch-modal-item {
+        padding: 10px 12px !important;
+    }
+}
+
+/* Branch Selection Modal */
+.branch-modal-container {
+    max-width: 360px;
+    width: 90%;
+    padding: 24px 20px;
+}
+
+.branch-modal-title {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--primary-black);
+    text-align: center;
+    margin: 0 0 6px 0;
+}
+
+.branch-modal-title i {
+    color: var(--primary-orange);
+    margin-right: 6px;
+}
+
+.branch-modal-subtitle {
+    font-size: 0.8rem;
+    color: #888;
+    text-align: center;
+    margin: 0 0 16px 0;
+}
+
+.branch-modal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.branch-modal-loading,
+.branch-modal-empty {
+    text-align: center;
+    padding: 24px 12px;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.branch-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    background: #fafafa;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+
+.branch-modal-item:hover {
+    background: #fff5f0;
+    border-color: var(--primary-orange);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 107, 53, 0.15);
+}
+
+.branch-modal-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-orange), #e67300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.branch-modal-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.branch-modal-item-name {
+    font-weight: 700;
+    color: var(--primary-black);
+    margin-bottom: 2px;
+}
+
+.branch-modal-item-schedule {
+    font-size: 0.7rem;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.branch-modal-item-status {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.branch-modal-item-status.open {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.branch-modal-item-status.closed {
+    background: #ffebee;
+    color: #c62828;
+}
 }
 
 /* Delivery Section */

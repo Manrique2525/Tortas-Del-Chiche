@@ -88,56 +88,141 @@ document.addEventListener("DOMContentLoaded", function () {
   animateOnScroll();
   window.addEventListener("scroll", animateOnScroll);
 
-  // ======== Modal de Bienvenida ========
-  const modalOverlay = document.createElement("div");
-  modalOverlay.className = "modal-overlay";
+  // ======== Modales: Selección de Sucursal + Bienvenida ========
+  var branchSelected = localStorage.getItem("tortas_chiche_branch");
 
-  const modalContainer = document.createElement("div");
-  modalContainer.className = "modal-container";
+  function showWelcomeModal() {
+    var wOverlay = document.createElement("div");
+    wOverlay.className = "modal-overlay";
 
-  const modalContent = document.createElement("div");
-  modalContent.className = "modal-content";
+    var wContainer = document.createElement("div");
+    wContainer.className = "modal-container";
 
-  const modalImage = document.createElement("img");
-  modalImage.src = "img/imagen_promo_principal.jpeg";
-  modalImage.alt = "Las Tortas Del Chiche";
-  modalImage.className = "modal-image";
+    var wContent = document.createElement("div");
+    wContent.className = "modal-content";
 
-  const closeButton = document.createElement("button");
-  closeButton.className = "modal-close";
-  closeButton.innerHTML = "&times;";
-  closeButton.setAttribute("aria-label", "Cerrar");
+    var wImage = document.createElement("img");
+    wImage.src = "img/imagen_promo_principal.jpeg";
+    wImage.alt = "Las Tortas Del Chiche";
+    wImage.className = "modal-image";
 
-  modalContent.appendChild(modalImage);
-  modalContainer.appendChild(modalContent);
-  modalContainer.appendChild(closeButton);
-  modalOverlay.appendChild(modalContainer);
-  document.body.appendChild(modalOverlay);
+    var wClose = document.createElement("button");
+    wClose.className = "modal-close";
+    wClose.innerHTML = "&times;";
+    wClose.setAttribute("aria-label", "Cerrar");
 
-  setTimeout(function () {
-    modalOverlay.style.display = "flex";
-    document.body.style.overflow = "hidden";
+    wContent.appendChild(wImage);
+    wContainer.appendChild(wContent);
+    wContainer.appendChild(wClose);
+    wOverlay.appendChild(wContainer);
+    document.body.appendChild(wOverlay);
 
     setTimeout(function () {
-      closeModal();
-    }, 8000);
-  }, 800);
+      wOverlay.style.display = "flex";
+      document.body.style.overflow = "hidden";
+      setTimeout(function () { closeWelcomeModal(); }, 8000);
+    }, 800);
 
-  function closeModal() {
-    modalOverlay.style.opacity = "0";
-    setTimeout(function () {
-      modalOverlay.style.display = "none";
-      document.body.style.overflow = "auto";
-    }, 300);
+    function closeWelcomeModal() {
+      wOverlay.style.opacity = "0";
+      setTimeout(function () {
+        wOverlay.style.display = "none";
+        document.body.style.overflow = "auto";
+      }, 300);
+    }
+
+    wClose.addEventListener("click", closeWelcomeModal);
+    wOverlay.addEventListener("click", function (e) {
+      if (e.target === wOverlay) closeWelcomeModal();
+    });
   }
 
-  closeButton.addEventListener("click", closeModal);
+  function showBranchModal() {
+    var bOverlay = document.createElement("div");
+    bOverlay.className = "modal-overlay";
 
-  modalOverlay.addEventListener("click", function (e) {
-    if (e.target === modalOverlay) {
-      closeModal();
+    var bContainer = document.createElement("div");
+    bContainer.className = "modal-container branch-modal-container";
+
+    var bTitle = document.createElement("h2");
+    bTitle.className = "branch-modal-title";
+    bTitle.innerHTML = '<i class="fas fa-store"></i> Elige tu sucursal';
+
+    var bSubtitle = document.createElement("p");
+    bSubtitle.className = "branch-modal-subtitle";
+    bSubtitle.textContent = "Selecciona la sucursal más cercana a ti";
+
+    var bList = document.createElement("div");
+    bList.className = "branch-modal-list";
+    bList.innerHTML = '<div class="branch-modal-loading"><i class="fas fa-spinner fa-spin"></i> Cargando sucursales...</div>';
+
+    bContainer.appendChild(bTitle);
+    bContainer.appendChild(bSubtitle);
+    bContainer.appendChild(bList);
+    bOverlay.appendChild(bContainer);
+    document.body.appendChild(bOverlay);
+
+    setTimeout(function () {
+      bOverlay.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }, 100);
+
+    function closeBranchModal() {
+      bOverlay.style.opacity = "0";
+      setTimeout(function () {
+        bOverlay.style.display = "none";
+        document.body.style.overflow = "auto";
+      }, 300);
     }
-  });
+
+    function selectBranch(key) {
+      localStorage.setItem("tortas_chiche_branch", key);
+      window.selectedBranch = key;
+      (window.branchCallbacks || []).forEach(function (fn) {
+        try { fn(key); } catch (e) {}
+      });
+      closeBranchModal();
+      setTimeout(function () { showWelcomeModal(); }, 400);
+    }
+
+    fetch("/api/branches")
+      .then(function (r) { return r.json(); })
+      .then(function (branches) {
+        bList.innerHTML = "";
+        if (!branches || branches.length === 0) {
+          bList.innerHTML = '<div class="branch-modal-empty">No hay sucursales disponibles</div>';
+          return;
+        }
+        branches.forEach(function (b) {
+          var item = document.createElement("button");
+          item.className = "branch-modal-item";
+          var name = b.name.replace("Sucursal ", "");
+          var isOpen = b.is_open;
+          var statusClass = isOpen ? "open" : "closed";
+          var statusText = isOpen ? "Abierta" : "Cerrada";
+          item.innerHTML =
+            '<div class="branch-modal-item-icon"><i class="fas fa-store"></i></div>' +
+            '<div class="branch-modal-item-info">' +
+              '<div class="branch-modal-item-name">' + name + '</div>' +
+              '<div class="branch-modal-item-schedule">' + (b.schedule_text || "") + '</div>' +
+            '</div>' +
+            '<span class="branch-modal-item-status ' + statusClass + '">' + statusText + '</span>';
+          item.addEventListener("click", function () {
+            selectBranch(b.key);
+          });
+          bList.appendChild(item);
+        });
+      })
+      .catch(function () {
+        bList.innerHTML = '<div class="branch-modal-empty">Error al cargar sucursales</div>';
+      });
+  }
+
+  if (!branchSelected) {
+    showBranchModal();
+  } else {
+    showWelcomeModal();
+  }
 
   // ======== Botones Flotantes ========
   setTimeout(function () {
