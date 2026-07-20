@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/branches', [BranchController::class, 'index']);
 Route::get('/products', [ProductController::class, 'index']);
-Route::post('/orders', [OrderController::class, 'store']);
+Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:20,1');
 Route::get('/orders/pending-count', function () {
     return response()->json([
         'count' => \App\Models\Order::where('status', 'pendiente')->count(),
