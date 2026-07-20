@@ -2679,6 +2679,60 @@ footer {
     to { transform: translateX(-100%); opacity: 0; max-height: 0; padding: 0; margin: 0; border: 0; overflow: hidden; }
 }
 
+/* ── Item no disponible en sucursal ── */
+.cart-item.cart-item-unavailable {
+    opacity: 0.5;
+    background: #fff5f5;
+    position: relative;
+}
+
+.cart-item-unavailable-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #e74c3c;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+}
+
+.cart-unavailable-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 20px 12px;
+    padding: 12px 14px;
+    background: #fff3e0;
+    border: 1px solid #ffcc80;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: #e65100;
+}
+
+.cart-unavailable-banner i {
+    font-size: 1.1rem;
+    color: #f57c00;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+/* ── Botón enviar deshabilitado por items no disponibles ── */
+.cart-whatsapp-btn-disabled {
+    background: #ccc !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+.cart-whatsapp-btn-disabled:hover {
+    background: #ccc !important;
+    transform: none !important;
+}
+
 /* ── Toggle Domicilio / Recoger ── */
 .cart-delivery-toggle {
     display: flex;

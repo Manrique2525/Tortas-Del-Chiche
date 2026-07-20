@@ -362,6 +362,21 @@ const Cart = (() => {
     return state.items.reduce((sum, i) => sum + i.quantity, 0);
   }
 
+  function getUnavailableItems() {
+    var branchProducts = window.currentBranchProducts || [];
+    var unavailable = [];
+    state.items.forEach(function(item) {
+      var found = branchProducts.find(function(p) {
+        return p.id === item.id;
+      });
+      var isAvailable = found && found.branch_active !== false;
+      if (!isAvailable) {
+        unavailable.push(item);
+      }
+    });
+    return unavailable;
+  }
+
   /* ──────────── Reverse Geocoding (Nominatim) ──────────── */
   async function reverseGeocode(lat, lng) {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=es`;
@@ -699,6 +714,7 @@ const Cart = (() => {
     }
 
     const doneCount = steps.filter((s) => s.done).length;
+    var unavailableItems = getUnavailableItems();
     let html = "";
     html += `
       <div class="cart-progress">
@@ -713,8 +729,22 @@ const Cart = (() => {
       </div>
     `;
 
+    if (unavailableItems.length > 0) {
+      html += `
+        <div class="cart-unavailable-banner">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <strong>${unavailableItems.length} producto(s) no disponible(s)</strong> en esta sucursal.
+            <br><span style="font-size:0.75rem;">Retíralos del carrito para continuar.</span>
+          </div>
+        </div>
+      `;
+    }
+
     html += `<div class="cart-items">`;
+    var unavailableIds = unavailableItems.map(function(u) { return u.key; });
     state.items.forEach((item) => {
+      var isUnavailable = unavailableIds.indexOf(item.key) !== -1;
       const itemOpts = item.options || {};
       const optParts = [];
       if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
@@ -722,7 +752,8 @@ const Cart = (() => {
       const optStr = optParts.length ? optParts.join(' · ') : '';
       const safeName = escapeHtml(item.name);
       html += `
-        <div class="cart-item" data-key="${item.key}">
+        <div class="cart-item ${isUnavailable ? 'cart-item-unavailable' : ''}" data-key="${item.key}">
+          ${isUnavailable ? '<div class="cart-item-unavailable-badge"><i class="fas fa-ban"></i> No disponible</div>' : ''}
           ${item.img ? `<img src="${item.img}" alt="${safeName}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
             <h4>${safeName}${optStr ? ` <span class="cart-item-options">(${optStr})</span>` : ''}</h4>
@@ -1004,7 +1035,11 @@ const Cart = (() => {
           <span>Total</span>
           <span class="cart-total-amount" id="cart-total-amount">$${grandTotal}</span>
         </div>
-        ${state.payment === "mercadopago" ? `
+        ${unavailableItems.length > 0 ? `
+          <button class="cart-whatsapp-btn cart-whatsapp-btn-disabled" disabled>
+            <i class="fas fa-ban"></i> Retira productos no disponibles
+          </button>
+        ` : (state.payment === "mercadopago" ? `
           <button class="cart-whatsapp-btn mercadopago-btn" id="cart-mp-pay">
             <i class="fas fa-credit-card"></i> Pagar con tarjeta
           </button>
@@ -1012,7 +1047,7 @@ const Cart = (() => {
           <button class="cart-whatsapp-btn" id="cart-send-whatsapp">
             <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
           </button>
-        `}
+        `)}
       </div>
     `;
 
