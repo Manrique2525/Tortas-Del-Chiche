@@ -37,7 +37,7 @@ class ProductController extends Controller
             'has_cochinita' => 'boolean',
             'has_lechon'   => 'boolean',
             'sort_order'   => 'integer|min:0',
-            'image'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
+            'image'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=819,h=546',
         ]);
 
         $validated['active'] = $request->boolean('active');
@@ -76,7 +76,7 @@ class ProductController extends Controller
             'has_cochinita' => 'boolean',
             'has_lechon'   => 'boolean',
             'sort_order'   => 'integer|min:0',
-            'image'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=896,h=1195',
+            'image'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:w=819,h=546',
         ]);
 
         $validated['active'] = $request->boolean('active');

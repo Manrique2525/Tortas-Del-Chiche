@@ -211,7 +211,7 @@
                     <div class="image-upload" id="dropZone" onclick="document.getElementById('imageInput').click()">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Haz clic o arrastra una imagen nueva</p>
-                        <p style="font-size:0.75rem; color:#aaa;">Solo 896×1195px — JPG, PNG, WebP — Máx 2MB</p>
+                        <p style="font-size:0.75rem; color:#aaa;">Solo 819×546px — JPG, PNG, WebP — Máx 2MB</p>
                         <input type="file" name="image" id="imageInput" accept="image/*"
                                onchange="previewImage(this)">
                         <img class="preview" id="imagePreview" alt="Preview">
@@ -279,7 +279,7 @@
                 const img = new Image();
                 img.onload = function() {
                     URL.revokeObjectURL(img.src);
-                    resolve(img.width === 896 && img.height === 1195);
+                    resolve(img.width === 819 && img.height === 546);
                 };
                 img.onerror = function() { resolve(false); };
                 img.src = URL.createObjectURL(file);
@@ -311,7 +311,7 @@
                 if (!valid) {
                     const img = new Image();
                     img.onload = function() {
-                        showImageError('La imagen debe ser de 896×1195 píxeles. Tu imagen tiene ' + img.width + '×' + img.height);
+                        showImageError('La imagen debe ser de 819×546 píxeles. Tu imagen tiene ' + img.width + '×' + img.height);
                         URL.revokeObjectURL(img.src);
                     };
                     img.src = URL.createObjectURL(file);
@@ -331,7 +331,7 @@
         document.querySelector('form').addEventListener('submit', function(e) {
             if (!window.imageValid) {
                 e.preventDefault();
-                showToast('La imagen no tiene las dimensiones correctas (896×1195)', 'error');
+                showToast('La imagen no tiene las dimensiones correctas (819×546)', 'error');
             }
         });
 
