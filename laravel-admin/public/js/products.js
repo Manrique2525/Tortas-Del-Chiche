@@ -183,6 +183,7 @@ async function loadProducts() {
 
         const products = await res.json();
         productsCache = products;
+        window.currentBranchProducts = products;
 
         const comidaGrid = document.getElementById('comida-grid');
         const bebidasGrid = document.getElementById('bebidas-grid');
@@ -215,6 +216,8 @@ async function loadProducts() {
         if (typeof syncAllCardButtons === 'function') {
             syncAllCardButtons();
         }
+
+        window.dispatchEvent(new Event('branch-products-updated'));
 
         initScrollAnimations();
 

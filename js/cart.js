@@ -1993,6 +1993,13 @@ const Cart = (() => {
 
     bindAddButtons();
 
+    window.addEventListener('branch-products-updated', function() {
+      var sidebar = document.getElementById('cart-sidebar');
+      if (sidebar && sidebar.classList.contains('open')) {
+        renderSidebar();
+      }
+    });
+
     createFloatingButton();
     createSidebar();
     renderBadge();

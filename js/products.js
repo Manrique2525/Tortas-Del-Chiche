@@ -217,6 +217,8 @@ async function loadProducts() {
             syncAllCardButtons();
         }
 
+        window.dispatchEvent(new Event('branch-products-updated'));
+
         initScrollAnimations();
 
     } catch (error) {
