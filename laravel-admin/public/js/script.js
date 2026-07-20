@@ -89,61 +89,55 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("scroll", animateOnScroll);
 
   // ======== Modal de Bienvenida ========
-  const MODAL_KEY = "tortas_chiche_modal_visto";
-  const ahora = new Date();
-  const horaActual = ahora.getHours();
-  if (horaActual >= 7 && horaActual < 14 && !localStorage.getItem(MODAL_KEY)) {
-    const modalOverlay = document.createElement("div");
-    modalOverlay.className = "modal-overlay";
+  const modalOverlay = document.createElement("div");
+  modalOverlay.className = "modal-overlay";
 
-    const modalContainer = document.createElement("div");
-    modalContainer.className = "modal-container";
+  const modalContainer = document.createElement("div");
+  modalContainer.className = "modal-container";
 
-    const modalContent = document.createElement("div");
-    modalContent.className = "modal-content";
+  const modalContent = document.createElement("div");
+  modalContent.className = "modal-content";
 
-    const modalImage = document.createElement("img");
-    modalImage.src = "img/imagen_promo_principal.jpeg";
-    modalImage.alt = "Las Tortas Del Chiche";
-    modalImage.className = "modal-image";
+  const modalImage = document.createElement("img");
+  modalImage.src = "img/imagen_promo_principal.jpeg";
+  modalImage.alt = "Las Tortas Del Chiche";
+  modalImage.className = "modal-image";
 
-    const closeButton = document.createElement("button");
-    closeButton.className = "modal-close";
-    closeButton.innerHTML = "&times;";
-    closeButton.setAttribute("aria-label", "Cerrar");
+  const closeButton = document.createElement("button");
+  closeButton.className = "modal-close";
+  closeButton.innerHTML = "&times;";
+  closeButton.setAttribute("aria-label", "Cerrar");
 
-    modalContent.appendChild(modalImage);
-    modalContainer.appendChild(modalContent);
-    modalContainer.appendChild(closeButton);
-    modalOverlay.appendChild(modalContainer);
-    document.body.appendChild(modalOverlay);
+  modalContent.appendChild(modalImage);
+  modalContainer.appendChild(modalContent);
+  modalContainer.appendChild(closeButton);
+  modalOverlay.appendChild(modalContainer);
+  document.body.appendChild(modalOverlay);
+
+  setTimeout(function () {
+    modalOverlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
 
     setTimeout(function () {
-      modalOverlay.style.display = "flex";
-      document.body.style.overflow = "hidden";
+      closeModal();
+    }, 8000);
+  }, 800);
 
-      setTimeout(function () {
-        closeModal();
-      }, 8000);
-    }, 800);
-
-    function closeModal() {
-      modalOverlay.style.opacity = "0";
-      localStorage.setItem(MODAL_KEY, "1");
-      setTimeout(function () {
-        modalOverlay.style.display = "none";
-        document.body.style.overflow = "auto";
-      }, 300);
-    }
-
-    closeButton.addEventListener("click", closeModal);
-
-    modalOverlay.addEventListener("click", function (e) {
-      if (e.target === modalOverlay) {
-        closeModal();
-      }
-    });
+  function closeModal() {
+    modalOverlay.style.opacity = "0";
+    setTimeout(function () {
+      modalOverlay.style.display = "none";
+      document.body.style.overflow = "auto";
+    }, 300);
   }
+
+  closeButton.addEventListener("click", closeModal);
+
+  modalOverlay.addEventListener("click", function (e) {
+    if (e.target === modalOverlay) {
+      closeModal();
+    }
+  });
 
   // ======== Botones Flotantes ========
   setTimeout(function () {
