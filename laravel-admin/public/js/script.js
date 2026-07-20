@@ -1003,6 +1003,10 @@ document.addEventListener("DOMContentLoaded", function () {
         statusEl.className = "branch-selector-status";
       });
 
+    window.branchCallbacks.push(function(newBranch) {
+      if (window.branches) updateBranchSelector(window.branches, newBranch);
+    });
+
     // Toggle dropdown
     btn.addEventListener("click", function(e) {
       e.stopPropagation();
