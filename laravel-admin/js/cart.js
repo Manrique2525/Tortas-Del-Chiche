@@ -1867,10 +1867,12 @@ const Cart = (() => {
       document.body.appendChild(toast);
     }
     const nameNode = document.createTextNode(name);
-    toast.innerHTML = "";
+    while (toast.firstChild) { toast.removeChild(toast.firstChild); }
     const content = document.createElement("div");
     content.className = "cart-add-toast-content";
-    content.innerHTML = '<i class="fas fa-check-circle"></i>';
+    const icon = document.createElement("i");
+    icon.className = "fas fa-check-circle";
+    content.appendChild(icon);
     const span = document.createElement("span");
     const strong = document.createElement("strong");
     strong.appendChild(nameNode);

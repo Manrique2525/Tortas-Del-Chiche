@@ -579,27 +579,27 @@ Antes de salir a producción, **TODO** esto debe estar verificado:
 - [ ] `.env.render` eliminado del repositorio
 - [ ] Firma `X-Signature` validada en webhook
 - [ ] Monto validado contra la orden en el webhook
-- [ ] Precios recalculados server-side (nunca confiar en el cliente)
-- [ ] Cupones validados y descuentos recalculados server-side
-- [ ] Rate limiting en login y APIs públicas
-- [ ] Sesión regenerada después de login (`session()->regenerate()`)
+- [x] Precios recalculados server-side (nunca confiar en el cliente)
+- [x] Cupones validados y descuentos recalculados server-side
+- [x] Rate limiting en login y APIs públicas
+- [x] Sesión regenerada después de login (`session()->regenerate()`)
 - [ ] `SESSION_ENCRYPT=true`
-- [ ] `SESSION_SECURE_COOKIE=true`
-- [ ] `SESSION_HTTP_ONLY=true`
-- [ ] `SESSION_SAME_SITE=strict`
+- [x] `SESSION_SECURE_COOKIE=true`
+- [x] `SESSION_HTTP_ONLY=true`
+- [x] `SESSION_SAME_SITE=strict`
 - [ ] `APP_KEY` generada, fija y no vacía
 - [ ] `APP_DEBUG=false`
 - [ ] `trustProxies` acotado a IPs del load balancer
 - [ ] CORS configurado con orígenes explícitos
-- [ ] Security headers implementados (HSTS, XFO, CSP, X-Content-Type-Options, Referrer-Policy)
+- [x] Security headers implementados (HSTS, XFO, CSP, X-Content-Type-Options, Referrer-Policy)
 - [ ] `.htaccess` protege `.env`, `storage/`, `database.sqlite`, `composer.json`, `composer.lock`
 - [ ] Datos bancarios servidos desde backend, no hardcodeados en JS
-- [ ] `innerHTML` sanitizados en todos los archivos JS
+- [x] `innerHTML` sanitizados en todos los archivos JS
 - [ ] Roles de admin implementados (no password compartido)
 - [ ] Passwords almacenados con hash (bcrypt)
 
 ### Base de Datos
-- [ ] Índices en `orders.status`, `orders.branch`, `order_items.order_id`
+- [x] Índices en `orders.status`, `orders.branch`, `order_items.order_id`
 - [ ] FK `orders.branch` → `sucursales.key` (o `branch_id`)
 - [ ] Soft deletes en `orders`
 
