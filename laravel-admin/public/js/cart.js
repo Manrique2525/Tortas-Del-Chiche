@@ -363,7 +363,8 @@ const Cart = (() => {
   }
 
   function getUnavailableItems() {
-    var branchProducts = window.currentBranchProducts || [];
+    if (!window.currentBranchProducts) return [];
+    var branchProducts = window.currentBranchProducts;
     var unavailable = [];
     state.items.forEach(function(item) {
       var found = branchProducts.find(function(p) {
@@ -1980,19 +1981,14 @@ const Cart = (() => {
       save();
     }
 
-    // When branch changes via header, update state and clear cart
+    // When branch changes via header, update state and re-render
     (window.branchCallbacks || (window.branchCallbacks = [])).push(function(newBranch) {
       state.branch = newBranch;
-      if (state.items.length > 0) {
-        state.items = [];
-        save();
-        renderBadge();
-        var sidebar = document.getElementById("cart-sidebar");
-        if (sidebar && sidebar.classList.contains("open")) {
-          renderSidebar();
-        }
-      }
       save();
+      var sidebar = document.getElementById("cart-sidebar");
+      if (sidebar && sidebar.classList.contains("open")) {
+        renderSidebar();
+      }
     });
 
     bindAddButtons();

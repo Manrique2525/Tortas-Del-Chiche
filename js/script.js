@@ -902,12 +902,20 @@ document.addEventListener("DOMContentLoaded", function () {
               updateBranchSelector(branches, selected);
             },
             function() {
-              updateBranchSelector(branches, selected || (branches.length > 0 ? branches[0].key : ""));
+              var fallbackKey = selected || (branches.length > 0 ? branches[0].key : "");
+              if (fallbackKey && !selected) {
+                notifyBranchChange(fallbackKey);
+              }
+              updateBranchSelector(branches, fallbackKey);
             },
             { enableHighAccuracy: false, timeout: 3000 }
           );
         } else {
-          updateBranchSelector(branches, selected || (branches.length > 0 ? branches[0].key : ""));
+          var fallbackKey = selected || (branches.length > 0 ? branches[0].key : "");
+          if (fallbackKey && !selected) {
+            notifyBranchChange(fallbackKey);
+          }
+          updateBranchSelector(branches, fallbackKey);
         }
       })
       .catch(function() {
