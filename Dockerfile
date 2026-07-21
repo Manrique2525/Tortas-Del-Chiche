@@ -14,8 +14,6 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 COPY laravel-admin/ .
 
-RUN mkdir -p database && touch database/database.sqlite
-
 RUN cp .env.render .env || true
 RUN php artisan key:generate --force || true
 RUN php artisan migrate --force || true
