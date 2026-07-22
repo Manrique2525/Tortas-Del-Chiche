@@ -387,7 +387,7 @@
                                     <i class="fas fa-pen"></i>
                                 </a>
                                 <button class="action-btn delete-btn" title="Eliminar"
-                                        onclick="confirmDelete({{ $product->id }}, @json($product->name))">
+                                        onclick="confirmDelete({{ $product->id }}, '{{ addslashes($product->name) }}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
