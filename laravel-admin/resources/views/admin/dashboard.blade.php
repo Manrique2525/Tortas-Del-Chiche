@@ -194,6 +194,22 @@
         .btn-danger { background: #e53935; color: white; }
         .btn-danger:hover { background: #c62828; }
 
+        /* ── Pagination ── */
+        .pagination-controls {
+            display: flex; justify-content: center; align-items: center; gap: 6px;
+            padding: 14px; background: white; border-radius: 0 0 12px 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .pagination-controls button {
+            padding: 6px 12px; border: 1px solid #ddd; border-radius: 8px;
+            background: white; color: #555; font-family: 'Poppins', sans-serif;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+        }
+        .pagination-controls button:hover:not(:disabled) { border-color: #FF6B35; color: #FF6B35; }
+        .pagination-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination-controls button.active { background: #FF6B35; color: white; border-color: #FF6B35; }
+        .pagination-controls .page-info { font-size: 0.7rem; color: #888; margin: 0 8px; }
+
         /* ── Footer ── */
         .admin-footer { text-align: center; padding: 20px; color: #aaa; font-size: 0.75rem; }
 
@@ -492,6 +508,55 @@
         }
 
         document.querySelectorAll('.product-list').forEach(function(list) {
+            var rows = list.querySelectorAll('.product-row');
+            var perPage = 15;
+            var totalPages = Math.ceil(rows.length / perPage);
+            var currentPage = 1;
+
+            function showPage(page) {
+                currentPage = page;
+                var start = (page - 1) * perPage;
+                var end = start + perPage;
+                rows.forEach(function(row, i) {
+                    row.style.display = (i >= start && i < end) ? '' : 'none';
+                });
+                renderPagination(list);
+            }
+
+            function renderPagination(list) {
+                var existing = list.parentNode.querySelector('.pagination-controls');
+                if (existing) existing.remove();
+                if (totalPages <= 1) return;
+                var div = document.createElement('div');
+                div.className = 'pagination-controls';
+                var prevBtn = document.createElement('button');
+                prevBtn.textContent = '\u2190 Anterior';
+                prevBtn.disabled = currentPage === 1;
+                prevBtn.onclick = function() { showPage(currentPage - 1); };
+                div.appendChild(prevBtn);
+                for (var p = 1; p <= totalPages; p++) {
+                    (function(pg) {
+                        var btn = document.createElement('button');
+                        btn.textContent = pg;
+                        if (pg === currentPage) btn.className = 'active';
+                        btn.onclick = function() { showPage(pg); };
+                        div.appendChild(btn);
+                    })(p);
+                }
+                var info = document.createElement('span');
+                info.className = 'page-info';
+                info.textContent = 'Página ' + currentPage + ' de ' + totalPages;
+                div.appendChild(info);
+                var nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Siguiente \u2192';
+                nextBtn.disabled = currentPage === totalPages;
+                nextBtn.onclick = function() { showPage(currentPage + 1); };
+                div.appendChild(nextBtn);
+                list.parentNode.insertBefore(div, list.nextSibling);
+            }
+
+            if (rows.length > perPage) showPage(1);
+
             Sortable.create(list, {
                 handle: '.drag-handle',
                 animation: 200,
