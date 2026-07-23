@@ -250,6 +250,7 @@ class MercadoPagoController extends Controller
                     break;
                 case 'rejected':
                 case 'cancelled':
+                case 'expired':
                     $order->status = 'cancelado';
                     break;
                 case 'refunded':
