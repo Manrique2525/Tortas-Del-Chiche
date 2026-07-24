@@ -23,25 +23,34 @@ class OrderController extends Controller
             'delivery_type'   => 'required|in:domicilio,recoger',
             'payment_method'  => 'required|in:efectivo,transferencia,stripe',
             'subtotal'        => 'required|numeric|min:0',
-            'delivery_fee'    => 'nullable|numeric|min:0',
             'discount'        => 'nullable|numeric|min:0',
             'total'           => 'required|numeric|min:0',
             'coupon_code'     => 'nullable|string|max:50',
-            'items'           => 'required|array|min:1',
-            'items.*.product_id'   => 'nullable|integer',
+            'client_lat'      => 'nullable|numeric|between:-90,90',
+            'client_lng'      => 'nullable|numeric|between:-180,180',
+            'items'           => 'required|array|min:1|max:50',
+                'items.*.product_id'   => 'nullable|integer',
             'items.*.product_name' => 'required|string|max:255',
-            'items.*.quantity'     => 'required|integer|min:1',
+            'items.*.quantity'     => 'required|integer|min:1|max:50',
             'items.*.unit_price'   => 'required|numeric|min:0',
             'items.*.options'      => 'nullable|array',
             'payment_proof'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
         $calculator = new OrderTotalCalculator();
-        $serverCalculated = $calculator->calculate(
-            $validated['items'],
-            (float) ($validated['delivery_fee'] ?? 0),
-            $validated['coupon_code'] ?? null
-        );
+        try {
+            $serverCalculated = $calculator->calculate(
+                $validated['items'],
+                0,
+                $validated['coupon_code'] ?? null,
+                $validated['branch'] ?? null,
+                $validated['delivery_type'] ?? null,
+                $validated['client_lat'] ?? null,
+                $validated['client_lng'] ?? null
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         try {
             $serverCalculated = $calculator->verify($validated, $serverCalculated, 'price');
@@ -54,7 +63,7 @@ class OrderController extends Controller
 
         $paymentProofPath = null;
         if ($request->hasFile('payment_proof')) {
-            $paymentProofPath = $request->file('payment_proof')->store('payment-proofs', 'public');
+            $paymentProofPath = $request->file('payment_proof')->store('payment-proofs');
         }
 
         $order = DB::transaction(function () use ($validated, $serverCalculated, $paymentProofPath) {

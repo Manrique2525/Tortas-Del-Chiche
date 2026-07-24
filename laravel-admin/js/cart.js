@@ -10,6 +10,7 @@ const Cart = (() => {
   const SCHEDULE_START = 7;
   const SCHEDULE_END = 14;
   const DELIVERY_FEE = { base: 40, baseKm: 4, perKm: 10, min: 40, max: 120 };
+  const MAX_QUANTITY = 50;
   let VALID_COUPONS = {};
   const BANK_INFO = {
     bank: "BBVA",
@@ -273,6 +274,10 @@ const Cart = (() => {
     const key = generateKey(id, options);
     const existing = state.items.find((i) => i.key === key);
     if (existing) {
+      if (existing.quantity >= MAX_QUANTITY) {
+        showCartAlert("Cantidad máxima alcanzada (" + MAX_QUANTITY + ")");
+        return;
+      }
       existing.quantity++;
       lastAddedItemKey = null;
     } else {
@@ -315,6 +320,10 @@ const Cart = (() => {
   function updateQuantity(key, delta) {
     const item = state.items.find((i) => i.key === key);
     if (!item) return;
+    if (delta > 0 && item.quantity >= MAX_QUANTITY) {
+      showCartAlert("Cantidad máxima alcanzada (" + MAX_QUANTITY + ")");
+      return;
+    }
     item.quantity += delta;
     if (item.quantity <= 0) {
       removeItem(key);
@@ -324,6 +333,51 @@ const Cart = (() => {
     updateQuantityUI(key);
     renderBadge();
     updateCardQtyDisplay(key);
+  }
+
+  function clearCart() {
+    if (state.items.length === 0) return;
+    state.items.forEach(function(item) {
+      var id = item.id;
+      if (cardTimers[id]) {
+        clearTimeout(cardTimers[id]);
+        delete cardTimers[id];
+      }
+      hideCardQtyControl(id);
+    });
+    state.items = [];
+    save();
+    renderSidebar();
+    renderBadge();
+    showClearToast();
+  }
+
+  function clearCartAfterPayment() {
+    if (state.items.length === 0) return;
+    state.items.forEach(function(item) {
+      var id = item.id;
+      if (cardTimers[id]) {
+        clearTimeout(cardTimers[id]);
+        delete cardTimers[id];
+      }
+      hideCardQtyControl(id);
+    });
+    state = { items: [], branch: state.branch, payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
+    save();
+    renderSidebar();
+    renderBadge();
+    closeSidebar();
+  }
+
+  function showClearToast() {
+    var existing = document.querySelector(".cart-toast-container");
+    if (existing) existing.remove();
+    var container = document.createElement("div");
+    container.className = "cart-toast-container";
+    container.innerHTML = '<i class="fas fa-check-circle"></i> Carrito vaciado';
+    container.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:white;padding:12px 24px;border-radius:10px;font-size:0.85rem;font-weight:600;z-index:99999;box-shadow:0 5px 20px rgba(0,0,0,0.3);display:flex;align-items:center;gap:10px;animation:fadeInUp 0.3s ease;';
+    document.body.appendChild(container);
+    setTimeout(function() { container.remove(); }, 2000);
   }
 
   function updateQuantityUI(key) {
@@ -347,6 +401,22 @@ const Cart = (() => {
 
   function getItemCount() {
     return state.items.reduce((sum, i) => sum + i.quantity, 0);
+  }
+
+  function getUnavailableItems() {
+    if (!window.currentBranchProducts) return [];
+    var branchProducts = window.currentBranchProducts;
+    var unavailable = [];
+    state.items.forEach(function(item) {
+      var found = branchProducts.find(function(p) {
+        return String(p.id) === String(item.id);
+      });
+      var isAvailable = found && found.branch_active !== false;
+      if (!isAvailable) {
+        unavailable.push(item);
+      }
+    });
+    return unavailable;
   }
 
   /* ──────────── Reverse Geocoding (Nominatim) ──────────── */
@@ -575,40 +645,13 @@ const Cart = (() => {
 
   function openSidebar() {
     createSidebar();
-    if (!branchAutoSelected) {
-      branchAutoSelected = true;
-      let userLat = null;
-      let userLng = null;
 
-      if (state.location.confirmed && state.location.lat && state.location.lng) {
-        userLat = state.location.lat;
-        userLng = state.location.lng;
-        const { key } = getClosestBranch(userLat, userLng);
-        if (key) state.branch = key;
-        save();
-        userCoords = { lat: userLat, lng: userLng };
-        renderSidebar();
-      } else {
-        renderSidebar();
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              userLat = pos.coords.latitude;
-              userLng = pos.coords.longitude;
-              const { key } = getClosestBranch(userLat, userLng);
-              if (key) state.branch = key;
-              save();
-              userCoords = { lat: userLat, lng: userLng };
-              renderSidebar();
-            },
-            () => {},
-            { enableHighAccuracy: true, timeout: 5000 }
-          );
-        }
-      }
-    } else {
-      renderSidebar();
+    if (window.selectedBranch) {
+      state.branch = window.selectedBranch;
+      save();
     }
+
+    renderSidebar();
 
     const overlay = document.getElementById("cart-overlay");
     const sidebar = document.getElementById("cart-sidebar");
@@ -713,6 +756,7 @@ const Cart = (() => {
     }
 
     const doneCount = steps.filter((s) => s.done).length;
+    var unavailableItems = getUnavailableItems();
     let html = "";
     html += `
       <div class="cart-progress">
@@ -727,8 +771,22 @@ const Cart = (() => {
       </div>
     `;
 
+    if (unavailableItems.length > 0) {
+      html += `
+        <div class="cart-unavailable-banner">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <strong>${unavailableItems.length} producto(s) no disponible(s)</strong> en esta sucursal.
+            <br><span style="font-size:0.75rem;">Retíralos del carrito para continuar.</span>
+          </div>
+        </div>
+      `;
+    }
+
     html += `<div class="cart-items">`;
+    var unavailableIds = unavailableItems.map(function(u) { return u.key; });
     state.items.forEach((item) => {
+      var isUnavailable = unavailableIds.indexOf(item.key) !== -1;
       const itemOpts = item.options || {};
       const optParts = [];
       if (itemOpts.type) optParts.push(itemOpts.type === 'mojado' ? 'Mojado' : 'Seco');
@@ -736,7 +794,8 @@ const Cart = (() => {
       const optStr = optParts.length ? optParts.join(' · ') : '';
       const safeName = escapeHtml(item.name);
       html += `
-        <div class="cart-item" data-key="${item.key}">
+        <div class="cart-item ${isUnavailable ? 'cart-item-unavailable' : ''}" data-key="${item.key}">
+          ${isUnavailable ? '<div class="cart-item-unavailable-badge"><i class="fas fa-ban"></i> No disponible</div>' : ''}
           ${item.img ? `<img src="${item.img}" alt="${safeName}" class="cart-item-img" />` : ""}
           <div class="cart-item-info">
             <h4>${safeName}${optStr ? ` <span class="cart-item-options">(${optStr})</span>` : ''}</h4>
@@ -772,7 +831,7 @@ const Cart = (() => {
         </div>
         ${couponValid ? `
           <div class="cart-coupon-success">
-            <i class="fas fa-check-circle"></i> Cupón aplicado: ${getCouponData().label} de descuento
+            <i class="fas fa-check-circle"></i> Cupón aplicado: ${escapeHtml(getCouponData().label)} de descuento
             <button class="cart-coupon-remove" id="cart-coupon-remove"><i class="fas fa-times"></i></button>
           </div>
         ` : ""}
@@ -872,37 +931,33 @@ const Cart = (() => {
       `;
     }
 
-    var brancHtml = "";
-    branchKeys.forEach(function(key) {
-      const b = BRANCHES[key];
-      const isActive = state.branch === key;
-      const isClosed = b.is_open === false;
-      const safeBranchName = escapeHtml(b.name.replace("Sucursal ", ""));
-      brancHtml += `
-        <button class="cart-branch-option ${isActive ? "active" : ""} ${isClosed ? "branch-closed" : ""}" data-branch="${key}">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="cart-branch-name">${safeBranchName}</span>
-          ${isClosed ? '<span class="cart-branch-closed-badge">Cerrada ahora</span>' : ""}
-          ${branchDists[key] ? `<span class="cart-branch-distance">${branchDists[key]}</span>` : ""}
-          <span class="cart-branch-schedule">${b.schedule}</span>
-        </button>`;
-    });
-
     html += `
       <div class="cart-section">
-        <button class="cart-section-header" data-section="sucursal">
-          <h3><i class="fas fa-store"></i> Elige sucursal</h3>
+        <div class="cart-section-header" style="cursor:default;">
+          <h3><i class="fas fa-store"></i> Sucursal</h3>
           <span class="cart-section-summary">${branchSummary}</span>
-          <i class="fas fa-chevron-${collapsedSections.sucursal ? "right" : "down"}"></i>
-        </button>
-        <div class="cart-section-body ${collapsedSections.sucursal ? "collapsed" : ""}">
-          ${state.branch && BRANCHES[state.branch] && BRANCHES[state.branch].is_open === false ? `
-            <div class="cart-branch-closed-msg"><i class="fas fa-exclamation-triangle"></i> Esta sucursal está cerrada. Elige otra.</div>
-          ` : ""}
-          <div class="cart-branch-options">
-            ${brancHtml || '<p style="padding:10px 20px;color:#999;font-size:0.8rem;">No hay sucursales disponibles</p>'}
+        </div>
+        <div class="cart-section-body">
+          <div class="cart-branch-current">
+            <i class="fas fa-map-marker-alt" style="color:#FF6B35;"></i>
+            <div>
+              <div class="cart-branch-current-name">${branchSummary}</div>
+              ${state.branch && BRANCHES[state.branch] ? `
+                <div class="cart-branch-current-address">${BRANCHES[state.branch].address}</div>
+                <div class="cart-branch-current-schedule">
+                  <span class="branch-selector-status ${BRANCHES[state.branch].is_open ? 'open' : 'closed'}" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:${BRANCHES[state.branch].is_open ? '#4CAF50' : '#e74c3c'};"></span>
+                  ${BRANCHES[state.branch].schedule}
+                  ${BRANCHES[state.branch].is_open === false ? '<span style="color:#e74c3c;font-weight:600;margin-left:6px;">Cerrada ahora</span>' : ''}
+                </div>
+              ` : '<div style="color:#999;font-size:0.8rem;">Selecciona una sucursal en la parte superior</div>'}
+            </div>
           </div>
-          ${isPickup && state.branch && BRANCHES[state.branch] ? `<div class="cart-branch-address"><i class="fas fa-map-pin"></i> ${BRANCHES[state.branch].address}</div>` : ""}
+          ${state.branch && BRANCHES[state.branch] ? `
+            <div style="padding:8px 16px 12px;font-size:0.7rem;color:#999;display:flex;align-items:center;gap:6px;border-top:1px solid #f0f0f0;margin-top:8px;">
+              <i class="fas fa-sync-alt" style="font-size:0.6rem;"></i>
+              Cambia de sucursal desde el menú superior
+            </div>
+          ` : ""}
         </div>
       </div>
     `;
@@ -995,7 +1050,10 @@ const Cart = (() => {
     const itemCount = getItemCount();
     html += `
       <div class="cart-footer">
-        <div class="cart-items-summary">${itemCount} ${itemCount === 1 ? "artículo" : "artículos"}</div>
+        <div class="cart-footer-top">
+          <div class="cart-items-summary">${itemCount} ${itemCount === 1 ? "artículo" : "artículos"}</div>
+          ${state.items.length > 0 ? '<button class="cart-clear-btn" id="cartClearBtn"><i class="fas fa-trash-alt"></i> Vaciar carrito</button>' : ''}
+        </div>
         ${!showFee ? `
           <div class="cart-subtotal-line">
             <span>Subtotal</span>
@@ -1004,7 +1062,7 @@ const Cart = (() => {
         ` : ""}
         ${discount > 0 ? `
           <div class="cart-discount-line">
-            <span>Descuento (${couponData.label})</span>
+            <span>Descuento (${escapeHtml(couponData.label)})</span>
             <span class="cart-discount-amount">-$${discount}</span>
           </div>
         ` : ""}
@@ -1019,7 +1077,11 @@ const Cart = (() => {
           <span>Total</span>
           <span class="cart-total-amount" id="cart-total-amount">$${grandTotal}</span>
         </div>
-        ${state.payment === "stripe" ? `
+        ${unavailableItems.length > 0 ? `
+          <button class="cart-whatsapp-btn cart-whatsapp-btn-disabled" disabled>
+            <i class="fas fa-ban"></i> Retira productos no disponibles
+          </button>
+        ` : (state.payment === "stripe" ? `
           <button class="cart-whatsapp-btn stripe-btn" id="cart-stripe-pay">
             <i class="fas fa-credit-card"></i> Pagar con tarjeta
           </button>
@@ -1027,7 +1089,7 @@ const Cart = (() => {
           <button class="cart-whatsapp-btn" id="cart-send-whatsapp">
             <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
           </button>
-        `}
+        `)}
       </div>
     `;
 
@@ -1101,14 +1163,19 @@ const Cart = (() => {
       });
     }
 
+    const clearBtn = document.getElementById("cartClearBtn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", clearCart);
+    }
+
     const sendBtn = document.getElementById("cart-send-whatsapp");
     if (sendBtn) {
       sendBtn.addEventListener("click", sendToWhatsApp);
     }
 
-    const mpPayBtn = document.getElementById("cart-stripe-pay");
-    if (mpPayBtn) {
-      mpPayBtn.addEventListener("click", startStripeCheckout);
+    const stripePayBtn = document.getElementById("cart-stripe-pay");
+    if (stripePayBtn) {
+      stripePayBtn.addEventListener("click", startStripeCheckout);
     }
 
     const nameInput = document.getElementById("cart-name");
@@ -1123,14 +1190,6 @@ const Cart = (() => {
       save();
     });
     if (addressInput) addressInput.addEventListener("input", (e) => { state.customer.addressRef = e.target.value; save(); });
-
-    document.querySelectorAll(".cart-branch-option").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        state.branch = btn.dataset.branch;
-        save();
-        renderSidebar();
-      });
-    });
 
     document.querySelectorAll(".cart-payment-option").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1533,10 +1592,11 @@ const Cart = (() => {
       delivery_type: isPickup ? "recoger" : "domicilio",
       payment_method: state.payment,
       subtotal: subtotal,
-      delivery_fee: fee,
       discount: discount,
       total: grandTotal,
       coupon_code: isCouponValid() ? state.coupon : null,
+      client_lat: state.location.lat || null,
+      client_lng: state.location.lng || null,
       items: state.items.map((item) => ({
         product_id: item.id || null,
         product_name: item.name,
@@ -1588,29 +1648,15 @@ const Cart = (() => {
           showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
         });
       }
+      saveToHistory();
+      clearCartAfterPayment();
     })
     .catch(function() {
-      if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
-      const opened = window.open(url, "_blank", "noopener,noreferrer");
-      if (!opened) {
-        navigator.clipboard.writeText(msg).then(function() {
-          showCartAlert("No se pudo guardar el pedido, pero el mensaje se copió al portapapeles.");
-        }).catch(function() {
-          showCartAlert("Error al enviar. Intenta de nuevo.");
-        });
-      }
-    })
-    .finally(() => {
-      saveToHistory();
-      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
-      save();
-      renderSidebar();
-      renderBadge();
-      closeSidebar();
       if (sendBtn) {
         sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
         sendBtn.disabled = false;
       }
+      showCartAlert("No se pudo guardar el pedido. Intenta de nuevo.");
     });
   }
 
@@ -1687,10 +1733,11 @@ const Cart = (() => {
       branch: state.branch,
       delivery_type: isPickup ? "recoger" : "domicilio",
       subtotal: subtotal,
-      delivery_fee: fee,
       discount: discount,
       total: grandTotal,
       coupon_code: isCouponValid() ? state.coupon : null,
+      client_lat: state.location.lat || null,
+      client_lng: state.location.lng || null,
       items: state.items.map(function(item) {
         return {
           product_id: item.id || null,
@@ -1714,21 +1761,20 @@ const Cart = (() => {
       body: JSON.stringify(payload),
     })
     .then(function(r) {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
+      return r.json().then(function(data) {
+        if (!r.ok || !data.success) {
+          throw new Error(data.message || "Error HTTP " + r.status);
+        }
+        return data;
+      });
     })
     .then(function(data) {
-      if (data.success) {
-        sessionStorage.setItem("stripe_order_id", data.order_id);
-        sessionStorage.setItem("stripe_checkout_active", "1");
-        window.location.href = data.url;
-      } else {
-        showCartAlert("Error al conectar con el procesador. Intenta de nuevo.");
-        if (btn) { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pagar con tarjeta'; btn.disabled = false; }
-      }
+      sessionStorage.setItem("stripe_order_id", data.order_id);
+      sessionStorage.setItem("stripe_checkout_active", "1");
+      window.location.href = data.url;
     })
-    .catch(function() {
-      showCartAlert("Error de conexión. Intenta de nuevo.");
+    .catch(function(err) {
+      showCartAlert(err.message || "Error de conexión. Intenta de nuevo.");
       if (btn) { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pagar con tarjeta'; btn.disabled = false; }
     });
   }
@@ -1783,10 +1829,7 @@ const Cart = (() => {
 
     var whatsapp = BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "";
     var url = "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(msg);
-    showToast("\u2705 Pago confirmado. Redirigiendo a WhatsApp...", "success");
-    setTimeout(function() {
-      window.location.href = url;
-    }, 2000);
+    window.location.href = url;
   }
 
   function checkStripeReturn() {
@@ -1799,43 +1842,25 @@ const Cart = (() => {
     sessionStorage.removeItem("stripe_checkout_active");
     sessionStorage.removeItem("stripe_order_id");
 
-    function clearCartAfterPayment() {
-      saveToHistory();
-      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
-      save();
-      renderSidebar();
-      renderBadge();
-      closeSidebar();
-    }
-
-    if (status === "success") {
-      if (orderId) {
-        fetch("/api/stripe/status?order_id=" + orderId + (sessionId ? "&session_id=" + sessionId : ""))
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.success && data.status === "pagado") {
-              showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
-              sendPaidWhatsApp(orderId);
-            } else {
-              showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
-            }
-            clearCartAfterPayment();
-          })
-          .catch(function() {
-            showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
-            clearCartAfterPayment();
-          });
-      } else {
+    if (status === "success" && orderId) {
+      fetch("/api/stripe/status?order_id=" + encodeURIComponent(orderId) + (sessionId ? "&session_id=" + encodeURIComponent(sessionId) : ""), {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+      })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
+        sendPaidWhatsApp(orderId);
         clearCartAfterPayment();
-      }
-    } else if (status === "cancel") {
-      if (orderId) {
-        fetch("/api/stripe/cancel-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ order_id: orderId }),
-        }).catch(function() {});
-      }
+      })
+      .catch(function() {
+        showToast("\u2705 Pago registrado. Gracias por tu compra!", "success");
+        sendPaidWhatsApp(orderId);
+        clearCartAfterPayment();
+      });
+
+      saveToHistory();
+    } else if (status === "cancel" || status === "cancelled") {
       showCartAlert("El pago fue cancelado. Puedes intentar de nuevo.");
     }
 
@@ -1902,12 +1927,10 @@ const Cart = (() => {
       document.body.appendChild(toast);
     }
     const nameNode = document.createTextNode(name);
-    while (toast.firstChild) { toast.removeChild(toast.firstChild); }
+    toast.innerHTML = "";
     const content = document.createElement("div");
     content.className = "cart-add-toast-content";
-    const icon = document.createElement("i");
-    icon.className = "fas fa-check-circle";
-    content.appendChild(icon);
+    content.innerHTML = '<i class="fas fa-check-circle"></i>';
     const span = document.createElement("span");
     const strong = document.createElement("strong");
     strong.appendChild(nameNode);
@@ -1979,7 +2002,36 @@ const Cart = (() => {
     loadCoupons();
     loadBranches();
 
+    // Sync branch from header selector
+    if (window.selectedBranch) {
+      state.branch = window.selectedBranch;
+      save();
+    }
+
+    // When branch changes via header, update state and re-render
+    (window.branchCallbacks || (window.branchCallbacks = [])).push(function(newBranch) {
+      state.branch = newBranch;
+      if (state.pickupTime && BRANCHES[newBranch]) {
+        var validHours = getPickupHours(newBranch);
+        if (validHours.indexOf(state.pickupTime) === -1) {
+          state.pickupTime = "";
+        }
+      }
+      save();
+      var sidebar = document.getElementById("cart-sidebar");
+      if (sidebar && sidebar.classList.contains("open")) {
+        renderSidebar();
+      }
+    });
+
     bindAddButtons();
+
+    window.addEventListener('branch-products-updated', function() {
+      var sidebar = document.getElementById('cart-sidebar');
+      if (sidebar && sidebar.classList.contains('open')) {
+        renderSidebar();
+      }
+    });
 
     createFloatingButton();
     createSidebar();
@@ -2003,5 +2055,5 @@ const Cart = (() => {
 
   window.initCartAddButtons = initCartAddButtons;
 
-  return { addItem, removeItem, openSidebar, closeSidebar };
+  return { addItem, removeItem, clearCart, openSidebar, closeSidebar };
 })();

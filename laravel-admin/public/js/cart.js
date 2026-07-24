@@ -10,6 +10,7 @@ const Cart = (() => {
   const SCHEDULE_START = 7;
   const SCHEDULE_END = 14;
   const DELIVERY_FEE = { base: 40, baseKm: 4, perKm: 10, min: 40, max: 120 };
+  const MAX_QUANTITY = 50;
   let VALID_COUPONS = {};
   const BANK_INFO = {
     bank: "BBVA",
@@ -273,6 +274,10 @@ const Cart = (() => {
     const key = generateKey(id, options);
     const existing = state.items.find((i) => i.key === key);
     if (existing) {
+      if (existing.quantity >= MAX_QUANTITY) {
+        showCartAlert("Cantidad máxima alcanzada (" + MAX_QUANTITY + ")");
+        return;
+      }
       existing.quantity++;
       lastAddedItemKey = null;
     } else {
@@ -315,6 +320,10 @@ const Cart = (() => {
   function updateQuantity(key, delta) {
     const item = state.items.find((i) => i.key === key);
     if (!item) return;
+    if (delta > 0 && item.quantity >= MAX_QUANTITY) {
+      showCartAlert("Cantidad máxima alcanzada (" + MAX_QUANTITY + ")");
+      return;
+    }
     item.quantity += delta;
     if (item.quantity <= 0) {
       removeItem(key);
@@ -341,6 +350,23 @@ const Cart = (() => {
     renderSidebar();
     renderBadge();
     showClearToast();
+  }
+
+  function clearCartAfterPayment() {
+    if (state.items.length === 0) return;
+    state.items.forEach(function(item) {
+      var id = item.id;
+      if (cardTimers[id]) {
+        clearTimeout(cardTimers[id]);
+        delete cardTimers[id];
+      }
+      hideCardQtyControl(id);
+    });
+    state = { items: [], branch: state.branch, payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
+    save();
+    renderSidebar();
+    renderBadge();
+    closeSidebar();
   }
 
   function showClearToast() {
@@ -805,7 +831,7 @@ const Cart = (() => {
         </div>
         ${couponValid ? `
           <div class="cart-coupon-success">
-            <i class="fas fa-check-circle"></i> Cupón aplicado: ${getCouponData().label} de descuento
+            <i class="fas fa-check-circle"></i> Cupón aplicado: ${escapeHtml(getCouponData().label)} de descuento
             <button class="cart-coupon-remove" id="cart-coupon-remove"><i class="fas fa-times"></i></button>
           </div>
         ` : ""}
@@ -1036,7 +1062,7 @@ const Cart = (() => {
         ` : ""}
         ${discount > 0 ? `
           <div class="cart-discount-line">
-            <span>Descuento (${couponData.label})</span>
+            <span>Descuento (${escapeHtml(couponData.label)})</span>
             <span class="cart-discount-amount">-$${discount}</span>
           </div>
         ` : ""}
@@ -1147,9 +1173,9 @@ const Cart = (() => {
       sendBtn.addEventListener("click", sendToWhatsApp);
     }
 
-    const mpPayBtn = document.getElementById("cart-stripe-pay");
-    if (mpPayBtn) {
-      mpPayBtn.addEventListener("click", startStripeCheckout);
+    const stripePayBtn = document.getElementById("cart-stripe-pay");
+    if (stripePayBtn) {
+      stripePayBtn.addEventListener("click", startStripeCheckout);
     }
 
     const nameInput = document.getElementById("cart-name");
@@ -1566,10 +1592,11 @@ const Cart = (() => {
       delivery_type: isPickup ? "recoger" : "domicilio",
       payment_method: state.payment,
       subtotal: subtotal,
-      delivery_fee: fee,
       discount: discount,
       total: grandTotal,
       coupon_code: isCouponValid() ? state.coupon : null,
+      client_lat: state.location.lat || null,
+      client_lng: state.location.lng || null,
       items: state.items.map((item) => ({
         product_id: item.id || null,
         product_name: item.name,
@@ -1621,29 +1648,15 @@ const Cart = (() => {
           showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
         });
       }
+      saveToHistory();
+      clearCartAfterPayment();
     })
     .catch(function() {
-      if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
-      const opened = window.open(url, "_blank", "noopener,noreferrer");
-      if (!opened) {
-        navigator.clipboard.writeText(msg).then(function() {
-          showCartAlert("No se pudo guardar el pedido, pero el mensaje se copió al portapapeles.");
-        }).catch(function() {
-          showCartAlert("Error al enviar. Intenta de nuevo.");
-        });
-      }
-    })
-    .finally(() => {
-      saveToHistory();
-      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
-      save();
-      renderSidebar();
-      renderBadge();
-      closeSidebar();
       if (sendBtn) {
         sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
         sendBtn.disabled = false;
       }
+      showCartAlert("No se pudo guardar el pedido. Intenta de nuevo.");
     });
   }
 
@@ -1720,10 +1733,11 @@ const Cart = (() => {
       branch: state.branch,
       delivery_type: isPickup ? "recoger" : "domicilio",
       subtotal: subtotal,
-      delivery_fee: fee,
       discount: discount,
       total: grandTotal,
       coupon_code: isCouponValid() ? state.coupon : null,
+      client_lat: state.location.lat || null,
+      client_lng: state.location.lng || null,
       items: state.items.map(function(item) {
         return {
           product_id: item.id || null,
@@ -1747,21 +1761,20 @@ const Cart = (() => {
       body: JSON.stringify(payload),
     })
     .then(function(r) {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
+      return r.json().then(function(data) {
+        if (!r.ok || !data.success) {
+          throw new Error(data.message || "Error HTTP " + r.status);
+        }
+        return data;
+      });
     })
     .then(function(data) {
-      if (data.success) {
-        sessionStorage.setItem("stripe_order_id", data.order_id);
-        sessionStorage.setItem("stripe_checkout_active", "1");
-        window.location.href = data.url;
-      } else {
-        showCartAlert("Error al conectar con el procesador. Intenta de nuevo.");
-        if (btn) { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pagar con tarjeta'; btn.disabled = false; }
-      }
+      sessionStorage.setItem("stripe_order_id", data.order_id);
+      sessionStorage.setItem("stripe_checkout_active", "1");
+      window.location.href = data.url;
     })
-    .catch(function() {
-      showCartAlert("Error de conexión. Intenta de nuevo.");
+    .catch(function(err) {
+      showCartAlert(err.message || "Error de conexión. Intenta de nuevo.");
       if (btn) { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pagar con tarjeta'; btn.disabled = false; }
     });
   }
@@ -1816,10 +1829,7 @@ const Cart = (() => {
 
     var whatsapp = BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "";
     var url = "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(msg);
-    showToast("\u2705 Pago confirmado. Redirigiendo a WhatsApp...", "success");
-    setTimeout(function() {
-      window.location.href = url;
-    }, 2000);
+    window.location.href = url;
   }
 
   function checkStripeReturn() {
@@ -1832,43 +1842,25 @@ const Cart = (() => {
     sessionStorage.removeItem("stripe_checkout_active");
     sessionStorage.removeItem("stripe_order_id");
 
-    function clearCartAfterPayment() {
-      saveToHistory();
-      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
-      save();
-      renderSidebar();
-      renderBadge();
-      closeSidebar();
-    }
-
-    if (status === "success") {
-      if (orderId) {
-        fetch("/api/stripe/status?order_id=" + orderId + (sessionId ? "&session_id=" + sessionId : ""))
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.success && data.status === "pagado") {
-              showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
-              sendPaidWhatsApp(orderId);
-            } else {
-              showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
-            }
-            clearCartAfterPayment();
-          })
-          .catch(function() {
-            showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
-            clearCartAfterPayment();
-          });
-      } else {
+    if (status === "success" && orderId) {
+      fetch("/api/stripe/status?order_id=" + encodeURIComponent(orderId) + (sessionId ? "&session_id=" + encodeURIComponent(sessionId) : ""), {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+      })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
+        sendPaidWhatsApp(orderId);
         clearCartAfterPayment();
-      }
-    } else if (status === "cancel") {
-      if (orderId) {
-        fetch("/api/stripe/cancel-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ order_id: orderId }),
-        }).catch(function() {});
-      }
+      })
+      .catch(function() {
+        showToast("\u2705 Pago registrado. Gracias por tu compra!", "success");
+        sendPaidWhatsApp(orderId);
+        clearCartAfterPayment();
+      });
+
+      saveToHistory();
+    } else if (status === "cancel" || status === "cancelled") {
       showCartAlert("El pago fue cancelado. Puedes intentar de nuevo.");
     }
 

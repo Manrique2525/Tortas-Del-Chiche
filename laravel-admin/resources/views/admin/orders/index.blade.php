@@ -645,7 +645,10 @@
                 },
                 body: JSON.stringify({ status }),
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(data => {
                 showToast(data.message, 'success');
                 if ((status === 'en_preparacion' || status === 'entregado') && data.customer_phone) {
@@ -657,10 +660,18 @@
             .catch(() => showToast('Error al actualizar', 'error'));
         }
 
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return '';
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(str));
+            return d.innerHTML;
+        }
+
         function showWANotify(name, phone, status) {
             const existing = document.getElementById('wa-notify-bar');
             if (existing) existing.remove();
 
+            const safeName = escapeHtml(name || '');
             const p = phone.replace(/\D/g, '');
             const waPhone = p.startsWith('52') ? p : '52' + p;
             const statusText = status === 'en_preparacion' ? 'en preparaci\u00f3n' : 'entregado';
@@ -671,21 +682,41 @@
                 msg = `\u00a1Hola ${name}! \ud83c\udf89%0A%0ATu pedido en *Las Tortas Del Chiche* ya est\u00e1 *entregado*.%0A%0A\u00a1Gracias por tu compra! Esperamos verte pronto. \ud83d\ude4c`;
             }
 
-            const waUrl = `https://wa.me/${waPhone}?text=${msg}`;
+            const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
 
             var bar = document.createElement('div');
             bar.id = 'wa-notify-bar';
-            bar.innerHTML =
-                '<div class="wa-notify-inner">' +
-                    '<div class="wa-notify-text">' +
-                        '<i class="fab fa-whatsapp"></i>' +
-                        '<span>\u00bfNotificar a <strong>' + name + '</strong> que su pedido est\u00e1 ' + statusText + '?</span>' +
-                    '</div>' +
-                    '<div class="wa-notify-actions">' +
-                        '<a href="' + waUrl + '" target="_blank" class="wa-notify-btn wa-notify-btn-send" onclick="setTimeout(function(){ location.reload(); }, 1500)"><i class="fab fa-whatsapp"></i> Notificar</a>' +
-                        '<button class="wa-notify-btn wa-notify-btn-skip" onclick="this.closest(\'#wa-notify-bar\').remove();setTimeout(function(){ location.reload(); }, 300)">Omitir</button>' +
-                    '</div>' +
-                '</div>';
+            var inner = document.createElement('div');
+            inner.className = 'wa-notify-inner';
+            var textDiv = document.createElement('div');
+            textDiv.className = 'wa-notify-text';
+            var icon = document.createElement('i');
+            icon.className = 'fab fa-whatsapp';
+            textDiv.appendChild(icon);
+            var span = document.createElement('span');
+            span.textContent = '\u00bfNotificar a ';
+            var strong = document.createElement('strong');
+            strong.textContent = name || '';
+            span.appendChild(strong);
+            span.textContent += ' que su pedido est\u00e1 ' + statusText + '?';
+            textDiv.appendChild(span);
+            inner.appendChild(textDiv);
+            var actions = document.createElement('div');
+            actions.className = 'wa-notify-actions';
+            var link = document.createElement('a');
+            link.href = waUrl;
+            link.target = '_blank';
+            link.className = 'wa-notify-btn wa-notify-btn-send';
+            link.onclick = function() { setTimeout(function(){ location.reload(); }, 1500); };
+            link.innerHTML = '<i class="fab fa-whatsapp"></i> Notificar';
+            actions.appendChild(link);
+            var skipBtn = document.createElement('button');
+            skipBtn.className = 'wa-notify-btn wa-notify-btn-skip';
+            skipBtn.textContent = 'Omitir';
+            skipBtn.onclick = function() { bar.remove(); setTimeout(function(){ location.reload(); }, 300); };
+            actions.appendChild(skipBtn);
+            inner.appendChild(actions);
+            bar.appendChild(inner);
             document.body.appendChild(bar);
             setTimeout(function() { bar.classList.add('show'); }, 50);
         }

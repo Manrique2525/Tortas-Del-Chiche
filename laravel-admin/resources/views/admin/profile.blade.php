@@ -125,6 +125,10 @@
                         <label for="email">Nuevo email</label>
                         <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required>
                     </div>
+                    <div class="form-group">
+                        <label for="email_password">Contraseña actual (requerida)</label>
+                        <input type="password" id="email_password" name="current_password" required>
+                    </div>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar email</button>
                 </form>
             </div>

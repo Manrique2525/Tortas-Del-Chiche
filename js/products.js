@@ -67,7 +67,7 @@ function createProductCard(product) {
 
     const priceSpan = document.createElement('span');
     priceSpan.className = 'price';
-    priceSpan.textContent = '$' + product.price;
+    priceSpan.textContent = '$' + (product.branch_price || product.price);
     header.appendChild(priceSpan);
 
     div.appendChild(header);

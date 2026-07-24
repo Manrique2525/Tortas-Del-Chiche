@@ -47,10 +47,8 @@ class AuthController extends Controller
 
     public function logout()
     {
-        session()->forget('admin_authenticated');
-        session()->forget('admin_user_id');
-        session()->forget('admin_user_name');
-        session()->forget('admin_last_activity');
+        session()->invalidate();
+        session()->regenerateToken();
         return redirect()->route('admin.login');
     }
 }

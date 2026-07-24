@@ -37,14 +37,15 @@ class StripeController extends Controller
                 'branch'           => 'required|string|exists:sucursales,key',
                 'delivery_type'    => 'required|in:domicilio,recoger',
                 'subtotal'         => 'required|numeric|min:0',
-                'delivery_fee'     => 'nullable|numeric|min:0',
                 'discount'         => 'nullable|numeric|min:0',
                 'total'            => 'required|numeric|min:0',
                 'coupon_code'      => 'nullable|string|max:50',
-                'items'            => 'required|array|min:1',
+                'client_lat'       => 'nullable|numeric|between:-90,90',
+                'client_lng'       => 'nullable|numeric|between:-180,180',
+                'items'            => 'required|array|min:1|max:50',
                 'items.*.product_id'   => 'nullable|integer',
                 'items.*.product_name' => 'required|string|max:255',
-                'items.*.quantity'     => 'required|integer|min:1',
+                'items.*.quantity'     => 'required|integer|min:1|max:50',
                 'items.*.unit_price'   => 'required|numeric|min:0',
                 'items.*.options'      => 'nullable|array',
             ]);
@@ -53,11 +54,19 @@ class StripeController extends Controller
         }
 
         $calculator = new OrderTotalCalculator();
-        $serverCalculated = $calculator->calculate(
-            $validated['items'],
-            (float) ($validated['delivery_fee'] ?? 0),
-            $validated['coupon_code'] ?? null
-        );
+        try {
+            $serverCalculated = $calculator->calculate(
+                $validated['items'],
+                0,
+                $validated['coupon_code'] ?? null,
+                $validated['branch'] ?? null,
+                $validated['delivery_type'] ?? null,
+                $validated['client_lat'] ?? null,
+                $validated['client_lng'] ?? null
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         try {
             $serverCalculated = $calculator->verify($validated, $serverCalculated, 'price');
@@ -159,10 +168,10 @@ class StripeController extends Controller
             ]);
         } catch (ApiErrorException $e) {
             Log::error('[Stripe] API Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Error al conectar con Stripe: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Error al procesar el pago. Intenta de nuevo.'], 500);
         } catch (\Exception $e) {
             Log::error('[Stripe] Excepción: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Error inesperado. Intenta de nuevo.'], 500);
         }
     }
 
@@ -231,6 +240,7 @@ class StripeController extends Controller
     public function cancelOrder(Request $request): JsonResponse
     {
         $orderId = $request->input('order_id');
+        $customerPhone = $request->input('customer_phone');
 
         if (!$orderId) {
             return response()->json(['success' => false, 'message' => 'order_id requerido'], 422);
@@ -242,8 +252,12 @@ class StripeController extends Controller
             return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
         }
 
+        if ($customerPhone && preg_replace('/\D/', '', $customerPhone) !== preg_replace('/\D/', '', $order->customer_phone)) {
+            return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+
         if ($order->payment_method !== 'stripe' || $order->status !== 'pendiente') {
-            return response()->json(['success' => true, 'message' => 'Orden ya procesada']);
+            return response()->json(['success' => false, 'message' => 'Orden ya procesada']);
         }
 
         $order->update(['status' => 'cancelado']);
@@ -268,6 +282,16 @@ class StripeController extends Controller
             try {
                 $this->initStripe();
                 $session = CheckoutSession::retrieve($sessionId);
+
+                if ((string) $session->client_reference_id !== (string) $order->id) {
+                    Log::warning('[Stripe] IDOR attempt: session ' . $sessionId . ' does not belong to order #' . $order->id);
+                    return response()->json([
+                        'success'      => true,
+                        'order_id'     => $order->id,
+                        'status'       => $order->status,
+                        'status_label' => $order->status_label,
+                    ]);
+                }
 
                 if ($session->payment_status === 'paid') {
                     $order->status = 'pagado';

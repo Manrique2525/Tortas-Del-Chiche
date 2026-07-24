@@ -52,16 +52,21 @@ class ProfileController extends Controller
     {
         $request->validate([
             'email' => 'required|email|max:255|unique:users,email,' . session('admin_user_id'),
+            'current_password' => 'required',
         ]);
 
         $userId = session('admin_user_id');
         if (!$userId) {
-            return back()->withErrors(['email' => 'No tienes un usuario asociado. Usa el login con email.']);
+            return back()->withErrors(['email' => 'No tienes un usuario asociado.']);
         }
 
         $user = User::find($userId);
         if (!$user) {
             return back()->withErrors(['email' => 'Usuario no encontrado.']);
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'La contraseña actual no es correcta.']);
         }
 
         $user->email = $request->email;

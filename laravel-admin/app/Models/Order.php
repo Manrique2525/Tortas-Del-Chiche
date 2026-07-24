@@ -22,7 +22,6 @@ class Order extends Model
         'coupon_code',
         'stripe_payment_intent_id',
         'stripe_session_id',
-        'stripe_client_secret',
         'payment_proof',
     ];
 
