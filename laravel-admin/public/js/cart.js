@@ -44,6 +44,7 @@ const Cart = (() => {
               var fmt = function(t){var p=t.split(":");var h=parseInt(p[0]);var m=p[1];var ampm=h>=12?"pm":"am";h=h%12||12;return h+":"+m+" "+ampm;};
               return dayStr + " " + fmt(s.open) + " - " + fmt(s.close);
             })(item.schedule),
+            scheduleData: item.schedule || {},
             lat: item.latitude,
             lng: item.longitude,
             is_open: item.is_open,
@@ -176,16 +177,30 @@ const Cart = (() => {
       .catch(() => {});
   }
 
-  function getPickupHours() {
+  function getPickupHours(branchKey) {
+    var start = SCHEDULE_START;
+    var end = SCHEDULE_END;
+    if (branchKey && BRANCHES[branchKey] && BRANCHES[branchKey].scheduleData) {
+      var sched = BRANCHES[branchKey].scheduleData;
+      if (sched.open) {
+        var openH = parseInt(sched.open.split(":")[0]);
+        if (!isNaN(openH)) start = openH;
+      }
+      if (sched.close) {
+        var closeH = parseInt(sched.close.split(":")[0]);
+        if (!isNaN(closeH)) end = closeH;
+      }
+    }
     const hours = [];
-    for (let h = SCHEDULE_START; h < SCHEDULE_END; h++) {
+    for (let h = start; h < end; h++) {
       const suffix = h >= 12 ? "PM" : "AM";
       const h12 = h > 12 ? h - 12 : h;
       hours.push(`${h12}:00 ${suffix}`);
       hours.push(`${h12}:30 ${suffix}`);
     }
-    const lastH = SCHEDULE_END > 12 ? SCHEDULE_END - 12 : SCHEDULE_END;
-    hours.push(`${lastH}:00 PM`);
+    const lastSuffix = end >= 12 ? "PM" : "AM";
+    const lastH12 = end > 12 ? end - 12 : end;
+    hours.push(`${lastH12}:00 ${lastSuffix}`);
     return hours;
   }
 
@@ -690,7 +705,7 @@ const Cart = (() => {
     }
 
     const isPickup = state.deliveryType === "recoger";
-    const pickupHours = getPickupHours();
+    const pickupHours = getPickupHours(state.branch);
 
     const stepsDone = {
       items: state.items.length > 0,
@@ -2004,6 +2019,12 @@ const Cart = (() => {
     // When branch changes via header, update state and re-render
     (window.branchCallbacks || (window.branchCallbacks = [])).push(function(newBranch) {
       state.branch = newBranch;
+      if (state.pickupTime && BRANCHES[newBranch]) {
+        var validHours = getPickupHours(newBranch);
+        if (validHours.indexOf(state.pickupTime) === -1) {
+          state.pickupTime = "";
+        }
+      }
       save();
       var sidebar = document.getElementById("cart-sidebar");
       if (sidebar && sidebar.classList.contains("open")) {
