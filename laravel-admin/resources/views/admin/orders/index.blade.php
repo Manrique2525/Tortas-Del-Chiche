@@ -555,8 +555,28 @@
         @endforelse
 
         @if($orders->hasPages())
-            <div style="text-align:center; padding:20px;">
-                {{ $orders->links() }}
+            <div style="display:flex; justify-content:center; align-items:center; gap:6px; padding:20px 0; flex-wrap:wrap;">
+                @if($orders->onFirstPage())
+                    <span style="display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 12px; border-radius:8px; font-size:0.8rem; font-weight:600; background:#eee; color:#bbb; border:1px solid #ddd; cursor:not-allowed; font-family:'Poppins',sans-serif;">&#8249; Ant</span>
+                @else
+                    <a href="{{ $orders->previousPageUrl() }}" style="display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 12px; border-radius:8px; font-size:0.8rem; font-weight:600; background:#f0f0f0; color:#333; border:1px solid #ddd; text-decoration:none; font-family:'Poppins',sans-serif; transition:all 0.2s;">&#8249; Ant</a>
+                @endif
+
+                @foreach($orders->getUrlRange(max(1, $orders->currentPage() - 2), min($orders->lastPage(), $orders->currentPage() + 2)) as $page => $url)
+                    @if($page == $orders->currentPage())
+                        <span style="display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 10px; border-radius:8px; font-size:0.8rem; font-weight:700; background:#FF6B35; color:#fff; border:1px solid #FF6B35; font-family:'Poppins',sans-serif;">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}" style="display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 10px; border-radius:8px; font-size:0.8rem; font-weight:600; background:#f0f0f0; color:#333; border:1px solid #ddd; text-decoration:none; font-family:'Poppins',sans-serif; transition:all 0.2s;">{{ $page }}</a>
+                    @endif
+                @endforeach
+
+                @if($orders->hasMorePages())
+                    <a href="{{ $orders->nextPageUrl() }}" style="display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 12px; border-radius:8px; font-size:0.8rem; font-weight:600; background:#f0f0f0; color:#333; border:1px solid #ddd; text-decoration:none; font-family:'Poppins',sans-serif; transition:all 0.2s;">Sig &#8250;</a>
+                @else
+                    <span style="display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 12px; border-radius:8px; font-size:0.8rem; font-weight:600; background:#eee; color:#bbb; border:1px solid #ddd; cursor:not-allowed; font-family:'Poppins',sans-serif;">Sig &#8250;</span>
+                @endif
+
+                <span style="font-size:0.7rem; color:#999; margin-left:8px; font-family:'Poppins',sans-serif;">Pág {{ $orders->currentPage() }} de {{ $orders->lastPage() }}</span>
             </div>
         @endif
     </div>
