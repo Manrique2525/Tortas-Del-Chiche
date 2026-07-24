@@ -22,6 +22,33 @@
         .admin-header-left h1 { color: #FFD700; font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .admin-header-left p { color: #aaa; font-size: 0.7rem; }
         .header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+        .profile-dropdown { position: relative; }
+        .profile-trigger {
+            background: transparent; color: #FFD700; border: 2px solid #FFD700;
+            padding: 7px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+        }
+        .profile-trigger:hover { background: #FFD700; color: #1a1a1a; }
+        .profile-dropdown-menu {
+            display: none; position: absolute; top: calc(100% + 6px); right: 0;
+            background: #2d2d2d; border: 1px solid #444; border-radius: 10px;
+            min-width: 170px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 200;
+            overflow: hidden;
+        }
+        .profile-dropdown-menu.show { display: block; }
+        .profile-dropdown-menu a, .profile-dropdown-menu form button {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            padding: 10px 16px; font-family: 'Poppins', sans-serif; font-size: 0.75rem;
+            font-weight: 600; text-decoration: none; border: none; background: none;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .profile-dropdown-menu a { color: #ddd; }
+        .profile-dropdown-menu a:hover { background: rgba(255,255,255,0.08); color: #FFD700; }
+        .profile-dropdown-menu form button { color: #ff6b6b; }
+        .profile-dropdown-menu form button:hover { background: rgba(255,107,107,0.1); }
+        .profile-dropdown-divider { border-top: 1px solid #444; margin: 0; }
         .back-btn {
             background: transparent; color: #aaa; border: 2px solid #555;
             padding: 7px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif;
@@ -330,10 +357,19 @@
         </div>
         <div class="header-actions">
             <a href="{{ route('admin.dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> <span class="btn-label">Productos</span></a>
-            <form method="POST" action="{{ route('admin.logout') }}">
-                @csrf
-                <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i> <span class="btn-label">Salir</span></button>
-            </form>
+            <div class="profile-dropdown" id="profileDropdown">
+                <button class="profile-trigger" onclick="document.getElementById('profileDropdown').classList.toggle('show')">
+                    <i class="fas fa-user-circle"></i> <span class="btn-label">Mi cuenta</span> <i class="fas fa-caret-down" style="font-size:0.65rem;"></i>
+                </button>
+                <div class="profile-dropdown-menu">
+                    <a href="{{ route('admin.profile') }}"><i class="fas fa-user"></i> Perfil</a>
+                    <div class="profile-dropdown-divider"></div>
+                    <form method="POST" action="{{ route('admin.logout') }}">
+                        @csrf
+                        <button type="submit"><i class="fas fa-sign-out-alt"></i> Salir</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -593,6 +629,13 @@
     </div>
 
     <script>
+        document.addEventListener('click', function(e) {
+            var dropdown = document.getElementById('profileDropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
         function updateStatus(id, status) {
             const card = document.getElementById(`order-${id}`);
             fetch(`/admin/orders/${id}/status`, {
