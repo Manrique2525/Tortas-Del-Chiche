@@ -344,7 +344,7 @@
                 <i class="fas fa-plus"></i> <span class="btn-label">Nuevo</span>
             </a>
             <div class="profile-dropdown" id="profileDropdown">
-                <button class="profile-trigger" onclick="document.getElementById('profileDropdown').classList.toggle('show')">
+                <button class="profile-trigger" onclick="event.stopPropagation(); document.querySelector('#profileDropdown .profile-dropdown-menu').classList.toggle('show')">
                     <i class="fas fa-user-circle"></i> <span class="btn-label">Mi cuenta</span> <i class="fas fa-caret-down" style="font-size:0.65rem;"></i>
                 </button>
                 <div class="profile-dropdown-menu">

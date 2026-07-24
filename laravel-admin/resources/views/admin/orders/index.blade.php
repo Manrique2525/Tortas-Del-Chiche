@@ -358,7 +358,7 @@
         <div class="header-actions">
             <a href="{{ route('admin.dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> <span class="btn-label">Productos</span></a>
             <div class="profile-dropdown" id="profileDropdown">
-                <button class="profile-trigger" onclick="document.getElementById('profileDropdown').classList.toggle('show')">
+                <button class="profile-trigger" onclick="event.stopPropagation(); document.querySelector('#profileDropdown .profile-dropdown-menu').classList.toggle('show')">
                     <i class="fas fa-user-circle"></i> <span class="btn-label">Mi cuenta</span> <i class="fas fa-caret-down" style="font-size:0.65rem;"></i>
                 </button>
                 <div class="profile-dropdown-menu">
@@ -630,10 +630,8 @@
 
     <script>
         document.addEventListener('click', function(e) {
-            var dropdown = document.getElementById('profileDropdown');
-            if (dropdown && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
+            var menus = document.querySelectorAll('.profile-dropdown-menu.show');
+            menus.forEach(function(m) { m.classList.remove('show'); });
         });
 
         function updateStatus(id, status) {
