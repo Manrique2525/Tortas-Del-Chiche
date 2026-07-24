@@ -136,13 +136,6 @@ class StripeController extends Controller
                 'payment_method_types' => ['card'],
                 'line_items'           => $lineItems,
                 'mode'                 => 'payment',
-                'payment_intent_data'  => [
-                    'payment_method_options' => [
-                        'card' => [
-                            'request_three_d_secure' => 'any',
-                        ],
-                    ],
-                ],
                 'success_url'          => $appUrl . '/?stripe_status=success&order_id=' . $order->id . '&session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url'           => $appUrl . '/?stripe_status=cancel&order_id=' . $order->id,
                 'customer_creation'    => 'always',
