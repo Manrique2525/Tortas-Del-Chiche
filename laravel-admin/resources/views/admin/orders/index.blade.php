@@ -303,6 +303,20 @@
             .action-btn { padding: 7px 8px; font-size: 0.65rem; gap: 4px; }
             .admin-footer { padding: 16px; font-size: 0.7rem; }
         }
+        .pagination { display: flex; gap: 4px; justify-content: center; align-items: center; list-style: none; padding: 0; margin: 0; }
+        .pagination li { display: inline-block; }
+        .pagination li a, .pagination li span {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 32px; height: 32px; padding: 4px 10px;
+            border-radius: 8px; font-size: 0.75rem; font-weight: 600;
+            text-decoration: none; transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .pagination li a { background: #f0f0f0; color: #333; border: 1px solid #ddd; }
+        .pagination li a:hover { background: #FF6B35; color: white; border-color: #FF6B35; }
+        .pagination li.active span { background: #FF6B35; color: white; border: 1px solid #FF6B35; }
+        .pagination li.disabled span { background: #fafafa; color: #ccc; border: 1px solid #eee; cursor: not-allowed; }
+        .pagination li a svg { width: 14px; height: 14px; }
     </style>
 </head>
 <body>
