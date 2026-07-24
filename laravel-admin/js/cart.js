@@ -1788,6 +1788,15 @@ const Cart = (() => {
     sessionStorage.removeItem("stripe_checkout_active");
     sessionStorage.removeItem("stripe_order_id");
 
+    function clearCartAfterPayment() {
+      saveToHistory();
+      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
+      save();
+      renderSidebar();
+      renderBadge();
+      closeSidebar();
+    }
+
     if (status === "success") {
       if (orderId) {
         fetch("/api/stripe/status?order_id=" + orderId + (sessionId ? "&session_id=" + sessionId : ""))
@@ -1799,18 +1808,23 @@ const Cart = (() => {
             } else {
               showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
             }
+            clearCartAfterPayment();
           })
           .catch(function() {
             showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
+            clearCartAfterPayment();
           });
+      } else {
+        clearCartAfterPayment();
       }
-      saveToHistory();
-      state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
-      save();
-      renderSidebar();
-      renderBadge();
-      closeSidebar();
     } else if (status === "cancel") {
+      if (orderId) {
+        fetch("/api/stripe/cancel-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ order_id: orderId }),
+        }).catch(function() {});
+      }
       showCartAlert("El pago fue cancelado. Puedes intentar de nuevo.");
     }
 
