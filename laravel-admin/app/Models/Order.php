@@ -20,8 +20,9 @@ class Order extends Model
         'total',
         'status',
         'coupon_code',
-        'mp_payment_id',
-        'mp_preference_id',
+        'stripe_payment_intent_id',
+        'stripe_session_id',
+        'stripe_client_secret',
         'payment_proof',
     ];
 
@@ -80,7 +81,7 @@ class Order extends Model
         return match($this->payment_method) {
             'efectivo'      => 'Efectivo',
             'transferencia' => 'Transferencia',
-            'mercadopago'   => 'Tarjeta',
+            'stripe'        => 'Tarjeta',
             default         => ucfirst($this->payment_method),
         };
     }

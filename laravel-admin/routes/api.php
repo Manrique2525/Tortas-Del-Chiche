@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\BranchController;
-use App\Http\Controllers\Api\MercadoPagoController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\StripeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/branches', [BranchController::class, 'index']);
@@ -16,7 +16,7 @@ Route::get('/orders/pending-count', function () {
 });
 Route::get('/orders/paid-latest', function () {
     $order = \App\Models\Order::where('status', 'pagado')
-        ->where('payment_method', 'mercadopago')
+        ->where('payment_method', 'stripe')
         ->latest()
         ->first(['id', 'customer_name', 'total']);
     return response()->json($order);
@@ -29,7 +29,6 @@ Route::get('/coupons', function () {
     return response()->json($coupons);
 });
 
-Route::post('/mercadopago/create-preference', [MercadoPagoController::class, 'createPreference']);
-Route::post('/mercadopago/webhook', [MercadoPagoController::class, 'webhook'])->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
-Route::get('/mercadopago/status', [MercadoPagoController::class, 'getPaymentStatus']);
-Route::get('/mercadopago/test', [MercadoPagoController::class, 'test']);
+Route::post('/stripe/create-checkout-session', [StripeController::class, 'createCheckoutSession']);
+Route::post('/stripe/webhook', [StripeController::class, 'webhook'])->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+Route::get('/stripe/status', [StripeController::class, 'getPaymentStatus']);

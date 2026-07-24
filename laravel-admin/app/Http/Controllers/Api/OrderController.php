@@ -21,7 +21,7 @@ class OrderController extends Controller
             'customer_address'=> 'nullable|string|max:500',
             'branch'          => 'required|string|exists:sucursales,key',
             'delivery_type'   => 'required|in:domicilio,recoger',
-            'payment_method'  => 'required|in:efectivo,transferencia,mercadopago',
+            'payment_method'  => 'required|in:efectivo,transferencia,stripe',
             'subtotal'        => 'required|numeric|min:0',
             'delivery_fee'    => 'nullable|numeric|min:0',
             'discount'        => 'nullable|numeric|min:0',

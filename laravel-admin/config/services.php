@@ -35,10 +35,10 @@ return [
         ],
     ],
 
-    'mercadopago' => [
-        'access_token'   => env('MERCADO_PAGO_ACCESS_TOKEN'),
-        'webhook_secret' => env('MERCADO_PAGO_WEBHOOK_SECRET'),
-        'env'            => env('MERCADO_PAGO_ENV', 'test'),
+    'stripe' => [
+        'key'            => env('STRIPE_KEY'),
+        'secret'         => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
 ];

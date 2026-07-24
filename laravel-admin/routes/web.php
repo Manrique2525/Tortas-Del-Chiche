@@ -43,7 +43,7 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
     Route::get('/orders/check-paid', function () {
         $order = \App\Models\Order::where('status', 'pagado')
-            ->where('payment_method', 'mercadopago')
+            ->where('payment_method', 'stripe')
             ->latest()
             ->first(['id', 'customer_name', 'total', 'status']);
         return response()->json($order);

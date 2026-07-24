@@ -3286,12 +3286,12 @@ footer {
     box-shadow: none;
 }
 
-.mercadopago-btn {
-    background: #009EE3 !important;
+.stripe-btn {
+    background: #635BFF !important;
 }
-.mercadopago-btn:hover {
-    background: #0089C4 !important;
-    box-shadow: 0 4px 12px rgba(0, 158, 227, 0.4) !important;
+.stripe-btn:hover {
+    background: #5046E4 !important;
+    box-shadow: 0 4px 12px rgba(99, 91, 255, 0.4) !important;
 }
 
 /* ── Toast container (cola de mensajes) ── */

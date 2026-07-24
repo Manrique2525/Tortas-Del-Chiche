@@ -940,7 +940,7 @@ const Cart = (() => {
               <i class="fas fa-university"></i>
               <span class="cart-payment-name">Transferencia</span>
             </button>
-            <button class="cart-payment-option ${state.payment === "mercadopago" ? "active" : ""}" data-payment="mercadopago">
+            <button class="cart-payment-option ${state.payment === "stripe" ? "active" : ""}" data-payment="stripe">
               <i class="fas fa-credit-card"></i>
               <span class="cart-payment-name">Tarjeta</span>
             </button>
@@ -1040,8 +1040,8 @@ const Cart = (() => {
           <button class="cart-whatsapp-btn cart-whatsapp-btn-disabled" disabled>
             <i class="fas fa-ban"></i> Retira productos no disponibles
           </button>
-        ` : (state.payment === "mercadopago" ? `
-          <button class="cart-whatsapp-btn mercadopago-btn" id="cart-mp-pay">
+        ` : (state.payment === "stripe" ? `
+          <button class="cart-whatsapp-btn stripe-btn" id="cart-stripe-pay">
             <i class="fas fa-credit-card"></i> Pagar con tarjeta
           </button>
         ` : `
@@ -1132,9 +1132,9 @@ const Cart = (() => {
       sendBtn.addEventListener("click", sendToWhatsApp);
     }
 
-    const mpPayBtn = document.getElementById("cart-mp-pay");
+    const mpPayBtn = document.getElementById("cart-stripe-pay");
     if (mpPayBtn) {
-      mpPayBtn.addEventListener("click", startMpCheckout);
+      mpPayBtn.addEventListener("click", startStripeCheckout);
     }
 
     const nameInput = document.getElementById("cart-name");
@@ -1632,8 +1632,8 @@ const Cart = (() => {
     });
   }
 
-  /* ──────────── Mercado Pago Checkout ──────────── */
-  function startMpCheckout() {
+  /* ──────────── Stripe Checkout ──────────── */
+  function startStripeCheckout() {
     state.customer.name = document.getElementById("cart-name")?.value || state.customer.name;
     state.customer.phone = document.getElementById("cart-phone")?.value || state.customer.phone;
     state.customer.addressRef = document.getElementById("cart-address")?.value || state.customer.addressRef;
@@ -1720,13 +1720,13 @@ const Cart = (() => {
       }),
     };
 
-    const btn = document.getElementById("cart-mp-pay");
+    const btn = document.getElementById("cart-stripe-pay");
     if (btn) {
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando con Mercado Pago...';
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando con Stripe...';
       btn.disabled = true;
     }
 
-    fetch("/api/mercadopago/create-preference", {
+    fetch("/api/stripe/create-checkout-session", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify(payload),
@@ -1737,9 +1737,9 @@ const Cart = (() => {
     })
     .then(function(data) {
       if (data.success) {
-        sessionStorage.setItem("mp_order_id", data.order_id);
-        sessionStorage.setItem("mp_checkout_active", "1");
-        window.location.href = data.init_point;
+        sessionStorage.setItem("stripe_order_id", data.order_id);
+        sessionStorage.setItem("stripe_checkout_active", "1");
+        window.location.href = data.url;
       } else {
         showCartAlert("Error al conectar con el procesador. Intenta de nuevo.");
         if (btn) { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pagar con tarjeta'; btn.disabled = false; }
@@ -1811,19 +1811,31 @@ const Cart = (() => {
     }
   }
 
-  function checkMpReturn() {
+  function checkStripeReturn() {
     var params = new URLSearchParams(window.location.search);
-    var status = params.get("mp_status");
-    var orderId = params.get("order_id") || sessionStorage.getItem("mp_order_id");
+    var status = params.get("stripe_status");
+    var orderId = params.get("order_id") || sessionStorage.getItem("stripe_order_id");
+    var sessionId = params.get("session_id");
 
-    var wasCheckoutActive = sessionStorage.getItem("mp_checkout_active");
-    sessionStorage.removeItem("mp_checkout_active");
-    sessionStorage.removeItem("mp_order_id");
+    var wasCheckoutActive = sessionStorage.getItem("stripe_checkout_active");
+    sessionStorage.removeItem("stripe_checkout_active");
+    sessionStorage.removeItem("stripe_order_id");
 
     if (status === "success") {
-      showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
       if (orderId) {
-        sendPaidWhatsApp(orderId);
+        fetch("/api/stripe/status?order_id=" + orderId + (sessionId ? "&session_id=" + sessionId : ""))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success && data.status === "pagado") {
+              showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
+              sendPaidWhatsApp(orderId);
+            } else {
+              showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
+            }
+          })
+          .catch(function() {
+            showToast("\u2705 Pago registrado. Te notificaremos cuando se confirme.", "success");
+          });
       }
       saveToHistory();
       state = { items: [], branch: "", payment: "efectivo", deliveryType: "domicilio", pickupTime: "", coupon: "", customer: { name: "", phone: "", addressRef: "" }, location: { lat: null, lng: null, confirmed: false, address: null }, paymentProof: null };
@@ -1831,10 +1843,8 @@ const Cart = (() => {
       renderSidebar();
       renderBadge();
       closeSidebar();
-    } else if (status === "failure") {
-      showCartAlert("El pago fue rechazado. Intenta con otro método de pago.");
-    } else if (status === "pending") {
-      showToast("Pago en proceso. Te notificaremos cuando se confirme.", "success");
+    } else if (status === "cancel") {
+      showCartAlert("El pago fue cancelado. Puedes intentar de nuevo.");
     }
 
     if (wasCheckoutActive) {
@@ -1963,11 +1973,11 @@ const Cart = (() => {
   }
 
   function init() {
-    checkMpReturn();
+    checkStripeReturn();
 
     window.addEventListener("pageshow", function(e) {
       if (e.persisted) {
-        checkMpReturn();
+        checkStripeReturn();
       }
     });
 
