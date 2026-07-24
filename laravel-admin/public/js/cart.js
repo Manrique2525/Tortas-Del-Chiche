@@ -1801,14 +1801,10 @@ const Cart = (() => {
 
     var whatsapp = BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "";
     var url = "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(msg);
-    var opened = window.open(url, "_blank", "noopener,noreferrer");
-    if (!opened) {
-      navigator.clipboard.writeText(msg).then(function() {
-        showToast("Mensaje de confirmación copiado al portapapeles", "success");
-      }).catch(function() {
-        showCartAlert("No se pudo abrir WhatsApp. Copia el mensaje manualmente.");
-      });
-    }
+    showToast("\u2705 Pago confirmado. Redirigiendo a WhatsApp...", "success");
+    setTimeout(function() {
+      window.location.href = url;
+    }, 2000);
   }
 
   function checkStripeReturn() {
