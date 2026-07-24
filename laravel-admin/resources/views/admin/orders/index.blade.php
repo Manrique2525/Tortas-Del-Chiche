@@ -141,8 +141,15 @@
         }
         .order-total { font-weight: 700; color: #FF6B35; font-size: 1rem; }
         .order-payment {
-            font-size: 0.7rem; color: #888; display: flex; align-items: center; gap: 4px;
+            font-size: 0.7rem; color: #888; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
         }
+        .payment-stripe-badge {
+            font-size: 0.65rem; padding: 2px 8px; border-radius: 10px;
+            font-weight: 600; margin-left: 4px; white-space: nowrap;
+        }
+        .stripe-paid     { background: #E8F5E9; color: #2E7D32; }
+        .stripe-cancelled { background: #FFEBEE; color: #C62828; }
+        .stripe-pending  { background: #FFF8E1; color: #F57F17; }
 
         .action-buttons { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .action-btn {
@@ -468,6 +475,15 @@
                         <div class="order-payment">
                             <i class="fas fa-{{ $order->payment_method === 'efectivo' ? 'money-bill' : ($order->payment_method === 'transferencia' ? 'university' : 'credit-card') }}"></i>
                             {{ $order->payment_label }}
+                            @if($order->payment_method === 'stripe')
+                                @if($order->status === 'pagado')
+                                    <span class="payment-stripe-badge stripe-paid"><i class="fas fa-check-circle"></i> Pago confirmado</span>
+                                @elseif($order->status === 'cancelado')
+                                    <span class="payment-stripe-badge stripe-cancelled"><i class="fas fa-times-circle"></i> Pago cancelado</span>
+                                @elseif($order->status === 'pendiente')
+                                    <span class="payment-stripe-badge stripe-pending"><i class="fas fa-clock"></i> Pago pendiente</span>
+                                @endif
+                            @endif
                             @if($order->delivery_fee > 0) | Envío: ${{ number_format($order->delivery_fee, 0) }} @endif
                             @if($order->discount > 0) | Desc: -${{ number_format($order->discount, 0) }} @endif
                         </div>

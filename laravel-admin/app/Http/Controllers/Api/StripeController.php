@@ -136,6 +136,13 @@ class StripeController extends Controller
                 'payment_method_types' => ['card'],
                 'line_items'           => $lineItems,
                 'mode'                 => 'payment',
+                'payment_intent_data'  => [
+                    'payment_method_options' => [
+                        'card' => [
+                            'request_three_d_secure' => 'any',
+                        ],
+                    ],
+                ],
                 'success_url'          => $appUrl . '/?stripe_status=success&order_id=' . $order->id . '&session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url'           => $appUrl . '/?stripe_status=cancel&order_id=' . $order->id,
                 'customer_creation'    => 'always',
@@ -213,7 +220,44 @@ class StripeController extends Controller
             }
         }
 
+        if ($event->type === 'checkout.session.expired') {
+            $session = $event->data->object;
+
+            $orderId = (int) ($session->client_reference_id ?? 0);
+            $order = Order::find($orderId);
+
+            if ($order && $order->status === 'pendiente') {
+                $order->update(['status' => 'cancelado']);
+                Log::info('[Stripe Webhook] Orden #' . $orderId . ' cancelada por expiración de sesión');
+            }
+        }
+
         return response()->json(['received' => true]);
+    }
+
+    public function cancelOrder(Request $request): JsonResponse
+    {
+        $orderId = $request->input('order_id');
+
+        if (!$orderId) {
+            return response()->json(['success' => false, 'message' => 'order_id requerido'], 422);
+        }
+
+        $order = Order::find($orderId);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
+        }
+
+        if ($order->payment_method !== 'stripe' || $order->status !== 'pendiente') {
+            return response()->json(['success' => true, 'message' => 'Orden ya procesada']);
+        }
+
+        $order->update(['status' => 'cancelado']);
+
+        Log::info('[Stripe] Orden #' . $orderId . ' cancelada por el usuario');
+
+        return response()->json(['success' => true]);
     }
 
     public function getPaymentStatus(Request $request): JsonResponse
