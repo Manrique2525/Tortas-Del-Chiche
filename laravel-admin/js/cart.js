@@ -179,29 +179,35 @@ const Cart = (() => {
   }
 
   function getPickupHours(branchKey) {
-    var start = SCHEDULE_START;
-    var end = SCHEDULE_END;
+    var startMinutes = SCHEDULE_START * 60;
+    var endMinutes = SCHEDULE_END * 60;
     if (branchKey && BRANCHES[branchKey] && BRANCHES[branchKey].scheduleData) {
       var sched = BRANCHES[branchKey].scheduleData;
       if (sched.open) {
-        var openH = parseInt(sched.open.split(":")[0]);
-        if (!isNaN(openH)) start = openH;
+        var parts = sched.open.split(":");
+        var openH = parseInt(parts[0]);
+        var openM = parts.length > 1 ? parseInt(parts[1]) : 0;
+        if (!isNaN(openH)) startMinutes = openH * 60 + (isNaN(openM) ? 0 : openM);
       }
       if (sched.close) {
-        var closeH = parseInt(sched.close.split(":")[0]);
-        if (!isNaN(closeH)) end = closeH;
+        var cparts = sched.close.split(":");
+        var closeH = parseInt(cparts[0]);
+        var closeM = cparts.length > 1 ? parseInt(cparts[1]) : 0;
+        if (!isNaN(closeH)) endMinutes = closeH * 60 + (isNaN(closeM) ? 0 : closeM);
       }
     }
-    const hours = [];
-    for (let h = start; h < end; h++) {
-      const suffix = h >= 12 ? "PM" : "AM";
-      const h12 = h > 12 ? h - 12 : h;
-      hours.push(`${h12}:00 ${suffix}`);
-      hours.push(`${h12}:30 ${suffix}`);
+    var now = new Date();
+    var currentMinutes = now.getHours() * 60 + now.getMinutes() + 10;
+    var fromMinutes = Math.max(startMinutes, currentMinutes);
+    var rounded = Math.ceil(fromMinutes / 10) * 10;
+    var hours = [];
+    for (var m = rounded; m < endMinutes; m += 10) {
+      var hh = Math.floor(m / 60);
+      var mm = m % 60;
+      var suffix = hh >= 12 ? "PM" : "AM";
+      var h12 = hh > 12 ? hh - 12 : (hh === 0 ? 12 : hh);
+      hours.push(h12 + ":" + (mm < 10 ? "0" : "") + mm + " " + suffix);
     }
-    const lastSuffix = end >= 12 ? "PM" : "AM";
-    const lastH12 = end > 12 ? end - 12 : end;
-    hours.push(`${lastH12}:00 ${lastSuffix}`);
     return hours;
   }
 
@@ -1029,7 +1035,7 @@ const Cart = (() => {
           </button>
           <div class="cart-section-body ${collapsedSections.horario ? "collapsed" : ""}">
             <div class="cart-pickup-hours">
-              ${pickupHours.map((h) => `
+              ${pickupHours.length === 0 ? '<div class="cart-pickup-empty"><i class="fas fa-exclamation-circle"></i> La sucursal ya cerró. Elige otra sucursal o intenta mañana.</div>' : pickupHours.map((h) => `
                 <button class="cart-pickup-hour ${state.pickupTime === h ? "active" : ""}" data-time="${h}">
                   <i class="fas fa-clock"></i> ${h}
                 </button>
