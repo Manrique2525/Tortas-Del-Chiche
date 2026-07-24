@@ -32,17 +32,17 @@
         }
         .profile-trigger:hover { background: #FFD700; color: #1a1a1a; }
         .profile-dropdown-menu {
-            display: none; position: absolute; top: calc(100% + 6px); right: 0;
+            display: none; position: absolute; top: calc(100% + 4px); right: 0;
             background: #2d2d2d; border: 1px solid #444; border-radius: 10px;
-            min-width: 170px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 200;
+            min-width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 200;
             overflow: hidden;
         }
         .profile-dropdown-menu.show { display: block; }
         .profile-dropdown-menu a, .profile-dropdown-menu form button {
             display: flex; align-items: center; gap: 8px; width: 100%;
-            padding: 10px 16px; font-family: 'Poppins', sans-serif; font-size: 0.75rem;
+            padding: 7px 14px; font-family: 'Poppins', sans-serif; font-size: 0.75rem;
             font-weight: 600; text-decoration: none; border: none; background: none;
-            cursor: pointer; transition: background 0.2s;
+            cursor: pointer; transition: background 0.2s; white-space: nowrap;
         }
         .profile-dropdown-menu a { color: #ddd; }
         .profile-dropdown-menu a:hover { background: rgba(255,255,255,0.08); color: #FFD700; }
