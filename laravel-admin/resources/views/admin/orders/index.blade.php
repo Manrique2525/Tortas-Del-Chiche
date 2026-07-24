@@ -316,7 +316,6 @@
         .pagination li a:hover { background: #FF6B35; color: white; border-color: #FF6B35; }
         .pagination li.active span { background: #FF6B35; color: white; border: 1px solid #FF6B35; }
         .pagination li.disabled span { background: #fafafa; color: #ccc; border: 1px solid #eee; cursor: not-allowed; }
-        .pagination li a svg { width: 14px; height: 14px; }
     </style>
 </head>
 <body>
