@@ -13,7 +13,7 @@ class CleanupExpiredOrders extends Command
 
     public function handle(): int
     {
-        $cutoff = now()->subMinutes(30);
+        $cutoff = now()->subMinutes(15);
 
         $cancelled = Order::where('payment_method', 'stripe')
             ->where('status', 'pendiente')

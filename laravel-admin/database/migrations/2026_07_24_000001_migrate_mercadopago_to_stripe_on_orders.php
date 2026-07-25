@@ -9,6 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        DB::statement("ALTER TABLE orders MODIFY COLUMN payment_method ENUM('efectivo','transferencia','mercadopago','stripe') NOT NULL DEFAULT 'efectivo'");
+
+        DB::table('orders')
+            ->where('payment_method', 'mercadopago')
+            ->update(['payment_method' => 'stripe']);
+
         Schema::table('orders', function (Blueprint $table) {
             $table->renameColumn('mp_payment_id', 'stripe_payment_intent_id');
         });
@@ -21,13 +27,13 @@ return new class extends Migration
             $table->string('stripe_session_id', 100)->nullable()->after('stripe_payment_intent_id');
         });
 
-        DB::table('orders')
-            ->where('payment_method', 'mercadopago')
-            ->update(['payment_method' => 'stripe']);
+        DB::statement("ALTER TABLE orders MODIFY COLUMN payment_method ENUM('efectivo','transferencia','stripe') NOT NULL DEFAULT 'efectivo'");
     }
 
     public function down(): void
     {
+        DB::statement("ALTER TABLE orders MODIFY COLUMN payment_method ENUM('efectivo','transferencia','stripe','mercadopago') NOT NULL DEFAULT 'efectivo'");
+
         DB::table('orders')
             ->where('payment_method', 'stripe')
             ->update(['payment_method' => 'mercadopago']);
@@ -43,5 +49,7 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             $table->renameColumn('stripe_payment_intent_id', 'mp_payment_id');
         });
+
+        DB::statement("ALTER TABLE orders MODIFY COLUMN payment_method ENUM('efectivo','transferencia','mercadopago') NOT NULL DEFAULT 'efectivo'");
     }
 };
