@@ -21,7 +21,7 @@ class AdminAuth
         }
 
         $lastActivity = session('admin_last_activity');
-        if ($lastActivity && (now()->timestamp - $lastActivity) > 1800) {
+        if ($lastActivity && (now()->timestamp - $lastActivity) > 28800) {
             session()->invalidate();
             return redirect()->route('admin.login');
         }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\OrderFolioService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -23,6 +24,8 @@ class Order extends Model
         'stripe_payment_intent_id',
         'stripe_session_id',
         'payment_proof',
+        'folio',
+        'folio_date',
     ];
 
     protected $casts = [
@@ -30,6 +33,7 @@ class Order extends Model
         'delivery_fee'=> 'decimal:2',
         'discount'    => 'decimal:2',
         'total'       => 'decimal:2',
+        'folio_date'  => 'date',
     ];
 
     public function items(): HasMany
@@ -83,5 +87,14 @@ class Order extends Model
             'stripe'        => 'Tarjeta',
             default         => ucfirst($this->payment_method),
         };
+    }
+
+    public function getFolioLabelAttribute(): string
+    {
+        if ($this->folio === null) {
+            return '#' . str_pad((string) $this->id, 4, '0', STR_PAD_LEFT);
+        }
+
+        return '#' . (new OrderFolioService())->display($this->branch, (int) $this->folio);
     }
 }

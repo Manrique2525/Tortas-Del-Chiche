@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\OrderFolioService;
 use App\Services\OrderTotalCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,10 +64,12 @@ class OrderController extends Controller
 
         $paymentProofPath = null;
         if ($request->hasFile('payment_proof')) {
-            $paymentProofPath = $request->file('payment_proof')->store('payment-proofs');
+            $paymentProofPath = $request->file('payment_proof')->store('payment-proofs', 'public');
         }
 
         $order = DB::transaction(function () use ($validated, $serverCalculated, $paymentProofPath) {
+            $folio = (new OrderFolioService())->next($validated['branch']);
+
             $order = Order::create([
                 'customer_name'    => $validated['customer_name'],
                 'customer_phone'   => $validated['customer_phone'],
@@ -81,6 +84,8 @@ class OrderController extends Controller
                 'coupon_code'      => $serverCalculated['coupon_code'],
                 'payment_proof'    => $paymentProofPath,
                 'status'           => 'pendiente',
+                'folio'            => $folio['folio'],
+                'folio_date'       => $folio['folio_date'],
             ]);
 
             foreach ($serverCalculated['items'] as $item) {
@@ -101,6 +106,7 @@ class OrderController extends Controller
             'success' => true,
             'order'   => [
                 'id'     => $order->id,
+                'folio'  => $order->folio_label,
                 'status' => $order->status_label,
                 'total'  => number_format($order->total, 2),
             ],

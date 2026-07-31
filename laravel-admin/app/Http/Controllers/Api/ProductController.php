@@ -48,9 +48,7 @@ class ProductController extends Controller
         }
 
         $products = $products->map(function ($product) {
-            if ($product->image && strpos($product->image, 'products/') === 0) {
-                $product->image = asset('storage/' . $product->image);
-            } elseif ($product->image) {
+            if ($product->image) {
                 $product->image = asset($product->image);
             }
             return $product;

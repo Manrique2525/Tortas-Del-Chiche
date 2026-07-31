@@ -13,6 +13,8 @@ mv /.env.production /.env
 # Dar permisos de escritura
 chmod 775 /storage
 chmod 775 /bootstrap/cache
+mkdir /public/products
+chmod 775 /public/products
 
 # Cerrar conexion
 close

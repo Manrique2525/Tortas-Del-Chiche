@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#FF6B35">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tortas Admin">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
     <title>Pedidos - Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -66,7 +72,7 @@
         .logout-btn:hover { background: #ff6b6b; color: white; }
         .btn-label { display: inline; }
 
-        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px 20px 0; }
+        .stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; padding: 20px 20px 0; }
         .stat-card {
             background: white; border-radius: 12px; padding: 14px 10px; text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -77,6 +83,7 @@
         .stat-card.accepted .stat-number { color: #2196F3; }
         .stat-card.revenue .stat-number { color: #27ae60; }
         .stat-card.delivery .stat-number { color: #9C27B0; }
+        .stat-card.sold .stat-number { color: #FF6B35; }
 
         .filters-bar {
             padding: 14px 20px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
@@ -146,20 +153,82 @@
         .order-proof-img { max-width: 180px; max-height: 180px; border-radius: 10px; border: 2px solid #e0e0e0; object-fit: cover; cursor: pointer; transition: transform 0.2s ease; }
         .order-proof-img:hover { transform: scale(1.05); border-color: #27ae60; }
 
-        .proof-modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;
-            padding: 20px; cursor: pointer;
-        }
+        .proof-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px; cursor: pointer; }
         .proof-modal-overlay.active { display: flex; }
         .proof-modal-img { max-width: 90%; max-height: 90vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); object-fit: contain; }
-        .proof-modal-close {
-            position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,0.15);
-            color: white; border: none; width: 40px; height: 40px; border-radius: 50%;
-            font-size: 1.2rem; cursor: pointer; transition: background 0.3s ease;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .proof-modal-close { position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,0.15); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; transition: background 0.3s ease; display: flex; align-items: center; justify-content: center; }
         .proof-modal-close:hover { background: rgba(255,255,255,0.3); }
+
+        .order-detail-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center;
+            padding: 20px;
+        }
+        .order-detail-overlay.active { display: flex; }
+        .order-detail-modal {
+            background: white; border-radius: 16px; max-width: 520px; width: 100%; max-height: 85vh;
+            overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative;
+        }
+        .odm-header {
+            padding: 20px 24px 16px; border-bottom: 1px solid #f0f0f0; display: flex;
+            align-items: center; justify-content: space-between; position: sticky; top: 0;
+            background: white; border-radius: 16px 16px 0 0; z-index: 1;
+        }
+        .odm-header-left { display: flex; align-items: center; gap: 10px; }
+        .odm-id { font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+        .odm-date { font-size: 0.7rem; color: #888; }
+        .odm-close {
+            background: #f0f0f0; border: none; width: 32px; height: 32px; border-radius: 50%;
+            font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #555; transition: all 0.2s;
+        }
+        .odm-close:hover { background: #e0e0e0; color: #333; }
+        .odm-body { padding: 0 24px 24px; }
+        .odm-section { padding: 14px 0; border-bottom: 1px solid #f5f5f5; }
+        .odm-section:last-child { border-bottom: none; }
+        .odm-section-title {
+            font-size: 0.65rem; font-weight: 700; color: #888; text-transform: uppercase;
+            letter-spacing: 0.8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+        }
+        .odm-row { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #333; margin-bottom: 4px; }
+        .odm-row i { color: #888; width: 16px; text-align: center; font-size: 0.75rem; flex-shrink: 0; }
+        .odm-row .odm-label { color: #888; min-width: 80px; flex-shrink: 0; }
+        .odm-item {
+            display: flex; align-items: center; justify-content: space-between; padding: 8px 0;
+            border-bottom: 1px dashed #f0f0f0; font-size: 0.82rem;
+        }
+        .odm-item:last-child { border-bottom: none; }
+        .odm-item-left { display: flex; align-items: center; gap: 6px; }
+        .odm-item-qty { font-weight: 700; color: #FF6B35; min-width: 24px; }
+        .odm-item-name { color: #333; }
+        .odm-item-price { font-weight: 600; color: #555; white-space: nowrap; }
+        .odm-item-options { display: flex; gap: 4px; margin-top: 2px; }
+        .odm-option-badge {
+            font-size: 0.6rem; padding: 2px 6px; border-radius: 6px; font-weight: 600;
+            background: #f0f0f0; color: #666;
+        }
+        .odm-option-badge.type { background: #FFF3E0; color: #E65100; }
+        .odm-option-badge.meat { background: #E8F5E9; color: #2E7D32; }
+        .odm-summary-row { display: flex; justify-content: space-between; font-size: 0.82rem; padding: 3px 0; color: #555; }
+        .odm-summary-row.total { font-weight: 700; font-size: 1rem; color: #FF6B35; border-top: 2px solid #f0f0f0; padding-top: 8px; margin-top: 4px; }
+        .odm-proof-thumb { max-width: 120px; max-height: 120px; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer; transition: transform 0.2s; margin-top: 6px; }
+        .odm-proof-thumb:hover { transform: scale(1.05); border-color: #27ae60; }
+        .odm-stripe-badge { font-size: 0.7rem; padding: 3px 10px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+        .odm-stripe-badge.paid { background: #E8F5E9; color: #2E7D32; }
+        .odm-stripe-badge.cancelled { background: #FFEBEE; color: #C62828; }
+        .odm-stripe-badge.pending { background: #FFF8E1; color: #F57F17; }
+        .btn-view-order {
+            background: transparent; color: #888; border: 1px solid #ddd; padding: 4px 10px;
+            border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn-view-order:hover { border-color: #FF6B35; color: #FF6B35; background: #FFF5F0; }
+        @media (max-width: 576px) {
+            .order-detail-modal { max-height: 90vh; border-radius: 12px; }
+            .odm-header { padding: 16px 18px 12px; border-radius: 12px 12px 0 0; }
+            .odm-body { padding: 0 18px 18px; }
+        }
 
         .order-footer {
             display: flex; align-items: center; justify-content: space-between;
@@ -238,10 +307,10 @@
             .header-actions { width: 100%; justify-content: flex-end; }
 
             .stats-row {
-                grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px 14px 0;
+                grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 14px 14px 0;
             }
             .stats-row .stat-card:last-child {
-                grid-column: 1 / -1;
+                grid-column: auto;
             }
             .stat-card { padding: 12px 8px; border-radius: 10px; }
             .stat-card .stat-number { font-size: 1.2rem; }
@@ -387,12 +456,16 @@
             <div class="stat-label">Aceptados</div>
         </div>
         <div class="stat-card revenue">
-            <div class="stat-number">${{ number_format($stats['ingresos_hoy'], 0) }}</div>
-            <div class="stat-label">Ingresos hoy</div>
+            <div class="stat-number">${{ number_format($stats['ingresos'], 0) }}</div>
+            <div class="stat-label">Ingresos</div>
         </div>
         <div class="stat-card delivery">
-            <div class="stat-number">${{ number_format($stats['envios_hoy'], 0) }}</div>
+            <div class="stat-number">${{ number_format($stats['envios'], 0) }}</div>
             <div class="stat-label">Envíos</div>
+        </div>
+        <div class="stat-card sold">
+            <div class="stat-number">${{ number_format($stats['vendido'], 0) }}</div>
+            <div class="stat-label">Vendido</div>
         </div>
     </div>
 
@@ -426,11 +499,11 @@
         </div>
         <div class="filter-group">
             <span class="filter-label">Desde</span>
-            <input type="date" name="date_from" class="filter-input" value="{{ request('date_from') }}">
+            <input type="date" name="date_from" class="filter-input" value="{{ request('date_from', today()->toDateString()) }}">
         </div>
         <div class="filter-group">
             <span class="filter-label">Hasta</span>
-            <input type="date" name="date_to" class="filter-input" value="{{ request('date_to') }}">
+            <input type="date" name="date_to" class="filter-input" value="{{ request('date_to', today()->toDateString()) }}">
         </div>
         <div class="filter-group" style="align-self: flex-end;">
             <button type="submit" class="filter-btn filter-btn-primary"><i class="fas fa-search"></i> Filtrar</button>
@@ -447,21 +520,26 @@
             <div class="order-card is-{{ $order->status }}" id="order-{{ $order->id }}">
                 <div class="order-header">
                     <div>
-                        <span class="order-id">#{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}</span>
+                        <span class="order-id">{{ $order->folio_label }}</span>
                         <span class="order-date">{{ $order->created_at->format('d/m/Y H:i') }}</span>
                     </div>
-                    <div class="order-status" style="background: {{ $order->status_color }}">
-                        <i class="fas fa-{{ match($order->status) {
-                            'pendiente' => 'clock',
-                            'aceptado' => 'check',
-                            'en_preparacion' => 'fire',
-                            'entregado' => 'check-double',
-                            'cancelado' => 'times',
-                            'pagado' => 'credit-card',
-                            'reembolsado' => 'undo',
-                            default => 'circle',
-                        } }}"></i>
-                        {{ $order->status_label }}
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button class="btn-view-order" onclick="openOrderModal({{ $order->id }})" title="Ver detalle">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <div class="order-status" style="background: {{ $order->status_color }}">
+                            <i class="fas fa-{{ match($order->status) {
+                                'pendiente' => 'clock',
+                                'aceptado' => 'check',
+                                'en_preparacion' => 'fire',
+                                'entregado' => 'check-double',
+                                'cancelado' => 'times',
+                                'pagado' => 'credit-card',
+                                'reembolsado' => 'undo',
+                                default => 'circle',
+                            } }}"></i>
+                            {{ $order->status_label }}
+                        </div>
                     </div>
                 </div>
 
@@ -623,6 +701,113 @@
 
     <div class="toast" id="toast"></div>
 
+    @foreach($orders as $order)
+    <div class="order-detail-overlay" id="order-modal-{{ $order->id }}" onclick="closeOrderModal(event, {{ $order->id }})">
+        <div class="order-detail-modal" onclick="event.stopPropagation()">
+            <div class="odm-header">
+                <div class="odm-header-left">
+                    <span class="odm-id">{{ $order->folio_label }}</span>
+                    <span class="odm-date">{{ $order->created_at->format('d/m/Y H:i') }}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="order-status" style="background: {{ $order->status_color }}">
+                        <i class="fas fa-{{ match($order->status) {
+                            'pendiente' => 'clock', 'aceptado' => 'check', 'en_preparacion' => 'fire',
+                            'entregado' => 'check-double', 'cancelado' => 'times', 'pagado' => 'credit-card',
+                            'reembolsado' => 'undo', default => 'circle',
+                        } }}"></i> {{ $order->status_label }}
+                    </div>
+                    <button class="odm-close" onclick="closeOrderModal(null, {{ $order->id }})"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="odm-body">
+                <div class="odm-section">
+                    <div class="odm-section-title"><i class="fas fa-user"></i> Datos del Cliente</div>
+                    <div class="odm-row"><i class="fas fa-user"></i> {{ $order->customer_name }}</div>
+                    @if($order->customer_phone)
+                        @php
+                            $cleanPhone = preg_replace('/\D/', '', $order->customer_phone);
+                            $waPhone = str_starts_with($cleanPhone, '52') ? $cleanPhone : '52' . $cleanPhone;
+                        @endphp
+                        <div class="odm-row">
+                            <i class="fas fa-phone"></i> {{ $order->customer_phone }}
+                            <a href="https://wa.me/{{ $waPhone }}" target="_blank" class="wa-btn" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    @endif
+                    <div class="odm-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ $order->delivery_type === 'recoger' ? 'Recoger en sucursal' : ($order->customer_address ?: 'Sin dirección') }}
+                    </div>
+                </div>
+
+                <div class="odm-section">
+                    <div class="odm-section-title"><i class="fas fa-store"></i> Detalles del Pedido</div>
+                    <div class="odm-row"><span class="odm-label">Sucursal</span> {{ ucfirst(str_replace('_', ' ', $order->branch)) }}</div>
+                    <div class="odm-row"><span class="odm-label">Entrega</span> {{ $order->delivery_type === 'recoger' ? 'Recoger en sucursal' : 'A domicilio' }}</div>
+                    <div class="odm-row"><span class="odm-label">Pago</span> {{ $order->payment_label }}</div>
+                    @if($order->coupon_code)
+                        <div class="odm-row"><span class="odm-label">Cupón</span> {{ $order->coupon_code }}</div>
+                    @endif
+                    @if($order->payment_method === 'stripe')
+                        <div class="odm-row">
+                            <span class="odm-label">Stripe</span>
+                            @if($order->status === 'pagado')
+                                <span class="odm-stripe-badge paid"><i class="fas fa-check-circle"></i> Pago confirmado</span>
+                            @elseif($order->status === 'cancelado')
+                                <span class="odm-stripe-badge cancelled"><i class="fas fa-times-circle"></i> Cancelado</span>
+                            @else
+                                <span class="odm-stripe-badge pending"><i class="fas fa-clock"></i> Pendiente</span>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
+                <div class="odm-section">
+                    <div class="odm-section-title"><i class="fas fa-shopping-cart"></i> Artículos</div>
+                    @foreach($order->items as $item)
+                        <div class="odm-item">
+                            <div class="odm-item-left">
+                                <span class="odm-item-qty">{{ $item->quantity }}x</span>
+                                <div>
+                                    <div class="odm-item-name">{{ $item->product_name }}</div>
+                                    @if($item->options)
+                                        <div class="odm-item-options">
+                                            @if(!empty($item->options['type'])) <span class="odm-option-badge type">{{ ucfirst($item->options['type']) }}</span> @endif
+                                            @if(!empty($item->options['meat'])) <span class="odm-option-badge meat">{{ ucfirst($item->options['meat']) }}</span> @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            <span class="odm-item-price">${{ number_format($item->line_total, 0) }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="odm-section">
+                    <div class="odm-section-title"><i class="fas fa-credit-card"></i> Resumen de Pago</div>
+                    <div class="odm-summary-row"><span>Subtotal</span><span>${{ number_format($order->subtotal, 0) }}</span></div>
+                    @if($order->delivery_fee > 0)
+                        <div class="odm-summary-row"><span>Envío</span><span>${{ number_format($order->delivery_fee, 0) }}</span></div>
+                    @endif
+                    @if($order->discount > 0)
+                        <div class="odm-summary-row"><span>Descuento</span><span>-${{ number_format($order->discount, 0) }}</span></div>
+                    @endif
+                    <div class="odm-summary-row total"><span>Total</span><span>${{ number_format($order->total, 0) }}</span></div>
+                </div>
+
+                @if($order->payment_proof)
+                    <div class="odm-section">
+                        <div class="odm-section-title"><i class="fas fa-image"></i> Comprobante</div>
+                        <img src="/storage/{{ $order->payment_proof }}" alt="Comprobante" class="odm-proof-thumb"
+                             onclick="openProofModal('/storage/{{ $order->payment_proof }}')"
+                             onerror="this.parentElement.style.display='none'">
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endforeach
+
     <div class="proof-modal-overlay" id="proofModal" onclick="closeProofModal()">
         <button class="proof-modal-close" onclick="closeProofModal()"><i class="fas fa-times"></i></button>
         <img class="proof-modal-img" id="proofModalImg" src="" alt="Comprobante">
@@ -740,8 +925,31 @@
             document.body.style.overflow = '';
         }
 
+        function openOrderModal(id) {
+            var modal = document.getElementById('order-modal-' + id);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        function closeOrderModal(e, id) {
+            if (e && e.target !== e.currentTarget) return;
+            var modal = document.getElementById('order-modal-' + id);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeProofModal();
+            if (e.key === 'Escape') {
+                closeProofModal();
+                var openModals = document.querySelectorAll('.order-detail-overlay.active');
+                openModals.forEach(function(m) {
+                    m.classList.remove('active');
+                });
+                document.body.style.overflow = '';
+            }
         });
     </script>
     <script src="/js/admin-notify.js"></script>

@@ -7,7 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class ProductController extends Controller
 {
@@ -48,7 +48,10 @@ class ProductController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $file = $request->file('image');
+            $filename = time() . '_' . bin2hex(random_bytes(8)) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('products'), $filename);
+            $validated['image'] = 'products/' . $filename;
         }
 
         $product = Product::create($validated);
@@ -87,10 +90,13 @@ class ProductController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
+            if ($product->image && File::exists(public_path($product->image))) {
+                File::delete(public_path($product->image));
             }
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $file = $request->file('image');
+            $filename = time() . '_' . bin2hex(random_bytes(8)) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('products'), $filename);
+            $validated['image'] = 'products/' . $filename;
         }
 
         $product->update($validated);
@@ -101,8 +107,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
+        if ($product->image && File::exists(public_path($product->image))) {
+            File::delete(public_path($product->image));
         }
 
         $product->delete();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\OrderFolioService;
 use App\Services\OrderTotalCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -76,6 +77,8 @@ class StripeController extends Controller
 
         try {
             $order = DB::transaction(function () use ($validated, $serverCalculated) {
+                $folio = (new OrderFolioService())->next($validated['branch']);
+
                 $order = Order::create([
                     'customer_name'    => $validated['customer_name'],
                     'customer_phone'   => $validated['customer_phone'],
@@ -89,6 +92,8 @@ class StripeController extends Controller
                     'total'            => $serverCalculated['total'],
                     'coupon_code'      => $serverCalculated['coupon_code'],
                     'status'           => 'pendiente',
+                    'folio'            => $folio['folio'],
+                    'folio_date'       => $folio['folio_date'],
                 ]);
 
                 foreach ($serverCalculated['items'] as $item) {
@@ -163,6 +168,7 @@ class StripeController extends Controller
             return response()->json([
                 'success'    => true,
                 'order_id'   => $order->id,
+                'folio'      => $order->folio_label,
                 'session_id' => $session->id,
                 'url'        => $session->url,
             ]);
@@ -278,7 +284,9 @@ class StripeController extends Controller
             return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
         }
 
-        if ($order->status === 'pendiente' && $sessionId) {
+        $cardLast4 = null;
+
+        if ($sessionId) {
             try {
                 $this->initStripe();
                 $session = CheckoutSession::retrieve($sessionId);
@@ -288,15 +296,27 @@ class StripeController extends Controller
                     return response()->json([
                         'success'      => true,
                         'order_id'     => $order->id,
+                        'folio'        => $order->folio_label,
                         'status'       => $order->status,
                         'status_label' => $order->status_label,
                     ]);
                 }
 
-                if ($session->payment_status === 'paid') {
+                if ($order->status === 'pendiente' && $session->payment_status === 'paid') {
                     $order->status = 'pagado';
                     $order->stripe_payment_intent_id = $session->payment_intent ?? null;
                     $order->save();
+                }
+
+                $paymentIntentId = $session->payment_intent ?? $order->stripe_payment_intent_id ?? null;
+                if ($paymentIntentId) {
+                    $pi = \Stripe\PaymentIntent::retrieve([
+                        'id'     => $paymentIntentId,
+                        'expand' => ['payment_method'],
+                    ]);
+                    if ($pi->payment_method && isset($pi->payment_method->card->last4)) {
+                        $cardLast4 = $pi->payment_method->card->last4;
+                    }
                 }
             } catch (\Exception $e) {
                 Log::warning('[Stripe] Error al verificar sesión: ' . $e->getMessage());
@@ -306,8 +326,10 @@ class StripeController extends Controller
         return response()->json([
             'success'      => true,
             'order_id'     => $order->id,
+            'folio'        => $order->folio_label,
             'status'       => $order->status,
             'status_label' => $order->status_label,
+            'card_last4'   => $cardLast4,
         ]);
     }
 }

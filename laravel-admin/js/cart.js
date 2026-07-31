@@ -1583,7 +1583,6 @@ const Cart = (() => {
       msg += `\n⚠️ *Adjunta tu comprobante de transferencia*`;
     }
 
-    const url = `https://wa.me/${BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : ""}?text=${encodeURIComponent(msg)}`;
     const sendBtn = document.getElementById("cart-send-whatsapp");
     if (sendBtn) {
       sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando pedido...';
@@ -1645,10 +1644,16 @@ const Cart = (() => {
     fetchPromise
     .then(function(r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      var folio = (data && data.order && data.order.folio) || "";
+      var finalMsg = folio ? msg.replace("*Tipo:*", "*Nº de pedido:* " + folio + "\n*Tipo:*") : msg;
       if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
+      var url = "https://wa.me/" + (BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "") + "?text=" + encodeURIComponent(finalMsg);
       const opened = window.open(url, "_blank", "noopener,noreferrer");
       if (!opened) {
-        navigator.clipboard.writeText(msg).then(function() {
+        navigator.clipboard.writeText(finalMsg).then(function() {
           showCartAlert("No se pudo abrir WhatsApp. El mensaje se copió al portapapeles. Pégalo en WhatsApp manualmente.");
         }).catch(function() {
           showCartAlert("No se pudo abrir WhatsApp. Activa las ventanas emergentes e intenta de nuevo.");
@@ -1776,6 +1781,7 @@ const Cart = (() => {
     })
     .then(function(data) {
       sessionStorage.setItem("stripe_order_id", data.order_id);
+      sessionStorage.setItem("stripe_order_folio", data.folio || "");
       sessionStorage.setItem("stripe_checkout_active", "1");
       window.location.href = data.url;
     })
@@ -1785,7 +1791,7 @@ const Cart = (() => {
     });
   }
 
-  function sendPaidWhatsApp(orderId) {
+  function sendPaidWhatsApp(orderId, cardLast4, folio) {
     const isPickup = state.deliveryType === "recoger";
     const subtotal = getTotal();
     const fee = getDeliveryFee();
@@ -1797,7 +1803,7 @@ const Cart = (() => {
     const addrText = formatAddress(state.location.address);
 
     let msg = "\u2705 *PAGO CON TARJETA CONFIRMADO*\n";
-    msg += "Orden #" + orderId + "\n";
+    msg += "Nº de pedido: " + (folio || orderId) + "\n";
     msg += "\n";
     msg += "*Pedido - Las Tortas Del Chiche*\n";
     msg += "\n";
@@ -1831,7 +1837,7 @@ const Cart = (() => {
     if (discount > 0) msg += "\n*Descuento (" + (couponData ? couponData.label : "") + "):* -$" + discount + " MXN";
     if (!isPickup) msg += "\n*Motomandado" + (dist ? " (" + formatDistance(dist) + ")" : "") + ":* $" + fee + " MXN";
     msg += "\n*Total: $" + grandTotal + " MXN*";
-    msg += "\n\ud83d\udcb3 *Pagado con tarjeta* (ID: " + orderId + ")";
+    msg += "\n\ud83d\udcb3 *Pagado con tarjeta terminaci\u00f3n " + (cardLast4 ? "****" + cardLast4 : "#" + orderId) + "*";
 
     var whatsapp = BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "";
     var url = "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(msg);
@@ -1845,8 +1851,10 @@ const Cart = (() => {
     var sessionId = params.get("session_id");
 
     var wasCheckoutActive = sessionStorage.getItem("stripe_checkout_active");
+    var folio = sessionStorage.getItem("stripe_order_folio");
     sessionStorage.removeItem("stripe_checkout_active");
     sessionStorage.removeItem("stripe_order_id");
+    sessionStorage.removeItem("stripe_order_folio");
 
     if (status === "success" && orderId) {
       fetch("/api/stripe/status?order_id=" + encodeURIComponent(orderId) + (sessionId ? "&session_id=" + encodeURIComponent(sessionId) : ""), {
@@ -1854,14 +1862,16 @@ const Cart = (() => {
         headers: { "Accept": "application/json" },
       })
       .then(function(r) { return r.json(); })
-      .then(function() {
+      .then(function(data) {
+        var cardLast4 = data.card_last4 || null;
+        var folioFinal = data.folio || folio || null;
         showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
-        sendPaidWhatsApp(orderId);
+        sendPaidWhatsApp(orderId, cardLast4, folioFinal);
         clearCartAfterPayment();
       })
       .catch(function() {
         showToast("\u2705 Pago registrado. Gracias por tu compra!", "success");
-        sendPaidWhatsApp(orderId);
+        sendPaidWhatsApp(orderId, null, folio || null);
         clearCartAfterPayment();
       });
 
