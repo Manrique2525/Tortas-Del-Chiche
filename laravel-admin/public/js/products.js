@@ -10,8 +10,9 @@ function getProductsApiUrl() {
 
 function createProductCard(product) {
     const div = document.createElement('div');
-    const isInactive = product.branch_active === false ||
-        (typeof product.branch_active === 'undefined' && (product.active === false || product.active === 0));
+    const catalogMode = !window.selectedBranch;
+    const isInactive = !catalogMode && (product.branch_active === false ||
+        (typeof product.branch_active === 'undefined' && (product.active === false || product.active === 0)));
     div.className = isInactive ? 'menu-item menu-item-inactive' : 'menu-item';
     div.dataset.id = product.id;
     div.dataset.name = product.name;
