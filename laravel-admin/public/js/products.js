@@ -68,7 +68,7 @@ function createProductCard(product) {
 
     const priceSpan = document.createElement('span');
     priceSpan.className = 'price';
-    priceSpan.textContent = '$' + product.price;
+    priceSpan.textContent = '$' + (product.branch_price || product.price);
     header.appendChild(priceSpan);
 
     div.appendChild(header);
@@ -79,7 +79,7 @@ function createProductCard(product) {
         div.appendChild(descP);
     }
 
-    if (!isInactive && needsOptions) {
+    if (!isInactive && needsOptions && window.selectedBranch) {
         let optionsHtml = '';
         if (hasTypeOptions) {
             let btns = '';
@@ -107,20 +107,23 @@ function createProductCard(product) {
     }
 
     const addBtn = document.createElement('button');
-    if (isInactive) {
+    if (!window.selectedBranch) {
+        div.className = isInactive ? 'menu-item menu-item-inactive menu-item-catalog' : 'menu-item menu-item-catalog';
+    } else if (isInactive) {
         addBtn.className = 'add-to-cart-btn unavailable-btn';
         addBtn.disabled = true;
         addBtn.setAttribute('aria-label', product.name + ' no disponible');
         addBtn.innerHTML = '<i class="fas fa-ban"></i> No Disponible';
+        div.appendChild(addBtn);
     } else {
         addBtn.className = 'add-to-cart-btn' + (needsOptions ? ' disabled' : '');
         addBtn.disabled = needsOptions;
         addBtn.setAttribute('aria-label', 'Agregar ' + product.name + ' al carrito');
         addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Agregar';
+        div.appendChild(addBtn);
     }
-    div.appendChild(addBtn);
 
-    if (needsOptions && !isInactive) {
+    if (needsOptions && !isInactive && window.selectedBranch) {
         div.dataset.hasTypeOptions = hasTypeOptions ? '1' : '0';
         div.dataset.hasMeatOptions = hasMeatOptions ? '1' : '0';
         div.querySelectorAll('.product-option-group').forEach(function (group) {
@@ -211,10 +214,10 @@ async function loadProducts() {
             if (bebidasGrid) bebidasGrid.appendChild(createProductCard(product));
         });
 
-        if (typeof initCartAddButtons === 'function') {
+        if (window.selectedBranch && typeof initCartAddButtons === 'function') {
             initCartAddButtons();
         }
-        if (typeof syncAllCardButtons === 'function') {
+        if (window.selectedBranch && typeof syncAllCardButtons === 'function') {
             syncAllCardButtons();
         }
 
@@ -260,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     (window.branchCallbacks || (window.branchCallbacks = [])).push(function() {
         loadProducts();
-        if (typeof syncAllCardButtons === 'function') {
+        if (window.selectedBranch && typeof syncAllCardButtons === 'function') {
             syncAllCardButtons();
         }
     });

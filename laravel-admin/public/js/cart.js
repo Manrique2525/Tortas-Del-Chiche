@@ -580,6 +580,7 @@ const Cart = (() => {
     });
   }
   function createFloatingButton() {
+    if (!window.selectedBranch) return;
     if (document.getElementById("cart-float-btn")) return;
 
     const btn = document.createElement("div");
@@ -594,6 +595,11 @@ const Cart = (() => {
     btn.addEventListener("click", toggleSidebar);
     document.body.appendChild(btn);
     renderBadge();
+  }
+
+  function removeFloatingButton() {
+    const btn = document.getElementById("cart-float-btn");
+    if (btn) btn.remove();
   }
 
   function renderBadge() {
@@ -1255,6 +1261,7 @@ const Cart = (() => {
         if (state.deliveryType === newType) return;
         state.deliveryType = newType;
         state.pickupTime = "";
+        if (newType === "recoger") state.customer.addressRef = "";
         save();
         renderSidebar();
       });
@@ -1525,6 +1532,11 @@ const Cart = (() => {
         return;
       }
     }
+    if (state.payment === "transferencia" && !state.paymentProof) {
+      showCartAlert("Adjunta tu comprobante de transferencia.");
+      openSection("pago");
+      return;
+    }
 
     const subtotal = getTotal();
     const fee = getDeliveryFee();
@@ -1543,9 +1555,6 @@ const Cart = (() => {
     msg += `\n*Tel:* ${state.customer.phone}`;
     if (isPickup) {
       msg += `\n*Hora de recolección:* ${state.pickupTime}`;
-      if (state.customer.addressRef.trim()) {
-        msg += `\n*Nota:* ${state.customer.addressRef}`;
-      }
     } else {
       msg += `\n*Referencia:* ${state.customer.addressRef}`;
       if (addrText) {
@@ -1813,9 +1822,6 @@ const Cart = (() => {
     msg += "\n*Tel:* " + state.customer.phone;
     if (isPickup) {
       msg += "\n*Hora de recolección:* " + state.pickupTime;
-      if (state.customer.addressRef.trim()) {
-        msg += "\n*Nota:* " + state.customer.addressRef;
-      }
     } else {
       msg += "\n*Referencia:* " + state.customer.addressRef;
       if (addrText) msg += "\n*Dirección:* " + addrText;
@@ -1981,6 +1987,7 @@ const Cart = (() => {
   }
 
   function bindAddButtons() {
+    if (!window.selectedBranch) return;
     document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
       if (btn._cartBound) return;
       btn._cartBound = true;
@@ -2027,6 +2034,12 @@ const Cart = (() => {
     // When branch changes via header, update state and re-render
     (window.branchCallbacks || (window.branchCallbacks = [])).push(function(newBranch) {
       state.branch = newBranch;
+      if (newBranch) {
+        createFloatingButton();
+      } else {
+        removeFloatingButton();
+        closeSidebar();
+      }
       if (state.pickupTime && BRANCHES[newBranch]) {
         var validHours = getPickupHours(newBranch);
         if (validHours.indexOf(state.pickupTime) === -1) {
@@ -2040,7 +2053,9 @@ const Cart = (() => {
       }
     });
 
-    bindAddButtons();
+    if (window.selectedBranch) {
+      bindAddButtons();
+    }
 
     window.addEventListener('branch-products-updated', function() {
       var sidebar = document.getElementById('cart-sidebar');

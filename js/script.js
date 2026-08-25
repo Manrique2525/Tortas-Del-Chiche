@@ -192,6 +192,27 @@ document.addEventListener("DOMContentLoaded", function () {
           bList.innerHTML = '<div class="branch-modal-empty">No hay sucursales disponibles</div>';
           return;
         }
+
+        var allClosed = branches.every(function(b) { return !b.is_open; });
+
+        if (allClosed) {
+          var closeBtn = document.createElement("button");
+          closeBtn.className = "branch-modal-close-btn";
+          closeBtn.innerHTML = "&times;";
+          closeBtn.setAttribute("aria-label", "Cerrar");
+          closeBtn.addEventListener("click", function() {
+            window.selectedBranch = "";
+            localStorage.removeItem("tortas_chiche_branch");
+            closeBranchModal();
+          });
+          bContainer.insertBefore(closeBtn, bContainer.firstChild);
+
+          var notice = document.createElement("div");
+          notice.className = "branch-modal-closed-notice";
+          notice.innerHTML = '<i class="fas fa-clock"></i> Sucursales cerradas por ahora';
+          bContainer.insertBefore(notice, bList);
+        }
+
         branches.forEach(function (b) {
           var item = document.createElement("button");
           item.className = "branch-modal-item";
@@ -211,6 +232,18 @@ document.addEventListener("DOMContentLoaded", function () {
           });
           bList.appendChild(item);
         });
+
+        if (allClosed) {
+          var skipBtn = document.createElement("button");
+          skipBtn.className = "branch-modal-skip-btn";
+          skipBtn.innerHTML = '<i class="fas fa-utensils"></i> Ver menú';
+          skipBtn.addEventListener("click", function() {
+            window.selectedBranch = "";
+            localStorage.removeItem("tortas_chiche_branch");
+            closeBranchModal();
+          });
+          bList.appendChild(skipBtn);
+        }
       })
       .catch(function () {
         bList.innerHTML = '<div class="branch-modal-empty">Error al cargar sucursales</div>';
@@ -932,6 +965,19 @@ document.addEventListener("DOMContentLoaded", function () {
         if (b.key === selectedKey) branch = b;
       });
 
+      var allClosed = branches.every(function(b) { return !b.is_open; });
+
+      if (allClosed && !selectedKey) {
+        nameEl.textContent = "Sucursales cerradas";
+        statusEl.className = "branch-selector-status closed";
+        btn.classList.add("disabled");
+        btn.title = "Todas las sucursales están cerradas";
+        dropdown.innerHTML = '<div style="padding:12px;text-align:center;color:#999;font-size:0.8rem;">Sucursales cerradas por ahora</div>';
+        return;
+      }
+
+      btn.classList.remove("disabled");
+
       if (!branch && branches.length > 0) {
         branch = branches[0];
         selectedKey = branch.key;
@@ -956,6 +1002,12 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(function(r) { return r.json(); })
       .then(function(branches) {
         var selected = window.selectedBranch;
+        var anyOpen = branches.some(function(b) { return b.is_open; });
+
+        if (!anyOpen) {
+          updateBranchSelector(branches, "");
+          return;
+        }
 
         // Auto-detect via geolocation
         if (!selected && navigator.geolocation) {
