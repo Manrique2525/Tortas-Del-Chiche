@@ -190,6 +190,32 @@ document.addEventListener("DOMContentLoaded", function () {
         bList.innerHTML = "";
         if (!branches || branches.length === 0) {
           bList.innerHTML = '<div class="branch-modal-empty">No hay sucursales disponibles</div>';
+
+          var closeBtnZero = document.createElement("button");
+          closeBtnZero.className = "branch-modal-close-btn";
+          closeBtnZero.innerHTML = "&times;";
+          closeBtnZero.setAttribute("aria-label", "Cerrar");
+          closeBtnZero.addEventListener("click", function() {
+            window.selectedBranch = "";
+            localStorage.removeItem("tortas_chiche_branch");
+            closeBranchModal();
+          });
+          bContainer.insertBefore(closeBtnZero, bContainer.firstChild);
+
+          var noticeZero = document.createElement("div");
+          noticeZero.className = "branch-modal-closed-notice";
+          noticeZero.innerHTML = '<i class="fas fa-clock"></i> No hay sucursales disponibles';
+          bContainer.insertBefore(noticeZero, bList);
+
+          var skipBtnZero = document.createElement("button");
+          skipBtnZero.className = "branch-modal-skip-btn";
+          skipBtnZero.innerHTML = '<i class="fas fa-utensils"></i> Ver menú';
+          skipBtnZero.addEventListener("click", function() {
+            window.selectedBranch = "";
+            localStorage.removeItem("tortas_chiche_branch");
+            closeBranchModal();
+          });
+          bList.appendChild(skipBtnZero);
           return;
         }
 
