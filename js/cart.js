@@ -1598,6 +1598,9 @@ const Cart = (() => {
       sendBtn.disabled = true;
     }
 
+    var whatsappUrl = "https://wa.me/" + (BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "") + "?text=" + encodeURIComponent(msg);
+    var waWin = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+
     const orderPayload = {
       customer_name: state.customer.name.trim(),
       customer_phone: state.customer.phone.replace(/\D/g, ""),
@@ -1658,10 +1661,13 @@ const Cart = (() => {
     .then(function(data) {
       var folio = (data && data.order && data.order.folio) || "";
       var finalMsg = folio ? msg.replace("*Tipo:*", "*Nº de pedido:* " + folio + "\n*Tipo:*") : msg;
-      if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo WhatsApp...';
-      var url = "https://wa.me/" + (BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "") + "?text=" + encodeURIComponent(finalMsg);
-      const opened = window.open(url, "_blank", "noopener,noreferrer");
-      if (!opened) {
+      var finalUrl = "https://wa.me/" + (BRANCHES[state.branch] ? BRANCHES[state.branch].whatsapp : "") + "?text=" + encodeURIComponent(finalMsg);
+      if (waWin && !waWin.closed) {
+        waWin.location.href = finalUrl;
+      } else {
+        waWin = window.open(finalUrl, "_blank", "noopener,noreferrer");
+      }
+      if (!waWin || waWin.closed) {
         navigator.clipboard.writeText(finalMsg).then(function() {
           showCartAlert("No se pudo abrir WhatsApp. El mensaje se copió al portapapeles. Pégalo en WhatsApp manualmente.");
         }).catch(function() {
@@ -1672,6 +1678,7 @@ const Cart = (() => {
       clearCartAfterPayment();
     })
     .catch(function() {
+      if (waWin && !waWin.closed) waWin.close();
       if (sendBtn) {
         sendBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp';
         sendBtn.disabled = false;
