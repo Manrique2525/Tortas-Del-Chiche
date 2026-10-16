@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\DistanceController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\StripeController;
@@ -8,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/branches', [BranchController::class, 'index']);
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/distance', [DistanceController::class, 'show'])->middleware('throttle:60,1');
 Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:10,1');
 Route::get('/orders/pending-count', function () {
     return response()->json([

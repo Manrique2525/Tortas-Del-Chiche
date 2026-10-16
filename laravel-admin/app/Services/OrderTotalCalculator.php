@@ -96,11 +96,17 @@ class OrderTotalCalculator
         }
 
         $branch = Branch::where('key', $branchKey)->first();
-        if (!$branch || !$branch->lat || !$branch->lng || !$clientLat || !$clientLng) {
+        if (!$branch || !$branch->latitude || !$branch->longitude || !$clientLat || !$clientLng) {
             return 40.0;
         }
 
-        $dist = $this->haversineDistance((float) $branch->lat, (float) $branch->lng, $clientLat, $clientLng);
+        $dist = app(RouteDistanceService::class)->getDistance(
+            (float) $branch->latitude,
+            (float) $branch->longitude,
+            $clientLat,
+            $clientLng,
+        )['km'];
+
         $baseFee = 40.0;
         $baseKm = 4;
         $perKm = 10.0;

@@ -142,7 +142,7 @@ const Cart = (() => {
     if (!state.location.lat || !state.location.lng) return DELIVERY_FEE.base;
     const branch = BRANCHES[state.branch];
     if (!branch) return DELIVERY_FEE.base;
-    const dist = haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
+    const dist = getDeliveryDistance() || haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
     const extra = Math.max(0, Math.ceil(dist) - DELIVERY_FEE.baseKm);
     return Math.min(DELIVERY_FEE.max, Math.max(DELIVERY_FEE.min, DELIVERY_FEE.base + extra * DELIVERY_FEE.perKm));
   }
@@ -151,7 +151,43 @@ const Cart = (() => {
     if (state.deliveryType !== "domicilio" || !state.location.lat || !state.location.lng) return null;
     const branch = BRANCHES[state.branch];
     if (!branch) return null;
+    const key = routeDistanceKey();
+    if (routeDistanceCache.key === key && routeDistanceCache.km) return routeDistanceCache.km;
     return haversineDistance(branch.lat, branch.lng, state.location.lat, state.location.lng);
+  }
+
+  let routeDistanceCache = { key: null, km: null };
+
+  function routeDistanceKey() {
+    if (!state.branch || !state.location.lat || !state.location.lng) return null;
+    return state.branch + "|" + state.location.lat.toFixed(5) + "|" + state.location.lng.toFixed(5);
+  }
+
+  function refreshRouteDistance() {
+    if (state.deliveryType !== "domicilio" || !state.branch) return;
+    if (!state.location.lat || !state.location.lng) return;
+    const key = routeDistanceKey();
+    if (!key || routeDistanceCache.key === key) return;
+
+    routeDistanceCache.key = key;
+
+    const url = "/api/distance?branch=" + encodeURIComponent(state.branch) +
+      "&lat=" + state.location.lat + "&lng=" + state.location.lng;
+
+    fetch(url, { headers: { "Accept": "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data && typeof data.distance_km === "number" && data.distance_km > 0) {
+          routeDistanceCache = { key: key, km: data.distance_km };
+          const sidebar = document.getElementById("cart-sidebar");
+          if (sidebar && sidebar.classList.contains("open")) renderSidebar();
+        } else {
+          routeDistanceCache = { key: null, km: null };
+        }
+      })
+      .catch(function () {
+        routeDistanceCache = { key: null, km: null };
+      });
   }
 
   function getCouponData() {
@@ -670,6 +706,7 @@ const Cart = (() => {
     overlay.classList.add("open");
     sidebar.classList.add("open");
     document.body.style.overflow = "hidden";
+    refreshRouteDistance();
   }
 
   function closeSidebar() {
@@ -1264,6 +1301,7 @@ const Cart = (() => {
         if (newType === "recoger") state.customer.addressRef = "";
         save();
         renderSidebar();
+        refreshRouteDistance();
       });
     });
 
@@ -1457,6 +1495,7 @@ const Cart = (() => {
     save();
     closeMapModal();
     renderSidebar();
+    refreshRouteDistance();
   }
 
   function closeMapModal() {
@@ -2058,6 +2097,7 @@ const Cart = (() => {
       if (sidebar && sidebar.classList.contains("open")) {
         renderSidebar();
       }
+      refreshRouteDistance();
     });
 
     if (window.selectedBranch) {
