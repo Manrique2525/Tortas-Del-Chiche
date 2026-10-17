@@ -25,6 +25,28 @@ const Cart = (() => {
 
   let BRANCHES = {};
   let BRANCHES_LOADED = false;
+  let COUPONS_LOADED = false;
+  let dataReadyResolve;
+  const dataReady = new Promise(function (resolve) { dataReadyResolve = resolve; });
+
+  function markDataReady() {
+    if (BRANCHES_LOADED && COUPONS_LOADED && dataReadyResolve) {
+      dataReadyResolve();
+      dataReadyResolve = null;
+    }
+  }
+
+  function whenDataReady(callback) {
+    let done = false;
+    const run = function () {
+      if (done) return;
+      done = true;
+      callback();
+    };
+    if (BRANCHES_LOADED && COUPONS_LOADED) return run();
+    dataReady.then(run);
+    setTimeout(run, 3000);
+  }
 
   function loadBranches() {
     fetch("/api/branches")
@@ -53,6 +75,7 @@ const Cart = (() => {
         });
         BRANCHES = map;
         BRANCHES_LOADED = true;
+        markDataReady();
 
         if (state.branch && !BRANCHES[state.branch]) {
           var keys = Object.keys(BRANCHES);
@@ -67,6 +90,7 @@ const Cart = (() => {
       })
       .catch(function() {
         BRANCHES_LOADED = true;
+        markDataReady();
       });
   }
 
@@ -210,8 +234,13 @@ const Cart = (() => {
       .then((r) => r.json())
       .then((data) => {
         VALID_COUPONS = data;
+        COUPONS_LOADED = true;
+        markDataReady();
       })
-      .catch(() => {});
+      .catch(() => {
+        COUPONS_LOADED = true;
+        markDataReady();
+      });
   }
 
   function getPickupHours(branchKey) {
@@ -1918,13 +1947,17 @@ const Cart = (() => {
         var cardLast4 = data.card_last4 || null;
         var folioFinal = data.folio || folio || null;
         showToast("\u2705 Pago aprobado con \u00e9xito. Gracias por tu compra!", "success");
-        sendPaidWhatsApp(orderId, cardLast4, folioFinal);
-        clearCartAfterPayment();
+        whenDataReady(function () {
+          sendPaidWhatsApp(orderId, cardLast4, folioFinal);
+          clearCartAfterPayment();
+        });
       })
       .catch(function() {
         showToast("\u2705 Pago registrado. Gracias por tu compra!", "success");
-        sendPaidWhatsApp(orderId, null, folio || null);
-        clearCartAfterPayment();
+        whenDataReady(function () {
+          sendPaidWhatsApp(orderId, null, folio || null);
+          clearCartAfterPayment();
+        });
       });
 
       saveToHistory();
@@ -2059,6 +2092,10 @@ const Cart = (() => {
   }
 
   function init() {
+    load();
+    loadCoupons();
+    loadBranches();
+
     checkStripeReturn();
 
     window.addEventListener("pageshow", function(e) {
@@ -2066,10 +2103,6 @@ const Cart = (() => {
         checkStripeReturn();
       }
     });
-
-    load();
-    loadCoupons();
-    loadBranches();
 
     // Sync branch from header selector
     if (window.selectedBranch) {
